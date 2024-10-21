@@ -1,0 +1,14 @@
+{
+  "name": "react-mocovi",
+  "version": "0.1.0",
+  "description": "Data Store for React, with no boilerplate",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Marius Aabel",
+  "license": "ISC",
+  "dependencies": {
+    "react": "^18.3.1"
+  }
+}

@@ -1,0 +1,4 @@
+// NPM Module gitignore
+
+node_modules/
+.DS_Store
