@@ -2,7 +2,7 @@
   "name": "react-mocovi",
   "version": "0.1.0",
   "description": "Data Store for React, with no boilerplate",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
