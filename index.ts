@@ -1,6 +1,9 @@
-import useStore from "./useStore";
-import useCreateStore from "./useCreateStore";
-import { Store, StoreAction } from "./Store";
 
-export { useStore, useCreateStore };
+// Map all exports
+
+// import useStore from "./useStore";
+import createStore from "./createStore";
+import { Store, StoreAction } from "./Store";
+import Input from "./Input";
+export { createStore, Input };
 export type { StoreAction, Store };
