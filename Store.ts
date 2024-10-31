@@ -23,6 +23,7 @@ type StoreAction<Data> = {
 type Store<Data> = {
     dispatch: (action: (StoreAction<Data> | ((data: Data) => StoreAction<Data>))) => void;
     useStore: () => [data: Data, (action: (StoreAction<Data> | ((data: Data) => StoreAction<Data>))) => void];
+    data: Data;
 }
 
 type StoreStore = {

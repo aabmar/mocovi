@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, createContext } from "react";
+import React, { useEffect, useContext, useState, createContext } from "react";
 import { createEventHandler } from "./Event";
 import { getStore, PayloadSetField, setStore, Store, StoreAction } from "./Store";
 
@@ -34,15 +34,15 @@ How it works:
 
 
 function createStore<Data>(defaultDdata: Data) {
-    
+
+    let context: React.Context<Store<Data>>;
+
     function create(): Store<Data> {
         console.log("useCreateStore() creating store");
 
         let data_ = defaultDdata;
 
-        const eventHandlerRef = useRef(createEventHandler<Data>());
-        const eventHandler = eventHandlerRef.current;
-
+        const eventHandler = createEventHandler<Data>();
 
         function dispatch( action: (StoreAction<Data> | ((data: Data) => StoreAction<Data>)) ) {
 
@@ -77,6 +77,10 @@ function createStore<Data>(defaultDdata: Data) {
 
         function useStore(): [data: Data, (action: (StoreAction<Data> | ((data: Data) => StoreAction<Data>))) => void] {
 
+            // TODO: It might be just as good to access data directly?
+            const store = useContext(context);
+            let data_ = store.data;
+
             const [data, setData] = useState<Data>(data_);
 
             useEffect(() => {
@@ -92,16 +96,17 @@ function createStore<Data>(defaultDdata: Data) {
             return [data, dispatch];
         }
 
-        const st:Store<Data> = {useStore, dispatch};
+        const st:Store<Data> = {useStore, dispatch, data: data_};
         return st;
     }
 
     const store = create();
 
     // We create a context so that we can get back the store in useStore()
-    const context = createContext<Store<Data>>(store);
+    context = createContext<Store<Data>>(store);
     
-    return context;  
+    console.log("%%%useCreateStore() returning store: ", store);
+    return store.useStore;
 }
 
 export default createStore ;
