@@ -1,6 +1,6 @@
 import React, { useEffect, useContext, useState, createContext } from "react";
 import { createEventHandler } from "./Event";
-import { getStore, PayloadSetField, setStore, Store, StoreAction, StoreDispatch } from "./Store";
+import { PayloadSetField, Store, StoreAction, StoreDispatch } from "./Store";
 
 // Global data store that updates components when data changes.
 // Data is mutable, and is updated by calling setState on components
