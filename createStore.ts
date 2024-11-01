@@ -1,6 +1,6 @@
 import React, { useEffect, useContext, useState, createContext } from "react";
 import { createEventHandler } from "./Event";
-import { getStore, PayloadSetField, setStore, Store, StoreAction } from "./Store";
+import { getStore, PayloadSetField, setStore, Store, StoreAction, StoreDispatch } from "./Store";
 
 // Global data store that updates components when data changes.
 // Data is mutable, and is updated by calling setState on components
@@ -75,7 +75,7 @@ function createStore<Data>(defaultDdata: Data) {
             }
         }
 
-        function useStore(): [data: Data, (action: (StoreAction<Data> | ((data: Data) => StoreAction<Data>))) => void] {
+        function useStore(): [data: Data, StoreDispatch<Data>] {
 
             // TODO: It might be just as good to access data directly?
             const store = useContext(context);

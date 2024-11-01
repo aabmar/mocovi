@@ -20,34 +20,13 @@ type StoreAction<Data> = {
     payload: Data | PayloadSetField;
 }
 
+type StoreDispatch<Data> = (action: (StoreAction<Data> | ((data: Data) => StoreAction<Data>))) => void
+
 type Store<Data> = {
-    dispatch: (action: (StoreAction<Data> | ((data: Data) => StoreAction<Data>))) => void;
-    useStore: () => [data: Data, (action: (StoreAction<Data> | ((data: Data) => StoreAction<Data>))) => void];
+    dispatch: StoreDispatch<Data>;
+    useStore: () => [data: Data, dispatch: StoreDispatch<Data>];
     data: Data;
 }
 
-type StoreStore = {
-    [key: string]: Store<any>
-}
 
-
-const stores: StoreStore = {};
-
-function getStore<Data>(name:string):Store<Data> | null {
-
-    let s: Store<Data> = stores[name];
-
-    console.log("getStore() ", name, s);
-
-    if(!s) {
-        return null;
-    }
-
-    return s;
-}
-
-function setStore<Data>(name:string, store:Store<Data>) {
-    stores[name] = store;
-}
-
-export  {getStore, setStore, StoreAction, Store, PayloadSetField};
+export type {StoreAction, Store, PayloadSetField, StoreDispatch};
