@@ -1,10 +1,10 @@
-import { Text, TextInput } from "react-native";
+import { Text, TextInput, View } from "react-native";
 import React from "react";
 
 
 export default function Input({ label, field, data, dispatch, style }) {
 
-    console.log("%% RENDER %% Input() label: ", label, " field: ", field, " data: ", data, " dispatch: ", dispatch);
+    // console.log("%% RENDER %% Input() label: ", label, " field: ", field, " data: ", data, " dispatch: ", dispatch);
 
     // No store name, make sure we have data
     if (!data) throw new Error("Input() should have 'data'");
@@ -29,9 +29,9 @@ export default function Input({ label, field, data, dispatch, style }) {
     const value = data[field];
 
     return (
-        <>
+        <View style={style?.formArea}>
             <Text>{label}</Text>
-            <TextInput style={style ? { ...style.textInput, } : {}} placeholder={label} value={value} onChangeText={(text) => { onChange(text) }} />
-        </>
+            <TextInput style={style ? { ...style?.textInput, } : {}} placeholder={label} value={value} onChangeText={(text) => { onChange(text) }} />
+        </View>
     );
 }
