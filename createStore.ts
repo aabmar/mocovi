@@ -32,15 +32,14 @@ How it works:
 // Hook for using the store
 //
 
-let storeCounter = 0;
 
-function createStore<Data>(defaultDdata: Data) {
+function createStore<Data>(id: string, defaultDdata: Data) {
 
     let context: React.Context<Store<Data>>;
 
     function create(): Store<Data> {
         // console.log("useCreateStore() creating store: ", storeCounter++);
-        const thisStore = storeCounter;
+        const thisStore = id;
 
         let data_ = defaultDdata;
 
