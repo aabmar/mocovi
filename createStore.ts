@@ -32,13 +32,15 @@ How it works:
 // Hook for using the store
 //
 
+let storeCounter = 0;
 
 function createStore<Data>(defaultDdata: Data) {
 
     let context: React.Context<Store<Data>>;
 
     function create(): Store<Data> {
-        console.log("useCreateStore() creating store");
+        // console.log("useCreateStore() creating store: ", storeCounter++);
+        const thisStore = storeCounter;
 
         let data_ = defaultDdata;
 
@@ -49,7 +51,7 @@ function createStore<Data>(defaultDdata: Data) {
             // If the parameter is a function, call the function with the current store data
             // and then we call ourself again with the StoreAction that the function returns.
             if(typeof action === "function") {
-                console.log("useStore dispatch() function: ");
+                // console.log("useStore dispatch() function: ");
                 const cb = action as (store: Data) => StoreAction<Data>;
                 const a = cb(data_)
                 dispatch(a);
@@ -58,7 +60,7 @@ function createStore<Data>(defaultDdata: Data) {
         
             switch (action.type) {
                 case "set":
-                    console.log("useStore dispatch() SET: ", action.payload);
+                    // console.log("useStore dispatch() SET: ", action.payload);
                     let payload = action.payload;
                     data_ = {...data_, ...payload};
                     eventHandler.notify(data_);
@@ -76,27 +78,29 @@ function createStore<Data>(defaultDdata: Data) {
         }
 
         function useStore(): [data: Data, StoreDispatch<Data>] {
-
             // TODO: It might be just as good to access data directly?
             const store = useContext(context);
             let data_ = store.data;
-
-            const [data, setData] = useState<Data>(data_);
+            
+            const [data, setData] = useState<Data>(defaultDdata);
+            
+            // console.log("useStore() called for store: ", thisStore, " got from context: ", store.id, " From state: ", data.id);
 
             useEffect(() => {
                 function handleChange(data: Data) {
+                    // console.log("useStore() handleChange(): ", thisStore, " data: ", data);
                     setData(() => data);
                 }
                 eventHandler.subscribe(handleChange);
                 return () => {
                     eventHandler.unsubscribe(handleChange);
                 }
-            }, [data]);
+            }, [data_]);
 
             return [data, dispatch];
         }
 
-        const st:Store<Data> = {useStore, dispatch, data: data_};
+        const st:Store<Data> = {useStore, dispatch, data: data_, id: thisStore};
         return st;
     }
 
@@ -105,7 +109,7 @@ function createStore<Data>(defaultDdata: Data) {
     // We create a context so that we can get back the store in useStore()
     context = createContext<Store<Data>>(store);
     
-    console.log("%%%useCreateStore() returning store: ", store);
+    console.log("%% useCreateStore() returning store: ", store);
     return store.useStore;
 }
 

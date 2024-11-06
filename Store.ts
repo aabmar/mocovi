@@ -26,6 +26,7 @@ type Store<Data> = {
     dispatch: StoreDispatch<Data>;
     useStore: () => [data: Data, dispatch: StoreDispatch<Data>];
     data: Data;
+    id: number;
 }
 
 
