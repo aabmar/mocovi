@@ -6,10 +6,10 @@ export type EventHandler<D> = {
     unsubscribe: (callback: (data: D) => void) => void
 };
 
-let subscribers: Array<Function> = [];
 
 export function createEventHandler<D>(): EventHandler<D> {
-
+    
+    let subscribers: Array<Function> = [];
     
     // let [ subscribers, setSubscribers] = useState<Array<Function>>([]);
 
@@ -23,13 +23,13 @@ export function createEventHandler<D>(): EventHandler<D> {
         setSubscribers((subscribers) => {
             if(subscribers.indexOf(callback) > -1) return subscribers
             const s = [...subscribers, callback]; 
-            console.log("EventHandler subscribe() ", s.length);
+            // console.log("EventHandler subscribe() ", s.length);
             return s;
         });
     }
 
     function notify(data: D) {
-        console.log("EventHandler notify() ", subscribers.length, data);
+        // console.log("EventHandler notify() ", subscribers.length, data);
         setSubscribers((subscribers) => {
             for (let i = 0; i < subscribers.length; i++) {
                 subscribers[i](data);
@@ -41,7 +41,7 @@ export function createEventHandler<D>(): EventHandler<D> {
     function unsubscribe(callback: (data: D) => void) {
         setSubscribers((subscribers) => {
             const s = subscribers.filter((subscriber) => subscriber !== callback); 
-            console.log("EventHandler unsubscribe() ", s.length);
+            // console.log("EventHandler unsubscribe() ", s.length);
             return s;
         });
     }
