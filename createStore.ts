@@ -32,13 +32,14 @@ How it works:
 // Hook for using the store
 //
 
+let storeCounter = 0;
 
 function createStore<Data>(id: string, defaultDdata: Data) {
 
     let context: React.Context<Store<Data>>;
 
     function create(): Store<Data> {
-        // console.log("useCreateStore() creating store: ", storeCounter++);
+        console.log("useCreateStore() creating store: ", id,  "create count: ", storeCounter++);
         const thisStore = id;
 
         let data_ = defaultDdata;
@@ -61,12 +62,12 @@ function createStore<Data>(id: string, defaultDdata: Data) {
                 case "set":
                     // console.log("useStore dispatch() SET: ", action.payload);
                     let payload = action.payload;
-                    data_ = {...data_, ...payload};
+                    store.data = data_ = {...data_, ...payload};
                     eventHandler.notify(data_);
                     break;
                 case "field":
                     let field = action.payload as PayloadSetField;
-                    data_ = {...data_, [field.key]: field.value};
+                    store.data = data_ = {...data_, [field.key]: field.value};
                     eventHandler.notify(data_);                
                     break;
                 case "nop":
@@ -81,20 +82,21 @@ function createStore<Data>(id: string, defaultDdata: Data) {
             const store = useContext(context);
             let data_ = store.data;
             
-            const [data, setData] = useState<Data>(defaultDdata);
+            const [data, setData] = useState<Data>(data_);
             
-            // console.log("useStore() called for store: ", thisStore, " got from context: ", store.id, " From state: ", data.id);
+            console.log("useStore() called for store: ", thisStore, " got from context: ", store.id);
+            console.log("DATA FROM CONTEXT: ", data_);
+            console.log("DATA FROM STATE: ", data);
 
             useEffect(() => {
                 function handleChange(data: Data) {
-                    // console.log("useStore() handleChange(): ", thisStore, " data: ", data);
                     setData(() => data);
                 }
                 eventHandler.subscribe(handleChange);
                 return () => {
                     eventHandler.unsubscribe(handleChange);
                 }
-            }, [data_]);
+            }, []);
 
             return [data, dispatch];
         }
