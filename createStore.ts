@@ -88,7 +88,6 @@ function createStore<Data>(id: string, defaultDdata: Data) {
 
             useEffect(() => {
                 function handleChange(data: Data) {
-                    const filtered = data;
                     setData(() => data);
                 }
                 eventHandler.subscribe(handleChange);
@@ -103,8 +102,8 @@ function createStore<Data>(id: string, defaultDdata: Data) {
 
                 useEffect(() => {
                     function handleChange(data: Data) {
-                        const filtered = data;
-                        setData(() => data);
+                        const filtered = getObjectByKey(data, key);
+                        setData(() => filtered);
                     }
                     eventHandler.subscribe(handleChange);
                     return () => {
