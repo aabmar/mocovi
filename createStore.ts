@@ -1,6 +1,6 @@
 import React, { useEffect, useContext, useState, createContext } from "react";
 import { createEventHandler } from "./Event";
-import { PayloadSetField, Store, StoreAction, StoreDispatch } from "./Store";
+import { PayloadSetField, Store, StoreAction, StoreDispatch, UseData } from "./Store";
 
 // Global data store that updates components when data changes.
 // Data is mutable, and is updated by calling setState on components
@@ -9,7 +9,6 @@ import { PayloadSetField, Store, StoreAction, StoreDispatch } from "./Store";
 /*
 
 How it works:
-
 
 - Context is created for the store by using useCreateStore()
 - The context is returned and is used as reference in useStore()
@@ -25,7 +24,6 @@ How it works:
   gives a callback to unsubscribe when the component is unmounted.
 
  
-
 */
 
 //
@@ -77,7 +75,7 @@ function createStore<Data>(id: string, defaultDdata: Data) {
             }
         }
 
-        function useStore(): [data: Data, StoreDispatch<Data>] {
+        function useStore(): {data: Data, dispatch: StoreDispatch<Data>, useData:UseData} {
             // TODO: It might be just as good to access data directly?
             const store = useContext(context);
             let data_ = store.data;
@@ -90,6 +88,7 @@ function createStore<Data>(id: string, defaultDdata: Data) {
 
             useEffect(() => {
                 function handleChange(data: Data) {
+                    const filtered = data;
                     setData(() => data);
                 }
                 eventHandler.subscribe(handleChange);
@@ -98,8 +97,31 @@ function createStore<Data>(id: string, defaultDdata: Data) {
                 }
             }, []);
 
-            return [data, dispatch];
+            const useData: UseData = (key: string) => {
+
+                const [data, setData] = useState<any>(getObjectByKey(data_, key));
+
+                useEffect(() => {
+                    function handleChange(data: Data) {
+                        const filtered = data;
+                        setData(() => data);
+                    }
+                    eventHandler.subscribe(handleChange);
+                    return () => {
+                        eventHandler.unsubscribe(handleChange);
+                    }
+                }, []);
+    
+    
+                function set(data: any){
+                    throw new Error("Not implemented");
+                }
+                return {data: getObjectByKey(data, key), set};
+            }
+
+            return {data, dispatch, useData};
         }
+
 
         const st:Store<Data> = {useStore, dispatch, data: data_, id: thisStore};
         return st;
@@ -114,4 +136,72 @@ function createStore<Data>(id: string, defaultDdata: Data) {
     return store.useStore;
 }
 
+// This is a helper function to do a deep lookup in an object.
+// A text identifies a key name, a number identifies a key name org index in an array,
+// a $ prefix will look for an object where the field "id" is equal to the value.
+// The key is formatted like this: "a.1.$c" and the function will
+// return an objct with id="c" in the array at index 1 in the object "a".
+
+function getObjectByKey(obj: any|any[], key: string|undefined) {
+
+    if(!key) return obj;
+    if(!obj) return undefined;
+
+    
+    let keys = key.split(".");
+    
+    return lookup(obj, keys);
+    
+    function lookup(obj: any, parsedKey: string[]): any{
+
+        console.log("Looking for key: ", keys, " in object: ", obj);
+
+        let k = parsedKey.shift();
+
+    
+        if(k === undefined || k.length === 0) {
+            return obj;
+        }
+        
+        if(!obj) {
+            return undefined;
+        }
+        
+        let foundObj = undefined;
+
+        if(k.startsWith("$")) {
+            console.log("Looking for ID: ", k);
+            let id = k.substring(1);
+            if(Array.isArray(obj)) {
+                foundObj = obj.find((o: any) => o.id === id);
+            } else if(typeof obj === "object") {
+                // Object doesent have find, but we still have to search through to find a child object where id is equal to the key
+                for(let key in obj) {
+                    let child = obj[key];
+                    if(typeof child === "object") {
+                        if(child.id === id) {
+                            foundObj = obj[key];
+                            break;
+                        }
+                    }
+                }
+            }
+
+        } else {
+            console.log("Looking for KEY: ", k);
+            if(Array.isArray(obj)) {
+                let index = parseInt(k);
+                foundObj = obj[index];
+            } else if(typeof obj === "object") {
+                foundObj = obj[k];
+            }
+        }
+        if(foundObj === undefined) return undefined;
+        return lookup(foundObj, parsedKey);
+    }
+
+}
+
+
 export default createStore ;
+export { getObjectByKey };

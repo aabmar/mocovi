@@ -5,6 +5,14 @@
 		}
 	],
 	"settings": {
-		"workbench.colorTheme": "Quiet Light"
+		"workbench.colorTheme": "Quiet Light",
+		"emeraldwalk.runonsave": {
+			"commands": [
+				{
+					"match": "\\.(ts|json|tsx|code-workspace)$",
+					"cmd": "copy ${fileBasename} ..\\ruter\\node_modules\\react-mocovi\\",
+				}
+			]
+		}
 	}
 }

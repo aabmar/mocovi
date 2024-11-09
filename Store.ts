@@ -22,12 +22,15 @@ type StoreAction<Data> = {
 
 type StoreDispatch<Data> = (action: (StoreAction<Data> | ((data: Data) => StoreAction<Data>))) => void
 
+type UseData = (key: string) => {data: any, set: (data: any) => void};
+
+type UseStore<Data> = ()=> {data: Data, dispatch: StoreDispatch<Data>, useData: UseData};
+
 type Store<Data> = {
     dispatch: StoreDispatch<Data>;
-    useStore: () => [data: Data, dispatch: StoreDispatch<Data>];
+    useStore: UseStore<Data>;
     data: Data;
     id: string;
 }
 
-
-export type {StoreAction, Store, PayloadSetField, StoreDispatch};
+export type {StoreAction, Store, PayloadSetField, StoreDispatch, UseStore, UseData};

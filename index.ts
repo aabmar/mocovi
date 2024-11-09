@@ -1,9 +1,11 @@
 
 // Map all exports
 
-// import useStore from "./useStore";
+
+// TODO: Move Input to a separate module for React Native components
+
 import createStore from "./createStore";
-import { Store, StoreAction } from "./Store";
+import {StoreAction, Store, PayloadSetField, StoreDispatch, UseStore} from "./Store";
 import Input from "./Input";
 export { createStore, Input };
-export type { StoreAction, Store };
+export type { StoreAction, Store, PayloadSetField, StoreDispatch, UseStore };
