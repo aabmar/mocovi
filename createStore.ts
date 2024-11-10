@@ -1,6 +1,6 @@
 import React, { useEffect, useContext, useState, createContext } from "react";
 import { createEventHandler } from "./Event";
-import { PayloadSetField, Store, StoreAction, StoreDispatch, UseData } from "./Store";
+import { PayloadSetField, Store, StoreAction, StoreController, StoreCreateController, StoreDispatch, UseData, UseStore } from "./Store";
 
 // Global data store that updates components when data changes.
 // Data is mutable, and is updated by calling setState on components
@@ -32,7 +32,7 @@ How it works:
 
 let storeCounter = 0;
 
-function createStore<Data>(id: string, defaultDdata: Data) {
+function createStore<Data>(id: string, defaultDdata: Data, createController? : StoreCreateController<Data>): Store<Data> {
 
     let context: React.Context<Store<Data>>;
 
@@ -58,7 +58,6 @@ function createStore<Data>(id: string, defaultDdata: Data) {
 
             switch (action.type) {
                 case "set":
-                    // console.log("useStore dispatch() SET: ", action.payload);
                     let payload = action.payload;
                     store.data = data_ = { ...data_, ...payload };
                     eventHandler.notify(data_);
@@ -132,16 +131,13 @@ function createStore<Data>(id: string, defaultDdata: Data) {
             }
         }
 
-        function useStore(): { data: Data, dispatch: StoreDispatch<Data> } {
+
+        const useStore:UseStore<Data> = () => {
             // TODO: It might be just as good to access data directly?
             const store = useContext(context);
             let data_ = store.data;
 
             const [data, setData] = useState<Data>(defaultDdata);
-
-            // console.debug("useStore() called for store: ", thisStore, " got from context: ", store.id);
-            // console.log("DATA FROM CONTEXT: ", data_);
-            // console.log("DATA FROM STATE: ", data);
 
             useEffect(() => {
                 function handleChange(data: Data) {
@@ -155,15 +151,14 @@ function createStore<Data>(id: string, defaultDdata: Data) {
             }, []);
 
 
-            return { data, dispatch };
+            return { data, dispatch, controller };
         }
         const useData: UseData = (key: string) => {
-            // console.debug("useData() called with key: ", key);
+
             const [data, setData] = useState<any>(getObjectByKey(defaultDdata, key));
 
             useEffect(() => {
                 function handleChange(d: Data) {
-                    // console.debug("useData() handleChange() called with for key: ", key);
                     const filtered = getObjectByKey(d, key);
                     setData(filtered);
                 }
@@ -176,21 +171,32 @@ function createStore<Data>(id: string, defaultDdata: Data) {
             function set(data: any) {
                 throw new Error("Not implemented");
             }
-            return { data, set };
+            return { data, set, controller };
         }
 
+        const useController = () => {
+            return controller;
+        }
 
-        const st: Store<Data> = { useStore, useData, dispatch, data: data_, id: thisStore };
+        const useDispatch = () => {
+            return dispatch;
+        }
+
+        const st: Store<Data> = { useStore, useData, dispatch, data: data_, id: thisStore, controller, useController, useDispatch };
+
+        var controller = createController ? createController(st, dispatch) : undefined
+
         return st;
     }
+
 
     const store = create();
 
     // We create a context so that we can get back the store in useStore()
     context = createContext<Store<Data>>(store);
 
-    console.log("%% useCreateStore() returning store: ", store);
-    return { useStore: store.useStore, useData: store.useData, dispatch: store.dispatch, id: store.id };
+    console.log("%% useCreateStore() returning store: ", id);
+    return store;
 }
 
 // This is a helper function to do a deep lookup in an object.
@@ -273,4 +279,4 @@ function lookup(obj: any, keys: any[]): any {
 }
 
 export default createStore;
-export { getObjectByKey };
+export { getObjectByKey, lookup };
