@@ -37,37 +37,94 @@ function createStore<Data>(id: string, defaultDdata: Data) {
     let context: React.Context<Store<Data>>;
 
     function create(): Store<Data> {
-        console.log("useCreateStore() creating store: ", id,  "create count: ", storeCounter++);
+        console.log("useCreateStore() creating store: ", id, "create count: ", storeCounter++);
         const thisStore = id;
 
         let data_ = defaultDdata;
 
         const eventHandler = createEventHandler<Data>();
 
-        function dispatch( action: (StoreAction<Data> | ((data: Data) => StoreAction<Data>)) ) {
+        function dispatch(action: (StoreAction<Data> | ((data: Data) => StoreAction<Data>))) {
 
             // If the parameter is a function, call the function with the current store data
             // and then we call ourself again with the StoreAction that the function returns.
-            if(typeof action === "function") {
+            if (typeof action === "function") {
                 // console.log("useStore dispatch() function: ");
                 const cb = action as (store: Data) => StoreAction<Data>;
                 const a = cb(data_)
                 dispatch(a);
                 return;
             }
-        
+
             switch (action.type) {
                 case "set":
                     // console.log("useStore dispatch() SET: ", action.payload);
                     let payload = action.payload;
-                    store.data = data_ = {...data_, ...payload};
+                    store.data = data_ = { ...data_, ...payload };
                     eventHandler.notify(data_);
                     break;
                 case "field":
-                    let field = action.payload as PayloadSetField;
-                    store.data = data_ = {...data_, [field.key]: field.value};
-                    eventHandler.notify(data_);                
+                    // TODO: This code is messy now, testing the functionality. CLEAN IT UP!!
+                    const field = action.payload as PayloadSetField;
+                    const key: string = String(field.key);
+                    const value = field.value;
+                    const keys: string[] = key.split(".");
+                    if (keys.length == 1) {
+                        store.data = data_ = { ...data_, [key]: value };
+                        eventHandler.notify(data_);
+                    } else {
+                        const path = [...keys];
+
+                        // The last key is the field name so we move it from the last entry to a separate variable
+                        const fieldName = path.pop();
+                        if (!fieldName) {
+                            throw new Error("Path to short, must be at least object key and fieldname " + key);
+                        }
+
+                        // The second to last is the object that we want to update, so we move that out as well
+                        let destinationKey = path.pop();
+                        if (!destinationKey) {
+                            throw new Error("Path to short, must be at least object key and fieldname " + key);
+                        }
+
+                        // We get the object that we want to update.
+                        // If the path now is empty, we update the root object.
+                        let destinationRoot: any;
+                        if (path.length == 0) {
+                            destinationRoot = data_;
+                        } else {
+                            destinationRoot = getObjectByKey(data_, path);
+                        }
+
+                        // If key has a $ prefix, we look for an object with id equal to the value
+                        // and replace the destinationKey with the actual key of that object                        
+                        if (destinationKey.startsWith("$")) {
+                            const id = destinationKey.substring(1);
+                            for(let key in destinationRoot) {
+                                if (destinationRoot[key].id === id) {
+                                    destinationKey = key;
+                                    break;
+                                }
+                            }
+                        }
+
+                        // Now we are ready to update the object.
+                        // If the destinationRoot is an array, we use the index as key
+                        let index;
+                        if(Array.isArray(destinationRoot)) {
+                            index = parseInt(destinationKey);
+                        } else {
+                            index = destinationKey;
+                        }
+
+                        // Update the object
+                        destinationRoot[index] = { ...destinationRoot[index], [fieldName]: value };
+
+                        // Notify the subscribers
+                        eventHandler.notify(data_);
+                    }
                     break;
+
                 case "nop":
                     break;
                 default:
@@ -75,20 +132,40 @@ function createStore<Data>(id: string, defaultDdata: Data) {
             }
         }
 
-        function useStore(): {data: Data, dispatch: StoreDispatch<Data>, useData:UseData} {
+        function useStore(): { data: Data, dispatch: StoreDispatch<Data> } {
             // TODO: It might be just as good to access data directly?
             const store = useContext(context);
             let data_ = store.data;
-            
-            const [data, setData] = useState<Data>(data_);
-            
-            console.log("useStore() called for store: ", thisStore, " got from context: ", store.id);
-            console.log("DATA FROM CONTEXT: ", data_);
-            console.log("DATA FROM STATE: ", data);
+
+            const [data, setData] = useState<Data>(defaultDdata);
+
+            // console.debug("useStore() called for store: ", thisStore, " got from context: ", store.id);
+            // console.log("DATA FROM CONTEXT: ", data_);
+            // console.log("DATA FROM STATE: ", data);
 
             useEffect(() => {
                 function handleChange(data: Data) {
                     setData(() => data);
+                }
+                // setData(data_);
+                eventHandler.subscribe(handleChange);
+                return () => {
+                    eventHandler.unsubscribe(handleChange);
+                }
+            }, []);
+
+
+            return { data, dispatch };
+        }
+        const useData: UseData = (key: string) => {
+            // console.debug("useData() called with key: ", key);
+            const [data, setData] = useState<any>(getObjectByKey(defaultDdata, key));
+
+            useEffect(() => {
+                function handleChange(d: Data) {
+                    // console.debug("useData() handleChange() called with for key: ", key);
+                    const filtered = getObjectByKey(d, key);
+                    setData(filtered);
                 }
                 eventHandler.subscribe(handleChange);
                 return () => {
@@ -96,33 +173,14 @@ function createStore<Data>(id: string, defaultDdata: Data) {
                 }
             }, []);
 
-            const useData: UseData = (key: string) => {
-
-                const [data, setData] = useState<any>(getObjectByKey(data_, key));
-
-                useEffect(() => {
-                    function handleChange(data: Data) {
-                        const filtered = getObjectByKey(data, key);
-                        setData(() => filtered);
-                    }
-                    eventHandler.subscribe(handleChange);
-                    return () => {
-                        eventHandler.unsubscribe(handleChange);
-                    }
-                }, []);
-    
-    
-                function set(data: any){
-                    throw new Error("Not implemented");
-                }
-                return {data: getObjectByKey(data, key), set};
+            function set(data: any) {
+                throw new Error("Not implemented");
             }
-
-            return {data, dispatch, useData};
+            return { data, set };
         }
 
 
-        const st:Store<Data> = {useStore, dispatch, data: data_, id: thisStore};
+        const st: Store<Data> = { useStore, useData, dispatch, data: data_, id: thisStore };
         return st;
     }
 
@@ -130,9 +188,9 @@ function createStore<Data>(id: string, defaultDdata: Data) {
 
     // We create a context so that we can get back the store in useStore()
     context = createContext<Store<Data>>(store);
-    
+
     console.log("%% useCreateStore() returning store: ", store);
-    return store.useStore;
+    return { useStore: store.useStore, useData: store.useData, dispatch: store.dispatch, id: store.id };
 }
 
 // This is a helper function to do a deep lookup in an object.
@@ -141,66 +199,78 @@ function createStore<Data>(id: string, defaultDdata: Data) {
 // The key is formatted like this: "a.1.$c" and the function will
 // return an objct with id="c" in the array at index 1 in the object "a".
 
-function getObjectByKey(obj: any|any[], key: string|undefined) {
+function getObjectByKey(obj: any | any[], key: any | [] | string | undefined) {
 
-    if(!key) return obj;
-    if(!obj) return undefined;
+    // console.log("getObjectByKey() called with key: ", key);
 
-    
-    let keys = key.split(".");
-    
-    return lookup(obj, keys);
-    
-    function lookup(obj: any, parsedKey: string[]): any{
+    if (!key) return obj;
+    if (!obj) return undefined;
 
-        console.log("Looking for key: ", keys, " in object: ", obj);
-
-        let k = parsedKey.shift();
-
-    
-        if(k === undefined || k.length === 0) {
-            return obj;
-        }
-        
-        if(!obj) {
-            return undefined;
-        }
-        
-        let foundObj = undefined;
-
-        if(k.startsWith("$")) {
-            console.log("Looking for ID: ", k);
-            let id = k.substring(1);
-            if(Array.isArray(obj)) {
-                foundObj = obj.find((o: any) => o.id === id);
-            } else if(typeof obj === "object") {
-                // Object doesent have find, but we still have to search through to find a child object where id is equal to the key
-                for(let key in obj) {
-                    let child = obj[key];
-                    if(typeof child === "object") {
-                        if(child.id === id) {
-                            foundObj = obj[key];
-                            break;
-                        }
-                    }
-                }
-            }
-
-        } else {
-            console.log("Looking for KEY: ", k);
-            if(Array.isArray(obj)) {
-                let index = parseInt(k);
-                foundObj = obj[index];
-            } else if(typeof obj === "object") {
-                foundObj = obj[k];
-            }
-        }
-        if(foundObj === undefined) return undefined;
-        return lookup(foundObj, parsedKey);
+    let keys: any[];
+    if (Array.isArray(key)) {
+        keys = key;
+    } else if (typeof key === "string") {
+        keys = key.split(".");
+    } else {
+        keys = [key];
     }
+    let depth = 0;
+
+    return lookup(obj, keys);
+
+
 
 }
 
+function lookup(obj: any, keys: any[]): any {
 
-export default createStore ;
+
+    let k = keys[0];
+
+    if (k === undefined || k.length === 0) {
+        // console.log("In level: ", depth, " returning object: ", obj);
+        return obj;
+    }
+
+    if (!obj) {
+        return undefined;
+    }
+
+    // console.log("Looking for key: ", k, " at depth: ", depth++ , " witg parsedKey: ", keys);
+
+    let foundObj = undefined;
+
+    if (k.startsWith("$")) {
+        // console.log("Looking for ID: ", k);
+        let id = k.substring(1);
+        if (Array.isArray(obj)) {
+            foundObj = obj.find((o: any) => o.id === id);
+        } else if (typeof obj === "object") {
+            // Object doesent have find, but we still have to search through to find a child object where id is equal to the key
+            for (let key in obj) {
+                let child = obj[key];
+                if (typeof child === "object") {
+                    if (child.id === id) {
+                        foundObj = obj[key];
+                        break;
+                    }
+                }
+            }
+        }
+
+    } else {
+        // console.log("Looking for KEY: ", k);
+        if (Array.isArray(obj)) {
+            let index = parseInt(k);
+            foundObj = obj[index];
+        } else if (typeof obj === "object") {
+            foundObj = obj[k];
+        }
+    }
+    // console.log("..Found object.");
+    if (foundObj === undefined) return undefined;
+    return lookup(foundObj, keys.slice(1));
+}
+
+export default createStore;
 export { getObjectByKey };

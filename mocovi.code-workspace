@@ -5,7 +5,13 @@
 		}
 	],
 	"settings": {
-		"workbench.colorTheme": "Quiet Light",
+		"workbench.colorTheme": "Solarized Light",
+		"workbench.colorCustomizations": {
+			"[Default High Contrast]": {
+				"titleBar.activeBackground": "#530850",
+				"activityBar.background": "#530850",
+			},
+		},
 		"emeraldwalk.runonsave": {
 			"commands": [
 				{

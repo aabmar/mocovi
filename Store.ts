@@ -24,11 +24,12 @@ type StoreDispatch<Data> = (action: (StoreAction<Data> | ((data: Data) => StoreA
 
 type UseData = (key: string) => {data: any, set: (data: any) => void};
 
-type UseStore<Data> = ()=> {data: Data, dispatch: StoreDispatch<Data>, useData: UseData};
+type UseStore<Data> = ()=> {data: Data, dispatch: StoreDispatch<Data>};
 
 type Store<Data> = {
     dispatch: StoreDispatch<Data>;
     useStore: UseStore<Data>;
+    useData: UseData
     data: Data;
     id: string;
 }
