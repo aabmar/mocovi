@@ -39,4 +39,7 @@ type Store<Data, Controller = null> = {
     controller?: StoreController<Controller>;
 }
 
+const stores = new Map<string, Store<any, any>>();
+
+export {stores}
 export type {StoreAction, Store, PayloadSetField, StoreDispatch, UseStore, UseData, StoreController, StoreCreateController, UseController, UseDispatch};

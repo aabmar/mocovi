@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { createEventHandler } from "./Event";
 import { PayloadSetField, Store, StoreAction, StoreController, StoreCreateController, StoreDispatch, UseController, UseData, UseDispatch, UseStore } from "./Store";
+import { stores } from "./Store";
 
 // Global data store that updates components when data changes.
 // Data is mutable, and is updated by calling setState on components
@@ -12,8 +13,6 @@ import { PayloadSetField, Store, StoreAction, StoreController, StoreCreateContro
 //
 
 let storeCounter = 0;
-
-const stores = new Map<string, Store<any, any>>();
 
 function createStore<Data, Controller = null>(id: string, defaultDdata: Data, createController? : StoreCreateController<Data, Controller>): Store<Data, Controller> {
 
