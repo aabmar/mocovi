@@ -5,7 +5,7 @@
 		}
 	],
 	"settings": {
-		"workbench.colorTheme": "Solarized Light",
+		"workbench.colorTheme": "Quiet Light",
 		"workbench.colorCustomizations": {
 			"[Default High Contrast]": {
 				"titleBar.activeBackground": "#530850",
@@ -16,7 +16,7 @@
 			"commands": [
 				{
 					"match": "\\.(ts|json|tsx|code-workspace)$",
-					"cmd": "copy ${fileBasename} ..\\ruter\\node_modules\\react-mocovi\\",
+					"cmd": "copy ${fileBasename} ..\\exp-ble\\node_modules\\react-mocovi\\",
 				}
 			]
 		}

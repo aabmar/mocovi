@@ -22,24 +22,21 @@ type StoreAction<Data> = {
 
 type StoreDispatch<Data> = (action: (StoreAction<Data> | ((data: Data) => StoreAction<Data>))) => void
 
-type UseData = (key: string) => {data: any, set: (data: any) => void, controller: StoreController | undefined};
-
-type UseStore<Data> = ()=> {data: Data, dispatch: StoreDispatch<Data>, controller: StoreController | undefined};
+type UseStore<Data> = ()=> [Data, StoreDispatch<Data>];
+type UseData = (key: string) => any;
 type UseDispatch<Data> = ()=> StoreDispatch<Data>;
-type UseController<Data> = ()=> StoreController | undefined;
+type UseController<Controller = null> = ()=> StoreController<Controller> | null;
 
-type StoreController = {};
-type StoreCreateController<Data> = (store: Store<Data>) => StoreController;
+type StoreController<Controller = null> = () => Controller;
+type StoreCreateController<Data, Controller = null> = (data: Data, dispatch: StoreDispatch<Data>) => StoreController<Controller>;
 
-type Store<Data> = {
+type Store<Data, Controller = null> = {
     dispatch: StoreDispatch<Data>;
     useStore: UseStore<Data>;
     useData: UseData;
-    useController: UseController<Data>;
+    useController: UseController<Controller>;
     useDispatch: UseDispatch<Data>;
-    data: Data;
-    id: string;
-    controller: StoreController | undefined;
+    controller?: StoreController<Controller>;
 }
 
 export type {StoreAction, Store, PayloadSetField, StoreDispatch, UseStore, UseData, StoreController, StoreCreateController, UseController, UseDispatch};
