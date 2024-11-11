@@ -14,9 +14,9 @@ import { stores } from "./Store";
 
 let storeCounter = 0;
 
-function createStore<Data, Controller = null>(id: string, defaultDdata: Data, createController? : StoreCreateController<Data, Controller>): Store<Data, Controller> {
+function createStore<Data, Controller = null>(id: string, defaultDdata: Data, createController?: StoreCreateController<Data, Controller>): Store<Data, Controller> {
 
-    function create(): Store<Data, Controller > {
+    function create(): Store<Data, Controller> {
         console.log("useCreateStore() creating store: ", id, "create count: ", storeCounter++);
 
         const internalData = {
@@ -42,11 +42,11 @@ function createStore<Data, Controller = null>(id: string, defaultDdata: Data, cr
                 case "set":
                     let payload = action.payload;
                     internalData.data = { ...internalData.data, ...payload };
-                    for(let key in internalData.data){
+                    for (let key in internalData.data) {
                         const value = internalData.data[key];
-                        console.log("dispatch() set: ", key, " value length: " , typeof value);
+                        console.log("dispatch() set: ", key, " value length: ", typeof value);
                     }
-                eventHandler.notify(internalData.data);
+                    eventHandler.notify(internalData.data);
                     break;
                 case "field":
                     // TODO: This code is messy now, testing the functionality. CLEAN IT UP!!
@@ -54,7 +54,7 @@ function createStore<Data, Controller = null>(id: string, defaultDdata: Data, cr
                     const key: string = String(field.key);
                     const value = field.value;
                     const keys: string[] = key.split(".");
-                    
+
                     console.log("dispatch() field: ", field, "keys: ", keys, " value: ", value?.length);
 
                     if (keys.length == 1) {
@@ -88,7 +88,7 @@ function createStore<Data, Controller = null>(id: string, defaultDdata: Data, cr
                         // and replace the destinationKey with the actual key of that object                        
                         if (destinationKey.startsWith("$")) {
                             const id = destinationKey.substring(1);
-                            for(let key in destinationRoot) {
+                            for (let key in destinationRoot) {
                                 if (destinationRoot[key].id === id) {
                                     destinationKey = key;
                                     break;
@@ -99,7 +99,7 @@ function createStore<Data, Controller = null>(id: string, defaultDdata: Data, cr
                         // Now we are ready to update the object.
                         // If the destinationRoot is an array, we use the index as key
                         let index;
-                        if(Array.isArray(destinationRoot)) {
+                        if (Array.isArray(destinationRoot)) {
                             index = parseInt(destinationKey);
                         } else {
                             index = destinationKey;
@@ -120,9 +120,9 @@ function createStore<Data, Controller = null>(id: string, defaultDdata: Data, cr
             }
         }
 
-        let controller: StoreController<Controller> | undefined = createController ? createController(internalData.data, dispatch) : undefined;
+        let controller: StoreController<Controller> | undefined = createController ? createController(internalData, dispatch) : undefined;
 
-        const useStore:UseStore<Data> = () => {
+        const useStore: UseStore<Data> = () => {
 
             console.log("useStore() called with store: ", internalData.id, " and data: ", internalData.data ? internalData.data.id : "null");
 
@@ -160,7 +160,7 @@ function createStore<Data, Controller = null>(id: string, defaultDdata: Data, cr
         }
 
         const useController: UseController<Controller> = () => {
-            if(!controller){
+            if (!controller) {
                 throw new Error("Controller not defined");
             }
             return controller;

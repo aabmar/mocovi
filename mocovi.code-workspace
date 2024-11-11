@@ -17,7 +17,12 @@
 				{
 					"match": "\\.(ts|json|tsx|code-workspace)$",
 					"cmd": "copy ${fileBasename} ..\\exp-ble\\node_modules\\react-mocovi\\",
+				},
+				{
+					"match": "\\.(ts|json|tsx|code-workspace)$",
+					"cmd": "copy ${fileBasename} ..\\ruter\\node_modules\\react-mocovi\\",
 				}
+
 			]
 		}
 	}
