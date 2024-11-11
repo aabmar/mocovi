@@ -22,12 +22,24 @@ type StoreAction<Data> = {
 
 type StoreDispatch<Data> = (action: (StoreAction<Data> | ((data: Data) => StoreAction<Data>))) => void
 
-type Store<Data> = {
+type UseStore<Data> = ()=> [Data, StoreDispatch<Data>];
+type UseData = (key: string) => any;
+type UseDispatch<Data> = ()=> StoreDispatch<Data>;
+type UseController<Controller = null> = ()=> StoreController<Controller> | null;
+
+type StoreController<Controller = null> = () => Controller;
+type StoreCreateController<Data, Controller = null> = (data: Data, dispatch: StoreDispatch<Data>) => StoreController<Controller>;
+
+type Store<Data, Controller = null> = {
     dispatch: StoreDispatch<Data>;
-    useStore: () => [data: Data, dispatch: StoreDispatch<Data>];
-    data: Data;
-    id: string;
+    useStore: UseStore<Data>;
+    useData: UseData;
+    useController: UseController<Controller>;
+    useDispatch: UseDispatch<Data>;
+    controller?: StoreController<Controller>;
 }
 
+const stores = new Map<string, Store<any, any>>();
 
-export type {StoreAction, Store, PayloadSetField, StoreDispatch};
+export {stores}
+export type {StoreAction, Store, PayloadSetField, StoreDispatch, UseStore, UseData, StoreController, StoreCreateController, UseController, UseDispatch};

@@ -5,6 +5,20 @@
 		}
 	],
 	"settings": {
-		"workbench.colorTheme": "Quiet Light"
+		"workbench.colorTheme": "Quiet Light",
+		"workbench.colorCustomizations": {
+			"[Default High Contrast]": {
+				"titleBar.activeBackground": "#530850",
+				"activityBar.background": "#530850",
+			},
+		},
+		"emeraldwalk.runonsave": {
+			"commands": [
+				{
+					"match": "\\.(ts|json|tsx|code-workspace)$",
+					"cmd": "copy ${fileBasename} ..\\exp-ble\\node_modules\\react-mocovi\\",
+				}
+			]
+		}
 	}
 }
