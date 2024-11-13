@@ -124,7 +124,7 @@ function createStore<Data, Controller = null>(id: string, defaultDdata: Data, cr
 
         const useStore: UseStore<Data> = () => {
 
-            console.log("useStore() called with store: ", internalData.id, " and data: ", internalData.data ? internalData.data.id : "null");
+            // console.log("useStore() called with store: ", internalData.id, " and data: ", internalData.data ? internalData.data.id : "null");
 
             const [data, setData] = useState<Data>(internalData.data);
 
