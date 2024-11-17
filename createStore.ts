@@ -44,7 +44,7 @@ function createStore<Data, Controller = null>(id: string, defaultDdata: Data, cr
                     internalData.data = { ...internalData.data, ...payload };
                     for (let key in internalData.data) {
                         const value = internalData.data[key];
-                        console.log("dispatch() set: ", key, " value length: ", typeof value);
+                        // console.log("dispatch() set: ", key, " value length: ", typeof value);
                     }
                     eventHandler.notify(internalData.data);
                     break;
@@ -55,7 +55,7 @@ function createStore<Data, Controller = null>(id: string, defaultDdata: Data, cr
                     const value = field.value;
                     const keys: string[] = key.split(".");
 
-                    console.log("dispatch() field: ", field, "keys: ", keys, " value: ", value?.length);
+                    // console.log("dispatch() field: ", field, "keys: ", keys, " value: ", value?.length);
 
                     if (keys.length == 1) {
                         internalData.data = { ...internalData.data, [key]: value };
