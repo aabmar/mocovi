@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { createEventHandler } from "./Event";
-import { PayloadSetField, Store, StoreAction, StoreCreateController, StoreDispatch, UseController, UseData, UseDispatch, UseStore } from "./Store";
+import { PayloadSetField, PayloadSync, Store, StoreAction, StoreCreateController, StoreDispatch, UseController, UseData, UseDispatch, UseStore } from "./Store";
 import { stores } from "./Store";
 
 // Global data store that updates components when data changes.
@@ -26,7 +26,7 @@ function createStore<Data, Controller = null>(id: string, defaultDdata: Data, cr
 
         const eventHandler = createEventHandler<Data>();
 
-        const dispatch: StoreDispatch<Data> = (action: (StoreAction<Data> | ((data: Data) => StoreAction<Data>))) => {
+        const dispatch: StoreDispatch<Data> = async (action: (StoreAction<Data> | ((data: Data) => StoreAction<Data>))) => {
 
             // If the parameter is a function, call the function with the current store data
             // and then we call ourself again with the StoreAction that the function returns.
@@ -112,7 +112,15 @@ function createStore<Data, Controller = null>(id: string, defaultDdata: Data, cr
                         eventHandler.notify(internalData.data);
                     }
                     break;
-
+                case "fetch":
+                    // The parameter ID must be set. The API will be fetched using the name as url
+                    // TODO: set parameters for URL
+                    const sync = action.payload as PayloadSync;
+                    const url = "/api/" + sync.id + "/" + sync.id;
+                    console.log("fetching: ", url);
+                    const response = await fetch(url)
+                    console.log("response:", response);
+                    
                 case "nop":
                     break;
                 default:

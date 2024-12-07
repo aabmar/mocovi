@@ -15,9 +15,14 @@ type PayloadSetField = {
     value: any;
 }
 
+type PayloadSync = {
+    id?: string;
+    // TODO: add paramers for fetch here
+}
+
 type StoreAction<Data> = {
     type: string;
-    payload: Data | PayloadSetField;
+    payload: Data | PayloadSetField | PayloadSync;
 }
 
 type StoreDispatch<Data> = (action: (StoreAction<Data> | ((data: Data) => StoreAction<Data>))) => void
@@ -46,4 +51,4 @@ type Store<Data, Controller = null> = {
 const stores = new Map<string, Store<any, any>>();
 
 export {stores}
-export type {StoreAction, Store, PayloadSetField, StoreDispatch, UseStore, UseData, StoreCreateController, UseController, UseDispatch, StoreInternal};
+export type {StoreAction, Store, PayloadSetField, StoreDispatch, UseStore, UseData, StoreCreateController, UseController, UseDispatch, StoreInternal, PayloadSync};
