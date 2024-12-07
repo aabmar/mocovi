@@ -6,6 +6,5 @@
 
 import createStore from "./createStore";
 import {StoreAction, Store, PayloadSetField, StoreDispatch, UseStore, UseData} from "./Store";
-import Input from "./Input";
-export { createStore, Input };
+export { createStore};
 export type { StoreAction, Store, PayloadSetField, StoreDispatch, UseStore, UseData };
