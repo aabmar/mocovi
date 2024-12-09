@@ -116,7 +116,7 @@ function createStore<Data, Controller = null>(id: string, defaultDdata: Data, cr
                     // The parameter ID must be set. The API will be fetched using the name as url
                     // TODO: set parameters for URL
                     const sync = action.payload as PayloadSync;
-                    const url = "/api/" + sync.id + "/" + sync.id;
+                    const url = "/api/" + sync.id + "/" + internalData.id;
                     console.log("fetching: ", url);
                     const response = await fetch(url)
                     console.log("response:", response);
