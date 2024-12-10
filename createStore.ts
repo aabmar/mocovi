@@ -14,7 +14,7 @@ import { stores } from "./Store";
 
 let storeCounter = 0;
 
-function createStore<Data, Controller = null>(id: string, defaultDdata: Data, options: StoreOptions<Data, Controller>): Store<Data, Controller> {
+function createStore<Data, Controller = null>(id: string, defaultDdata: Data, options?: StoreOptions<Data, Controller>): Store<Data, Controller> {
 
     function create(): Store<Data, Controller> {
         console.log("useCreateStore() creating store: ", id, "create count: ", storeCounter++);
@@ -128,11 +128,14 @@ function createStore<Data, Controller = null>(id: string, defaultDdata: Data, op
             }
         }
 
-        let controller: Controller | undefined = createController ? createController(internalData, dispatch) : undefined;
+        // If the createController function is defined, we call it with the internal data and the dispatch function.
+        // If it has an init function, we call that as well.
+        type ControllerWithInit = Controller & { init?: () => void };
+        let controller: ControllerWithInit | undefined = options?.createController ? options.createController(internalData, dispatch) as ControllerWithInit : undefined;
 
-        if(controller && controller[init]){
-            controller.init();
-        }
+        // Call init if controller exists and init exists
+        controller?.init && controller.init();
+        
 
         const useStore: UseStore<Data> = () => {
 
@@ -182,7 +185,7 @@ function createStore<Data, Controller = null>(id: string, defaultDdata: Data, op
             return dispatch;
         }
 
-        const st: Store<Data, Controller> = { useStore, useData, dispatch, controller, useController, useDispatch };
+        const st: Store<Data, Controller> = { useStore, useData, controller, useController, useDispatch };
 
         return st;
     }

@@ -27,10 +27,10 @@ type StoreAction<Data> = {
 
 type StoreDispatch<Data> = (action: (StoreAction<Data> | ((data: Data) => StoreAction<Data>))) => void
 
-type UseStore<Data> = ()=> [Data, StoreDispatch<Data>];
+type UseStore<Data> = () => [Data, StoreDispatch<Data>];
 type UseData = (key: string) => any;
-type UseDispatch<Data> = ()=> StoreDispatch<Data>;
-type UseController<Controller = null> = ()=> Controller | null;
+type UseDispatch<Data> = () => StoreDispatch<Data>;
+type UseController<Controller = null> = () => Controller | null;
 type StoreInternal<Data> = {
     data: Data,
     id: string
@@ -40,7 +40,7 @@ type StoreInternal<Data> = {
 type StoreCreateController<Data, Controller = null> = (internal: StoreInternal<Data>, dispatch: StoreDispatch<Data>) => Controller;
 
 type Store<Data, Controller = null> = {
-    dispatch: StoreDispatch<Data>;
+    // dispatch: StoreDispatch<Data>;
     useStore: UseStore<Data>;
     useData: UseData;
     useController: UseController<Controller>;
@@ -49,12 +49,26 @@ type Store<Data, Controller = null> = {
 }
 
 type StoreOptions<Data, Controller> = {
-    controller?: StoreCreateController<Data, Controller>;
+    createController?: StoreCreateController<Data, Controller>;
     apiUrl?: string;
     localStoreName?: string;
+    disableLocalStore?: boolean;
 }
 
 const stores = new Map<string, Store<any, any>>();
 
-export {stores}
-export type {StoreAction, Store, PayloadSetField, StoreDispatch, UseStore, UseData, StoreCreateController, UseController, UseDispatch, StoreInternal, PayloadSync, StoreOptions};
+export { stores }
+export type {
+    StoreAction,
+    Store,
+    PayloadSetField,
+    StoreDispatch, 
+    UseStore, 
+    UseData, 
+    StoreCreateController, 
+    UseController, 
+    UseDispatch, 
+    StoreInternal, 
+    PayloadSync, 
+    StoreOptions
+};
