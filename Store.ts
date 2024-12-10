@@ -48,7 +48,13 @@ type Store<Data, Controller = null> = {
     controller?: Controller;
 }
 
+type StoreOptions<Data, Controller> = {
+    controller?: StoreCreateController<Data, Controller>;
+    apiUrl?: string;
+    localStoreName?: string;
+}
+
 const stores = new Map<string, Store<any, any>>();
 
 export {stores}
-export type {StoreAction, Store, PayloadSetField, StoreDispatch, UseStore, UseData, StoreCreateController, UseController, UseDispatch, StoreInternal, PayloadSync};
+export type {StoreAction, Store, PayloadSetField, StoreDispatch, UseStore, UseData, StoreCreateController, UseController, UseDispatch, StoreInternal, PayloadSync, StoreOptions};

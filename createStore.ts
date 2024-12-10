@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { createEventHandler } from "./Event";
-import { PayloadSetField, PayloadSync, Store, StoreAction, StoreCreateController, StoreDispatch, UseController, UseData, UseDispatch, UseStore } from "./Store";
+import { PayloadSetField, PayloadSync, Store, StoreAction, StoreCreateController, StoreDispatch, StoreOptions, UseController, UseData, UseDispatch, UseStore } from "./Store";
 import { stores } from "./Store";
 
 // Global data store that updates components when data changes.
@@ -14,7 +14,7 @@ import { stores } from "./Store";
 
 let storeCounter = 0;
 
-function createStore<Data, Controller = null>(id: string, defaultDdata: Data, createController?: StoreCreateController<Data, Controller>): Store<Data, Controller> {
+function createStore<Data, Controller = null>(id: string, defaultDdata: Data, options: StoreOptions<Data, Controller>): Store<Data, Controller> {
 
     function create(): Store<Data, Controller> {
         console.log("useCreateStore() creating store: ", id, "create count: ", storeCounter++);
@@ -129,6 +129,10 @@ function createStore<Data, Controller = null>(id: string, defaultDdata: Data, cr
         }
 
         let controller: Controller | undefined = createController ? createController(internalData, dispatch) : undefined;
+
+        if(controller && controller[init]){
+            controller.init();
+        }
 
         const useStore: UseStore<Data> = () => {
 
