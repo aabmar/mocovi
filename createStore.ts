@@ -130,11 +130,17 @@ function createStore<Data, Controller = null>(id: string, defaultDdata: Data, op
 
         // If the createController function is defined, we call it with the internal data and the dispatch function.
         // If it has an init function, we call that as well.
-        type ControllerWithInit = Controller & { init?: () => void };
+        type ControllerWithInit = Controller & { init?: () => Promise<void> };
         let controller: ControllerWithInit | undefined = options?.createController ? options.createController(internalData, dispatch) as ControllerWithInit : undefined;
 
         // Call init if controller exists and init exists
-        controller?.init && controller.init();
+        console.log("createsStore() check if controller and if controller: has init ", controller?.init && controller.init);
+        if(controller?.init && controller.init){
+            console.log("createsStore() calling controller init");
+            
+            // Init can't return anything because is async, but we are not
+            controller.init();
+        }
         
 
         const useStore: UseStore<Data> = () => {
