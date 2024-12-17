@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { createEventHandler } from "./Event";
 import { PayloadSetField, PayloadSync, Store, StoreAction, StoreCreateController, StoreDispatch, StoreOptions, UseController, UseData, UseDispatch, UseStore } from "./Store";
 import { stores } from "./Store";
+import { getObjectByKey } from './getObjectByKey';
 
 // Global data store that updates components when data changes.
 // Data is mutable, and is updated by calling setState on components
@@ -137,7 +138,7 @@ function createStore<Data, Controller = null>(id: string, defaultDdata: Data, op
         console.log("createsStore() check if controller and if controller: has init ", controller?.init && controller.init);
         if(controller?.init && controller.init){
             console.log("createsStore() calling controller init");
-            
+
             // Init can't return anything because is async, but we are not
             controller.init();
         }
@@ -208,84 +209,4 @@ function createStore<Data, Controller = null>(id: string, defaultDdata: Data, op
     return store;
 }
 
-// This is a helper function to do a deep lookup in an object.
-// A text identifies a key name, a number identifies a key name org index in an array,
-// a $ prefix will look for an object where the field "id" is equal to the value.
-// The key is formatted like this: "a.1.$c" and the function will
-// return an objct with id="c" in the array at index 1 in the object "a".
-
-function getObjectByKey(obj: any | any[], key: any | [] | string | undefined) {
-
-    // console.log("getObjectByKey() called with key: ", key);
-
-    if (!key) return obj;
-    if (!obj) return undefined;
-
-    let keys: any[];
-    if (Array.isArray(key)) {
-        keys = key;
-    } else if (typeof key === "string") {
-        keys = key.split(".");
-    } else {
-        keys = [key];
-    }
-    let depth = 0;
-
-    return lookup(obj, keys);
-
-
-
-}
-
-function lookup(obj: any, keys: any[]): any {
-
-
-    let k = keys[0];
-
-    if (k === undefined || k.length === 0) {
-        // console.log("In level: ", depth, " returning object: ", obj);
-        return obj;
-    }
-
-    if (!obj) {
-        return undefined;
-    }
-
-    // console.log("Looking for key: ", k, " at depth: ", depth++ , " witg parsedKey: ", keys);
-
-    let foundObj = undefined;
-
-    if (k.startsWith("$")) {
-        // console.log("Looking for ID: ", k);
-        let id = k.substring(1);
-        if (Array.isArray(obj)) {
-            foundObj = obj.find((o: any) => o.id === id);
-        } else if (typeof obj === "object") {
-            // Object doesent have find, but we still have to search through to find a child object where id is equal to the key
-            for (let key in obj) {
-                let child = obj[key];
-                if (typeof child === "object") {
-                    if (child.id === id) {
-                        foundObj = obj[key];
-                        break;
-                    }
-                }
-            }
-        }
-
-    } else {
-        // console.log("Looking for KEY: ", k);
-        if (Array.isArray(obj)) {
-            let index = parseInt(k);
-            foundObj = obj[index];
-        } else if (typeof obj === "object") {
-            foundObj = obj[k];
-        }
-    }
-    // console.log("..Found object.");
-    if (foundObj === undefined) return undefined;
-    return lookup(foundObj, keys.slice(1));
-}
-
 export default createStore;
-export { getObjectByKey, lookup };
