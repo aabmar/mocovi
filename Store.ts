@@ -5,6 +5,8 @@
 // while development, since touched files will be reloaded
 // in the browser, and the state will be lost.
 
+import { EventHandler } from "./Event";
+
 
 // This will be expanded in the future to include update and set field
 // functions, and that will also handle diffing so that we only
@@ -37,7 +39,7 @@ type StoreInternal<Data> = {
 }
 
 // type StoreController<Controller = null> = () => Controller;
-type StoreCreateController<Data, Controller = null> = (internal: StoreInternal<Data>, dispatch: StoreDispatch<Data>) => Controller;
+type StoreCreateController<Data, Controller = null> = (internal: StoreInternal<Data>, dispatch: StoreDispatch<Data>, eventHandler: EventHandler<Data>) => Controller;
 
 type Store<Data, Controller = null> = {
     // dispatch: StoreDispatch<Data>;

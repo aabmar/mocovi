@@ -26,4 +26,4 @@ function getObjectByKey(obj: any | any[], key: any | [] | string | undefined) {
     return lookup(obj, keys);
 }
 
-export { getObjectByKey };
+export default getObjectByKey ;

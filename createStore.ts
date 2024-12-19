@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { createEventHandler } from "./Event";
 import { PayloadSetField, PayloadSync, Store, StoreAction, StoreCreateController, StoreDispatch, StoreOptions, UseController, UseData, UseDispatch, UseStore } from "./Store";
 import { stores } from "./Store";
-import { getObjectByKey } from './getObjectByKey';
+import getObjectByKey  from './getObjectByKey';
 
 // Global data store that updates components when data changes.
 // Data is mutable, and is updated by calling setState on components
@@ -52,7 +52,7 @@ function create<Data, Controller>(id: string, defaultDdata: Data, options?: Stor
 
         switch (action.type) {
             case "set":
-                console.log("dispatch() set: ", action.payload);
+                console.log("dispatch() set: ", internalData.id, " - ");
                 let payload = action.payload;
                 internalData.data = { ...internalData.data, ...payload };
                 eventHandler.notify(internalData.data);
@@ -64,7 +64,7 @@ function create<Data, Controller>(id: string, defaultDdata: Data, options?: Stor
                 const value = field.value;
                 const keys: string[] = key.split(".");
 
-                // console.log("dispatch() field: ", field, "keys: ", keys, " value: ", value?.length);
+                console.log("dispatch() field: ", internalData.id, " - ", field, "keys: ", keys, " value: ", value?.length);
 
                 if (keys.length == 1) {
                     internalData.data = { ...internalData.data, [key]: value };
@@ -140,7 +140,7 @@ function create<Data, Controller>(id: string, defaultDdata: Data, options?: Stor
     // If the createController function is defined, we call it with the internal data and the dispatch function.
     // If it has an init function, we call that as well.
     type ControllerWithInit = Controller & { init?: () => Promise<void> };
-    let controller: ControllerWithInit | undefined = options?.createController ? options.createController(internalData, dispatch) as ControllerWithInit : undefined;
+    let controller: ControllerWithInit | undefined = options?.createController ? options.createController(internalData, dispatch, eventHandler) as ControllerWithInit : undefined;
 
     // Call init if controller exists and init exists
     console.log("createsStore() check if controller and if controller: has init ", controller?.init && controller.init);
