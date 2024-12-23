@@ -52,7 +52,7 @@ function create<Data, Controller>(id: string, defaultDdata: Data, options?: Stor
 
         switch (action.type) {
             case "set":
-                console.log("dispatch() set: ", internalData.id, " - ");
+                // console.log("dispatch() set: ", internalData.id, " - ", action.payload);
                 let payload = action.payload;
                 internalData.data = { ...internalData.data, ...payload };
                 eventHandler.notify(internalData.data);
@@ -64,7 +64,7 @@ function create<Data, Controller>(id: string, defaultDdata: Data, options?: Stor
                 const value = field.value;
                 const keys: string[] = key.split(".");
 
-                console.log("dispatch() field: ", internalData.id, " - ", field, "keys: ", keys, " value: ", value?.length);
+                // console.log("dispatch() field: ", internalData.id, " - ", field, "keys: ", keys, " value: ", value?.length);
 
                 if (keys.length == 1) {
                     internalData.data = { ...internalData.data, [key]: value };
@@ -121,15 +121,6 @@ function create<Data, Controller>(id: string, defaultDdata: Data, options?: Stor
                     eventHandler.notify(internalData.data);
                 }
                 break;
-            case "fetch":
-                // The parameter ID must be set. The API will be fetched using the name as url
-                // TODO: set parameters for URL
-                const sync = action.payload as PayloadSync;
-                const url = "/api/" + sync.id + "/" + internalData.id;
-                console.log("fetching: ", url);
-                const response = await fetch(url)
-                console.log("response:", response);
-                
             case "nop":
                 break;
             default:
@@ -200,7 +191,7 @@ function create<Data, Controller>(id: string, defaultDdata: Data, options?: Stor
         return dispatch;
     }
 
-    const st: Store<Data, Controller> = { useStore, useData, controller, useController, useDispatch };
+    const st: Store<Data, Controller> = { useStore, useData, controller, useController, useDispatch, dispatch };
 
     return st;
 }

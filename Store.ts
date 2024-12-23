@@ -5,6 +5,7 @@
 // while development, since touched files will be reloaded
 // in the browser, and the state will be lost.
 
+import React from "react";
 import { EventHandler } from "./Event";
 
 
@@ -42,7 +43,7 @@ type StoreInternal<Data> = {
 type StoreCreateController<Data, Controller = null> = (internal: StoreInternal<Data>, dispatch: StoreDispatch<Data>, eventHandler: EventHandler<Data>) => Controller;
 
 type Store<Data, Controller = null> = {
-    // dispatch: StoreDispatch<Data>;
+    dispatch: StoreDispatch<Data>;
     useStore: UseStore<Data>;
     useData: UseData;
     useController: UseController<Controller>;
@@ -59,7 +60,20 @@ type StoreOptions<Data, Controller> = {
 
 const stores = new Map<string, Store<any, any>>();
 
-export { stores }
+function clearAll() {
+    for(let name in stores.keys()) {
+        const store = stores.get(name);
+        if(!store) continue;
+        console.log("clearAll() clearing store: ", name);
+        store.dispatch({ type: "set", payload: {} });
+    }
+}
+
+const SessionContext = React.createContext(null);
+
+
+
+export { stores, clearAll, SessionContext }
 export type {
     StoreAction,
     Store,
@@ -72,5 +86,6 @@ export type {
     UseDispatch, 
     StoreInternal, 
     PayloadSync, 
-    StoreOptions
+    StoreOptions,
+    
 };
