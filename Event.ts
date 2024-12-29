@@ -1,5 +1,6 @@
 
 
+
 export type EventHandler<D> = {
     subscribe: (callback: (data: D) => void) => void,
     notify: (data: D) => void,

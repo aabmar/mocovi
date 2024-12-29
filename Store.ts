@@ -1,5 +1,3 @@
-
-
 // This is a very simple store for named objects.
 // The reason for its existence is to prevent data loss
 // while development, since touched files will be reloaded
@@ -8,6 +6,21 @@
 import React from "react";
 import { EventHandler } from "./Event";
 
+type BaseController<Data> = {
+    getCollection: () => Data[],
+    get: (modelId: any) => Data | null,
+    getField: (modelId: any, key: keyof Data) => any,
+    getSelected: () => Data | null,
+    setCollection: (newCollection: Data[]) => void,
+    set: (model: Data) => void,
+    setField: (modelId: any, key: keyof Data, value: any) => void,
+    clear: () => void,
+    select: (modelId: any) => void,
+};
+
+type CreateController<Data, ExtraController = {}> = (baseController: BaseController<Data>) => ExtraController;
+
+export { CreateController, BaseController };
 
 // This will be expanded in the future to include update and set field
 // functions, and that will also handle diffing so that we only
@@ -15,7 +28,7 @@ import { EventHandler } from "./Event";
 
 type PayloadSetField = {
     key: string;
-    value: any;
+    value: any
 }
 
 type PayloadSync = {
@@ -23,69 +36,31 @@ type PayloadSync = {
     // TODO: add paramers for fetch here
 }
 
-type StoreAction<Data> = {
-    type: string;
-    payload: Data | PayloadSetField | PayloadSync;
-}
+// Remove old dispatch-based types
+// type StoreDispatch<Data> = (action: (StoreAction<Data> | ((data: Data) => StoreAction<Data>))) => void
 
-type StoreDispatch<Data> = (action: (StoreAction<Data> | ((data: Data) => StoreAction<Data>))) => void
-
-type UseStore<Data> = () => [Data, StoreDispatch<Data>];
-type UseData = (key: string) => any;
-type UseDispatch<Data> = () => StoreDispatch<Data>;
-type UseController<Controller = null> = () => Controller | null;
-type StoreInternal<Data> = {
-    data: Data,
-    id: string
-}
+// Remove old UseStore, UseData, UseDispatch, StoreCreateController, etc.
+// type UseStore<Data> = () => [Data, StoreDispatch<Data>];
+// type UseData = (key: string) => any;
+// type UseDispatch<Data> = () => StoreDispatch<Data>;
+// type UseController<Controller = null> = () => Controller | null;
+// type StoreInternal<Data> = {
+//     data: Data,
+//     id: string
+// }
 
 // type StoreController<Controller = null> = () => Controller;
-type StoreCreateController<Data, Controller = null> = (internal: StoreInternal<Data>, dispatch: StoreDispatch<Data>, eventHandler: EventHandler<Data>) => Controller;
+// type StoreCreateController<Data, Controller = null> = (internal: StoreInternal<Data>, dispatch: StoreDispatch<Data>, eventHandler: EventHandler<Data>) => Controller;
 
-type Store<Data, Controller = null> = {
-    dispatch: StoreDispatch<Data>;
-    useStore: UseStore<Data>;
-    useData: UseData;
-    useController: UseController<Controller>;
-    useDispatch: UseDispatch<Data>;
-    controller?: Controller;
-}
+// Remove old Store, StoreAction, etc.
 
-type StoreOptions<Data, Controller> = {
-    createController?: StoreCreateController<Data, Controller>;
-    apiUrl?: string;
-    localStoreName?: string;
-    disableLocalStore?: boolean;
-}
 
-const stores = new Map<string, Store<any, any>>();
+const stores = new Map<string, any>();
 
 function clearAll() {
-    for(let name in stores.keys()) {
-        const store = stores.get(name);
-        if(!store) continue;
-        console.log("clearAll() clearing store: ", name);
-        store.dispatch({ type: "set", payload: {} });
+    for (const [id, store] of stores.entries()) {
+        store.useController().clear();
     }
 }
 
-const SessionContext = React.createContext(null);
-
-
-
-export { stores, clearAll, SessionContext }
-export type {
-    StoreAction,
-    Store,
-    PayloadSetField,
-    StoreDispatch, 
-    UseStore, 
-    UseData, 
-    StoreCreateController, 
-    UseController, 
-    UseDispatch, 
-    StoreInternal, 
-    PayloadSync, 
-    StoreOptions,
-    
-};
+export { stores, clearAll };
