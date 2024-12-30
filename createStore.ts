@@ -8,7 +8,7 @@ import { findModelIndexById } from "./findModelIndexById";
 // Data is mutable, and is updated by calling setState on components
 // that has been subscribed by using useStore()
 
-let storeCounter = 0;
+let collectionCounter = 0;
 
 type CreateCollectionOptions<Data, ExtraController = {}> = {
     createController?: CreateController<Data, ExtraController>
@@ -19,12 +19,20 @@ function createCollection<Data extends { id: any }, ExtraController extends obje
     initialData: Data[] = [],
     options?: CreateCollectionOptions<Data, ExtraController>
 ) {
-    console.log("useCreateStore() creating store: ", id, "create count: ", storeCounter++);
+    console.log("createCollection() creating collection: ", id, "create count: ", collectionCounter++);
 
+    if (stores.has(id)) {
+        console.log("Collection with id already exists: ", id);
+        return stores.get(id);
+    }
+
+    // const internals = {
     const eventHandler = createEventHandler<Data[]>();
-    const selectedEventHandler = createEventHandler<Data | null>();
+    const selectedEventHandler = createEventHandler<string | null>();
+    // }
 
     let collectionData = initialData;
+
     let selectedModelId: any = null;
 
     const baseController: BaseController<Data> = {
@@ -62,16 +70,16 @@ function createCollection<Data extends { id: any }, ExtraController extends obje
             collectionData = [];
             eventHandler.notify(collectionData);
         },
-        select(modelId: any) {
-            selectedModelId = modelId;
-            const selectedModel = collectionData[findModelIndexById(collectionData, modelId)] || null;
-            selectedEventHandler.notify(selectedModel);
+        select(modelId: string) {
+            console.log("BaseController: select() ", modelId);
+            selectedModelId = collectionData[findModelIndexById(collectionData, modelId)]?.id || null;
+            selectedEventHandler.notify(selectedModelId);
         },
     };
 
     const customController = options?.createController?.(baseController) || {} as ExtraController;
 
-    const mergedController = { ...baseController, ...customController };
+    const mergedController = { ...baseController, ...customController } as BaseController<Data> & ExtraController;
 
     // Hooks
     function useCollection() {
@@ -91,13 +99,27 @@ function createCollection<Data extends { id: any }, ExtraController extends obje
         return [data, setCollection] as [Data[], (newCollection: Data[]) => void];
     }
 
-    function useModel(modelId: any) {
+    function useModel(modelId?: any) {
+        if (!modelId) {
+            modelId = selectedModelId;
+        }
+        if (!modelId) {
+            console.log("useModel() called without modelId and no model is selected");
+            return [null, () => { }];
+        }
+
         const initialModel = collectionData[findModelIndexById(collectionData, modelId)] || {} as Data;
         const [model, setModel] = useState<Data>(initialModel);
+
         useEffect(() => {
+
             function handleChange(d: Data[]) {
                 const idx = findModelIndexById(d, modelId);
-                setModel(idx === -1 ? {} as Data : {...d[idx]});
+                const newModel = { ...d[idx] }
+                // console.log("useModel() handleChange() ", deepEqual(model, newModel), model, newModel);
+                if (deepEqual(model, newModel)) return;
+
+                setModel(idx === -1 ? {} as Data : { ...newModel });
             }
             eventHandler.subscribe(handleChange);
             return () => {
@@ -110,20 +132,67 @@ function createCollection<Data extends { id: any }, ExtraController extends obje
         return [model, setModelData] as [Data, (newModel: Data) => void];
     }
 
+    function useQuery(path: string | string[]) {
+        const modelId = selectedModelId;
+
+        // console.log("useQuery() ", path, modelId);
+
+        if (!modelId) {
+            console.log("useQuery() called without modelId and no model is selected");
+            return [null, () => { }];
+        }
+
+        const model_ = collectionData[findModelIndexById(collectionData, modelId)] || {} as Data;
+        const initialModel = getObjectByKey(model_, path);
+        const [model, setModel] = useState<Data>(initialModel);
+
+
+        useEffect(() => {
+
+            function handleChange(d: Data[]) {
+                const idx = findModelIndexById(d, modelId);
+                const newModel_ = { ...d[idx] }
+                const newModel = getObjectByKey(newModel_, path);
+                // console.log("useQuery() handleChange() ", newModel.id);
+                if (newModel.id === "c0.0") {
+                    console.log("useQuery() handleChange() equal? ", deepEqual(model, newModel), model, newModel);
+                }
+                if (deepEqual(model, newModel)) return;
+
+                setModel(idx === -1 ? {} as Data : { ...newModel });
+            }
+            eventHandler.subscribe(handleChange);
+            return () => {
+                eventHandler.unsubscribe(handleChange);
+            };
+        }, [modelId]);
+
+        const setModelData = (newModel: Data) => {
+            console.error("useQuery() setModelData() not implemented. get from set field with path from old version");
+        };
+
+        return [model, setModelData] as [Data, (newModel: Data) => void];
+    }
+
     function useSelected() {
-        const [selected, setSelected] = useState<Data | null>(
-            collectionData[findModelIndexById(collectionData, selectedModelId)] || null
+        const [sid, setSid] = useState<string | null>(
+            collectionData[findModelIndexById(collectionData, selectedModelId)]?.id || null
         );
         useEffect(() => {
-            function handleChange(selectedModel: Data | null) {
-                setSelected(selectedModel);
+            function handleChange(selectedModelId: string | null) {
+                setSid(selectedModelId);
             }
             selectedEventHandler.subscribe(handleChange);
             return () => {
                 selectedEventHandler.unsubscribe(handleChange);
             };
         }, []);
-        return selected;
+
+        const setSelectedModel = (modelId: any) => {
+            console.log("setSelectedModel() ", modelId);
+            mergedController.select(modelId);
+        }
+        return [sid, setSelectedModel] as [string | null, (modelId: any) => void];
     }
 
     function useController() {
@@ -135,6 +204,7 @@ function createCollection<Data extends { id: any }, ExtraController extends obje
         useCollection,
         useModel,
         useSelected,
+        useQuery,
         useController: () => mergedController,
         // ...keep the old useData or code but not used...
     };
@@ -143,6 +213,22 @@ function createCollection<Data extends { id: any }, ExtraController extends obje
     stores.set(id, store);
 
     return store;
+}
+
+function deepEqual(a: any, b: any): boolean {
+    if (a === b) return true;
+
+    if (typeof a !== 'object' || typeof b !== 'object') {
+        return a === b; // handle primitive types including numbers
+    }
+
+    if (Object.keys(a).length !== Object.keys(b).length) return false;
+
+    for (const key in a) {
+        if (!(key in b)) return false;
+        if (!deepEqual(a[key], b[key])) return false;
+    }
+    return true;
 }
 
 // Export as before for compatibility
