@@ -15,7 +15,7 @@ type BaseController<Data> = {
     set: (model: Data) => void,
     setField: (modelId: any, key: keyof Data, value: any) => void,
     clear: () => void,
-    select: (modelId: any) => void,
+    select: (modelId: string) => void,
 };
 
 type CreateController<Data, ExtraController = {}> = (baseController: BaseController<Data>) => ExtraController;
