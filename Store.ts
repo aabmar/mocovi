@@ -36,6 +36,7 @@ type PayloadSync = {
     // TODO: add paramers for fetch here
 }
 
+
 // Remove old dispatch-based types
 // type StoreDispatch<Data> = (action: (StoreAction<Data> | ((data: Data) => StoreAction<Data>))) => void
 
