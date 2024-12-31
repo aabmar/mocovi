@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { createEventHandler } from "./Event";
 import getObjectByKey from './getObjectByKey';
 import { stores, CreateController, BaseController } from "./Store";
-import { findModelIndexById } from "./findModelIndexById";
+import { findModelById, findModelIndexById } from "./findModelIndexById";
 
 // Global data store that updates components when data changes.
 // Data is mutable, and is updated by calling setState on components
@@ -36,34 +36,34 @@ function createCollection<Data extends { id: any }, ExtraController extends obje
     let selectedModelId: any = null;
 
     const baseController: BaseController<Data> = {
-        getCollection() {
+        getCollection(): Data[] {
             return collectionData;
         },
-        get(modelId: any) {
-            return collectionData[findModelIndexById(collectionData, modelId)] || null;
+        get(modelId: string): Data {
+            return findModelById(collectionData, modelId) || {} as Data;
         },
         getField(modelId: any, key: keyof Data) {
-            const model = collectionData[findModelIndexById(collectionData, modelId)];
+            const model = findModelById(collectionData, modelId);
             return model ? model[key] : undefined;
         },
-        getSelected() {
-            return collectionData[findModelIndexById(collectionData, selectedModelId)] || null;
+        getSelected(): Data | null {
+            return findModelById(collectionData, selectedModelId) || null;
         },
         setCollection(newCollection: Data[]) {
             // mutate the reference and notify
-            collectionData = newCollection;
+            collectionData = [...newCollection];
             eventHandler.notify(collectionData);
         },
         set(model: Data) {
             const idx = findModelIndexById(collectionData, model.id);
             if (idx === -1) return;
-            collectionData[idx] = model;
+            collectionData[idx] = {...model};
             eventHandler.notify(collectionData);
         },
         setField(modelId: any, key: keyof Data, value: any) {
             const idx = findModelIndexById(collectionData, modelId);
             if (idx === -1) return;
-            collectionData[idx][key] = value;
+            collectionData[idx] = { ...collectionData[idx], [key]: value };
             eventHandler.notify(collectionData);
         },
         clear() {
@@ -86,7 +86,7 @@ function createCollection<Data extends { id: any }, ExtraController extends obje
         const [data, setData] = useState<Data[]>(collectionData);
         useEffect(() => {
             function handleChange(d: Data[]) {
-                setData([...d]); // shallow copy
+                setData(d);
             }
             eventHandler.subscribe(handleChange);
             return () => {
@@ -115,11 +115,11 @@ function createCollection<Data extends { id: any }, ExtraController extends obje
 
             function handleChange(d: Data[]) {
                 const idx = findModelIndexById(d, modelId);
-                const newModel = { ...d[idx] }
+                if (idx === -1) return;
+                const newModel = d[idx]
                 // console.log("useModel() handleChange() ", deepEqual(model, newModel), model, newModel);
-                if (deepEqual(model, newModel)) return;
-
-                setModel(idx === -1 ? {} as Data : { ...newModel });
+                // if (deepEqual(model, newModel)) return;
+                setModel(newModel);
             }
             eventHandler.subscribe(handleChange);
             return () => {
