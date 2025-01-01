@@ -1,7 +1,6 @@
 
 // Look up a value in an object by a path of keys
 
-
 function lookup(obj: any, keys: any[]): any {
     let k = keys[0];
 

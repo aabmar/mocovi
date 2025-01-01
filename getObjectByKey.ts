@@ -7,7 +7,6 @@ import { lookup } from './lookup';
 // The key is formatted like this: "a.1.$c" and the function will
 // return an objct with id="c" in the array at index 1 in the object "a".
 
-
 function getObjectByKey(obj: any | any[], key: any | [] | string | undefined) {
 
 

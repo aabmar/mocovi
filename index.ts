@@ -1,6 +1,5 @@
 // Map all exports
 
-
 import createCollection from "./createStore";
 // Remove or comment out references to old store
 

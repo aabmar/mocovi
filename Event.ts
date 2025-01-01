@@ -6,7 +6,6 @@ export type EventHandler<D> = {
     unsubscribe: (callback: (data: D) => void) => void
 };
 
-
 export function createEventHandler<D>(): EventHandler<D> {
     
     let subscribers: Array<Function> = [];

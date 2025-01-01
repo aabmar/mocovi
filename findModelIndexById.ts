@@ -7,4 +7,3 @@ function findModelById<Data extends { id: any }>(collection: Data[], modelId: an
     return collection[findModelIndexById(collection, modelId)];
 }
 export { findModelIndexById, findModelById };
-
