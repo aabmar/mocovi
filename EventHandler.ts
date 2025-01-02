@@ -1,33 +1,33 @@
 
 
-export type EventHandler<D> = {
-    subscribe: (callback: (data: D) => void) => void,
-    notify: (data: D) => void,
-    unsubscribe: (callback: (data: D) => void) => void
+export type EventHandler<Data> = {
+    subscribe: (callback: (data: Data) => void) => void,
+    notify: (data: Data) => void,
+    unsubscribe: (callback: (data: Data) => void) => void
 };
 
-export function createEventHandler<D>(): EventHandler<D> {
-    
+export function createEventHandler<Data>(): EventHandler<Data> {
+
     let subscribers: Array<Function> = [];
-    
+
     // let [ subscribers, setSubscribers] = useState<Array<Function>>([]);
 
     function setSubscribers(callback: (subscribers: Array<Function>) => Array<Function>) {
         subscribers = callback(subscribers);
     }
 
-    function subscribe(callback: (data: D) => void) {
+    function subscribe(callback: (data: Data) => void) {
 
         // Add to array if not present already
         setSubscribers((subscribers) => {
-            if(subscribers.indexOf(callback) > -1) return subscribers
-            const s = [...subscribers, callback]; 
+            if (subscribers.indexOf(callback) > -1) return subscribers
+            const s = [...subscribers, callback];
             // console.log("EventHandler subscribe() ", s.length);
             return s;
         });
     }
 
-    function notify(data: D) {
+    function notify(data: Data) {
         // console.log("EventHandler notify() ", subscribers.length, data);
         setSubscribers((subscribers) => {
             for (let i = 0; i < subscribers.length; i++) {
@@ -37,9 +37,9 @@ export function createEventHandler<D>(): EventHandler<D> {
         });
     }
 
-    function unsubscribe(callback: (data: D) => void) {
+    function unsubscribe(callback: (data: Data) => void) {
         setSubscribers((subscribers) => {
-            const s = subscribers.filter((subscriber) => subscriber !== callback); 
+            const s = subscribers.filter((subscriber) => subscriber !== callback);
             // console.log("EventHandler unsubscribe() ", s.length);
             return s;
         });

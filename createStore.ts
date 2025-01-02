@@ -1,10 +1,10 @@
 import React from "react";
-import { createEventHandler } from "./Event";
-import { stores, CreateController, BaseController } from "./Store";
+import { createEventHandler } from "./EventHandler";
+import { stores, CreateController, BaseController, Store, Controller, UseController } from "./Store";
 import createBaseController from "./BaseController";
-import createUseCollection from "./useCollection";
-import createUseSelected from "./useSelected";
-import createUseModel from "./useModel";
+import createUseCollection, { UseCollection, UseCollectionReturn } from "./useCollection";
+import createUseSelected, { UseSelected, UseSelectedReturn } from "./useSelected";
+import createUseModel, { UseModel, UseModelReturn } from "./useModel";
 
 // Global data store that updates components when data changes.
 // Data is mutable, and is updated by calling setState on components
@@ -20,7 +20,7 @@ function createStore<Data extends { id: any }, ExtraController extends object = 
     id: string,
     initialData: Data[] = [],
     options?: CreateCollectionOptions<Data, ExtraController>
-) {
+): Store<Data, ExtraController> | undefined {
 
     if (stores.has(id)) {
         console.log("Collection with id already exists: ", id);
@@ -29,16 +29,17 @@ function createStore<Data extends { id: any }, ExtraController extends object = 
 
     console.log("createCollection() creating collection: ", id, "create count: ", ++collectionCounter);
 
-    const store: any = {
+    const store: Store<Data, ExtraController> = {
+        id,
         eventHandler: createEventHandler<Data[]>(),
         selectedEventHandler: createEventHandler<string | null>(),
         collectionData: initialData,
-        id: null,
-        useCollection: null,
-        useModel: null,
-        useSelected: null,
-        useController: null,
-        baseController: null,
+        baseController: null as any, // will be assigned later
+        mergedController: null as any, // will be assigned later
+        useCollection: null as any, // will be assigned later
+        useModel: null as any, // will be assigned later
+        useSelected: null as any, // will be assigned later
+        useController: null as any, // will be assigned later
         selectedModelId: null,
     };
 

@@ -1,29 +1,46 @@
-
-import React from "react";
-import { EventHandler } from "./Event";
+import { EventHandler } from "./EventHandler";
+import { UseCollection, UseCollectionReturn } from "./useCollection";
+import { UseModel, UseModelReturn } from "./useModel";
+import { UseSelected, UseSelectedReturn } from "./useSelected";
 
 type BaseController<Data> = {
+    clear: () => void,
+    get: (modelId: string) => Data | null,
     getCollection: () => Data[],
-    get: (modelId: any) => Data | null,
-    getField: (modelId: any, key: keyof Data) => any,
+    getField: (modelId: string, key: keyof Data) => any,
     getSelected: () => Data | null,
     getSelectedId(): string | null,
-    setCollection: (newCollection: Data[]) => void,
-    set: (model: Data) => void,
-    setField: (modelId: any, key: keyof Data, value: any) => void,
-    clear: () => void,
     select: (modelId: string | null) => void,
+    set: (model: Data) => void,
+    setCollection: (newCollection: Data[]) => void,
+    setField: (modelId: string, key: keyof Data, value: any) => void,
 };
 
-type CreateController<Data, ExtraController = {}> = (baseController: BaseController<Data>) => ExtraController;
+type Controller<Data, ExtraController> = BaseController<Data> & ExtraController;
+type UseController<Data, ExtraController> = () => Controller<Data, ExtraController>;
 
+type CreateController<Data, ExtraController = {}> = (baseController: BaseController<Data>) => ExtraController;
 
 const stores = new Map<string, any>();
 
 function clearAll() {
-    for (const [id, store] of stores.entries()) {
-        store.useController().clear();
+    for (let store of stores.values()) {
+        store.controller.clear();
     }
 }
 
-export { stores, clearAll, CreateController, BaseController  };
+type Store<Data extends { id: any }, ExtraController = {}> = {
+    id: string;
+    eventHandler: EventHandler<Data[]>;
+    selectedEventHandler: EventHandler<string | null>;
+    collectionData: Data[];
+    baseController: BaseController<Data>;
+    mergedController: BaseController<Data> & ExtraController;
+    useCollection: UseCollection<Data>;
+    useModel: UseModel<Data>;
+    useSelected: UseSelected;
+    useController: UseController<Data, ExtraController>;
+    selectedModelId: string | null;
+};
+
+export { stores, clearAll, CreateController, BaseController, Store, UseController, Controller };

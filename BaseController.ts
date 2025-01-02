@@ -4,8 +4,6 @@ import { BaseController } from "./Store";
 
 function createBaseController<Data extends { id: any }>(store: any) {
 
-
-
     const baseController: BaseController<Data> = {
         getCollection(): Data[] {
             return store.collectionData;

@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { findModelIndexById } from "./findModelIndexById";
+import { Store } from "./Store";
 
-function createUseModel<Data extends {id: any}> (store: any) {
+export type UseModelReturn<Data extends { id: any }> = [Data | null, (newModel: Data) => void];
+export type UseModel<Data extends { id: any }> = (modelId?: any) => UseModelReturn<Data>;
 
-    // Hooks
-    function useModel(modelId?: any) {
+function createUseModel<Data extends { id: any }>(store: Store<Data>): UseModel<Data> {
+    return function useModel(modelId?: any): UseModelReturn<Data> {
         // If no modelId is provided, use the selected modelId from the store
         if (!modelId) {
             modelId = store.selectedModelId;
@@ -32,7 +34,7 @@ function createUseModel<Data extends {id: any}> (store: any) {
                 setModel(newModel);
             }
             store.eventHandler.subscribe(handleChange);
-            
+
             // Unsubscribe when the component is unmounted
             return () => {
                 store.eventHandler.unsubscribe(handleChange);
@@ -44,10 +46,8 @@ function createUseModel<Data extends {id: any}> (store: any) {
             store.mergedController.set(newModel);
         };
 
-        return [model, setModelData] as [Data, (newModel: Data) => void];
-    }
-
-    return useModel;
+        return [model, setModelData] as UseModelReturn<Data>;
+    };
 }
 
 export default createUseModel;

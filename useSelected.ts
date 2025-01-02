@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { findModelIndexById } from "./findModelIndexById";
 
-function createUseSelected(store: any) {
+export type UseSelectedReturn = [string | null, (modelId: any) => void];
+export type UseSelected = () => UseSelectedReturn;
+
+function createUseSelected(store: any): UseSelected {
     function useSelected() {
         const [sid, setSid] = useState<string | null>(
             store.collectionData[findModelIndexById(store.collectionData, store.selectedModelId)]?.id || null
@@ -20,7 +23,7 @@ function createUseSelected(store: any) {
             console.log("setSelectedModel() ", modelId);
             store.mergedController.select(modelId);
         }
-        return [sid, setSelectedModel] as [string | null, (modelId: any) => void];
+        return [sid, setSelectedModel] as UseSelectedReturn;
     }
 
     return useSelected;
