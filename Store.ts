@@ -21,15 +21,15 @@ type UseController<Data, ExtraController> = () => Controller<Data, ExtraControll
 
 type CreateController<Data, ExtraController = {}> = (baseController: BaseController<Data>) => ExtraController;
 
-const stores = new Map<string, any>();
+const stores = new Map<string, Store<any>>();
 
 function clearAll() {
     for (let store of stores.values()) {
-        store.controller.clear();
+        store.useController().clear();
     }
 }
 
-type Store<Data extends { id: any }, ExtraController = {}> = {
+type Store<Data extends { id: string }, ExtraController = {}> = {
     id: string;
     eventHandler: EventHandler<Data[]>;
     selectedEventHandler: EventHandler<string | null>;

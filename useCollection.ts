@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { Store } from "./Store";
 
-export type UseCollectionReturn<Data extends { id: any }> = [Data[], (newCollection: Data[]) => void];
-export type UseCollection<Data extends { id: any }> = () => UseCollectionReturn<Data>;
+export type UseCollectionReturn<Data extends { id: string }> = [Data[], (newCollection: Data[]) => void];
+export type UseCollection<Data extends { id: string }> = () => UseCollectionReturn<Data>;
 
-function createUseCollection<Data extends { id: any }>(store: Store<Data>): UseCollection<Data> {
+function createUseCollection<Data extends { id: string }>(store: Store<Data>): UseCollection<Data> {
     return function useCollection() {
 
         // This state will be set to the component that uses this hook

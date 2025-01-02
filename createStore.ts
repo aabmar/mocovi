@@ -16,7 +16,7 @@ type CreateCollectionOptions<Data, ExtraController = {}> = {
     createController?: CreateController<Data, ExtraController>
 };
 
-function createStore<Data extends { id: any }, ExtraController extends object = {}>(
+function createStore<Data extends { id: string }, ExtraController extends object = {}>(
     id: string,
     initialData: Data[] = [],
     options?: CreateCollectionOptions<Data, ExtraController>
@@ -24,7 +24,7 @@ function createStore<Data extends { id: any }, ExtraController extends object = 
 
     if (stores.has(id)) {
         console.log("Collection with id already exists: ", id);
-        return stores.get(id);
+        return stores.get(id) as Store<Data, ExtraController>;
     }
 
     console.log("createCollection() creating collection: ", id, "create count: ", ++collectionCounter);

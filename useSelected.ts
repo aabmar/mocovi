@@ -1,14 +1,21 @@
 import { useEffect, useState } from "react";
 import { findModelIndexById } from "./findModelIndexById";
+import { Store } from "./Store";
 
-export type UseSelectedReturn = [string | null, (modelId: any) => void];
+export type UseSelectedReturn = [string | null, (modelId: string) => void];
 export type UseSelected = () => UseSelectedReturn;
 
-function createUseSelected(store: any): UseSelected {
+function createUseSelected<Data extends { id: string }>(store: Store<Data>): UseSelected {
+
     function useSelected() {
-        const [sid, setSid] = useState<string | null>(
-            store.collectionData[findModelIndexById(store.collectionData, store.selectedModelId)]?.id || null
-        );
+
+        let initialId: string | null = null
+        if (store.selectedModelId !== null) {
+            initialId = store.collectionData[findModelIndexById(store.collectionData, store.selectedModelId)].id || null;
+        }
+
+        const [sid, setSid] = useState<string | null>(initialId);
+
         useEffect(() => {
             function handleChange(selectedModelId: string | null) {
                 setSid(selectedModelId);
@@ -17,12 +24,13 @@ function createUseSelected(store: any): UseSelected {
             return () => {
                 store.selectedEventHandler.unsubscribe(handleChange);
             };
-        }, []);
+        }, [store]);
 
-        const setSelectedModel = (modelId: any) => {
-            console.log("setSelectedModel() ", modelId);
+        const setSelectedModel = (modelId: string) => {
+            // console.log("setSelectedModel() ", modelId);
             store.mergedController.select(modelId);
         }
+
         return [sid, setSelectedModel] as UseSelectedReturn;
     }
 

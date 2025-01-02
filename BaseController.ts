@@ -2,21 +2,21 @@ import { findModelById, findModelIndexById } from "./findModelIndexById";
 import { BaseController } from "./Store";
 
 
-function createBaseController<Data extends { id: any }>(store: any) {
+function createBaseController<Data extends { id: string }>(store: any) {
 
     const baseController: BaseController<Data> = {
         getCollection(): Data[] {
             return store.collectionData;
         },
-        get(modelId: string): Data {
-            return findModelById(store.collectionData, modelId) || {} as Data;
+        get(modelId: string): Data | null {
+            return findModelById(store.collectionData, modelId);
         },
-        getField(modelId: any, key: keyof Data) {
+        getField(modelId: string, key: keyof Data) {
             const model = findModelById<Data>(store.collectionData, modelId);
-            return model ? model[key] : undefined;
+            return model ? model[key] : null;
         },
         getSelected(): Data | null {
-            return findModelById<Data>(store.collectionData, store.selectedModelId) || null;
+            return findModelById<Data>(store.collectionData, store.selectedModelId);
         },
         getSelectedId(): string | null {
             return store.selectedModelId;
@@ -32,7 +32,7 @@ function createBaseController<Data extends { id: any }>(store: any) {
             store.collectionData[idx] = { ...model };
             store.eventHandler.notify(store.collectionData);
         },
-        setField(modelId: any, key: keyof Data, value: any) {
+        setField(modelId: string, key: keyof Data, value: any) {
             const idx = findModelIndexById(store.collectionData, modelId);
             if (idx === -1) return; // TODO: error handling
             store.collectionData[idx] = { ...store.collectionData[idx], [key]: value };
@@ -43,7 +43,7 @@ function createBaseController<Data extends { id: any }>(store: any) {
             store.eventHandler.notify(store.collectionData);
         },
         select(modelId: string | null) {
-            console.log("BaseController: select() ", modelId);
+            // console.log("BaseController: select() ", modelId);
             if (modelId && modelId !== store.selectedModelId) {
                 store.selectedModelId = store.collectionData[findModelIndexById(store.collectionData, modelId)]?.id || null;
             }
