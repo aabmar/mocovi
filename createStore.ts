@@ -16,19 +16,19 @@ type CreateCollectionOptions<Data, ExtraController = {}> = {
     createController?: CreateController<Data, ExtraController>
 };
 
-function createCollection<Data extends { id: any }, ExtraController extends object = {}>(
+function createStore<Data extends { id: any }, ExtraController extends object = {}>(
     id: string,
     initialData: Data[] = [],
     options?: CreateCollectionOptions<Data, ExtraController>
 ) {
-    
+
     if (stores.has(id)) {
         console.log("Collection with id already exists: ", id);
         return stores.get(id);
     }
-    
+
     console.log("createCollection() creating collection: ", id, "create count: ", ++collectionCounter);
-    
+
     const store: any = {
         eventHandler: createEventHandler<Data[]>(),
         selectedEventHandler: createEventHandler<string | null>(),
@@ -58,4 +58,4 @@ function createCollection<Data extends { id: any }, ExtraController extends obje
 
 
 // Export as before for compatibility
-export default createCollection;
+export default createStore;

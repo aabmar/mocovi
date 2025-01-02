@@ -4,8 +4,8 @@ import { BaseController } from "./Store";
 
 function createBaseController<Data extends { id: any }>(store: any) {
 
-    
-    
+
+
     const baseController: BaseController<Data> = {
         getCollection(): Data[] {
             return store.collectionData;
@@ -30,13 +30,13 @@ function createBaseController<Data extends { id: any }>(store: any) {
         },
         set(model: Data) {
             const idx = findModelIndexById<Data>(store.collectionData, model.id);
-            if (idx === -1) return;
-            store.collectionData[idx] = {...model};
+            if (idx === -1) return; // TODO: error handling
+            store.collectionData[idx] = { ...model };
             store.eventHandler.notify(store.collectionData);
         },
         setField(modelId: any, key: keyof Data, value: any) {
             const idx = findModelIndexById(store.collectionData, modelId);
-            if (idx === -1) return;
+            if (idx === -1) return; // TODO: error handling
             store.collectionData[idx] = { ...store.collectionData[idx], [key]: value };
             store.eventHandler.notify(store.collectionData);
         },
@@ -46,7 +46,7 @@ function createBaseController<Data extends { id: any }>(store: any) {
         },
         select(modelId: string | null) {
             console.log("BaseController: select() ", modelId);
-            if(modelId && modelId !== store.selectedModelId) {
+            if (modelId && modelId !== store.selectedModelId) {
                 store.selectedModelId = store.collectionData[findModelIndexById(store.collectionData, modelId)]?.id || null;
             }
             store.selectedEventHandler.notify(store.selectedModelId);
