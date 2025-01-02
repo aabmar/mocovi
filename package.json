@@ -1,19 +1,19 @@
 {
-  "name": "react-mocovi",
-  "version": "0.1.2",
-  "description": "Data Store for React Native, with no boilerplate",
-  "main": "index.ts",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "Marius Aabel",
-  "license": "Copyright 2024 Marius Aabel. Can be used as is, at your own respnsibility.",
-  "dependencies": {
-    "react": "18"
-  },
+    "name": "react-mocovi",
+    "version": "0.5.0",
+    "description": "Data Store for React Native, with no boilerplate",
+    "main": "index.ts",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "Marius Aabel",
+    "license": "Copyright 2024 Marius Aabel. Can be used as is, at your own respnsibility.",
+    "dependencies": {
+        "react": "18"
+    },
     "devDependencies": {
-      "@babel/core": "^7.20.0",
-      "@types/react": "18",
-      "typescript": "^5.3.3"
+        "@babel/core": "^7.20.0",
+        "@types/react": "18",
+        "typescript": "^5.3.3"
     }
 }
