@@ -125,5 +125,37 @@ export default AutoField;
 
 This component will automatically fetch the correct store and handle changes based on the provided `id` and `field` props.
 
-## Conclusion
-By addressing the potential weaknesses and implementing the suggested optimizations and enhancements, you can make Mocovi a robust and scalable state management library. Keep focusing on reducing boilerplate and providing a seamless developer experience, and your library will continue to be a valuable tool for many developers.
+## Error Handling
+
+### Example of Error Handling in findModelIndexById and findModelById
+
+```typescript
+import { findModelIndexById, findModelById } from './findModelIndexById';
+
+const collection = [{ id: '1', name: 'Item 1' }, { id: '2', name: 'Item 2' }];
+
+// Example usage with error handling
+const modelId = '3';
+const index = findModelIndexById(collection, modelId);
+if (index === -1) {
+    console.error(`Model with ID ${modelId} not found`);
+} else {
+    console.log(`Model found at index ${index}`);
+}
+
+const model = findModelById(collection, modelId);
+if (!model) {
+    console.error(`Model with ID ${modelId} not found`);
+} else {
+    console.log(`Model found:`, model);
+}
+```
+
+### Error Reporting Libraries
+
+Consider using one of the following libraries for error reporting:
+
+1. **Sentry**: A popular error tracking and monitoring tool that provides real-time error reporting.
+2. **LogRocket**: A front-end monitoring tool that records everything users do on your site, helping you understand and fix issues faster.
+3. **Rollbar**: An error monitoring and alerting tool that helps you detect, diagnose, and debug errors in real-time.
+
