@@ -3,16 +3,12 @@ import { findModelIndexById, findModelById } from "./findModelIndexById";
 import { Store } from "./Store";
 
 export type UseModelReturn<Data extends { id: string }> = [Data | null, (newModel: Data) => void];
-export type UseModel<Data extends { id: string }> = (modelId?: string) => UseModelReturn<Data>;
+export type UseModel<Data extends { id: string }> = (modelId: string | null) => UseModelReturn<Data>;
 
 function createUseModel<Data extends { id: string }>(store: Store<Data>): UseModel<Data> {
-    return function useModel(modelId_?: string): UseModelReturn<Data> {
-        // If no modelId is provided, use the selected modelId from the store
-        const modelId = modelId_ || store.selectedModelId;
-        if (!modelId) {
-            // console.log("useModel() called without modelId and no model is selected");
-            return [null, () => { }];
-        }
+    return function useModel(modelId): UseModelReturn<Data> {
+
+        // console.log("useModel() called with modelId: ", modelId);
 
         // Find the initial model based on the modelId
         const initialModel = findModelById(store.collectionData, modelId) || null;
@@ -35,14 +31,25 @@ function createUseModel<Data extends { id: string }>(store: Store<Data>): UseMod
             return () => {
                 store.eventHandler.unsubscribe(handleChange);
             };
-        }, [modelId, store, model]);
+        }, []);
+
+        useEffect(() => {
+            console.log("useModel() modelId changed: ", modelId);
+            const newModel = findModelById(store.collectionData, modelId) || null;
+            if (model === newModel) return;
+            setModel(newModel);
+        }, [modelId]);
 
         // We make a function to set model data so that this hook works like useState for the user
         const setModelData = (newModel: Data) => {
             store.mergedController.set(newModel);
         };
 
-        return [model, setModelData] as UseModelReturn<Data>;
+        if (!modelId) {
+            // console.log("useModel() called without modelId and no model is selected");
+            return [null, () => { }];
+        }
+        return [initialModel, setModelData] as UseModelReturn<Data>;
     };
 }
 

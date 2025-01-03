@@ -20,7 +20,7 @@ function createStore<Data extends { id: string }, ExtraController extends object
     id: string,
     initialData: Data[] = [],
     options?: CreateCollectionOptions<Data, ExtraController>
-): Store<Data, ExtraController> | undefined {
+): Store<Data, ExtraController> {
 
     if (stores.has(id)) {
         console.log("Collection with id already exists: ", id);
