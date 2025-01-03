@@ -44,10 +44,13 @@ function createBaseController<Data extends { id: string }>(store: any) {
         },
         select(modelId: string | null) {
             // console.log("BaseController: select() ", modelId);
-            if (modelId && modelId !== store.selectedModelId) {
+            if (!modelId) {
+                store.selectedModelId = null;
+                store.selectedEventHandler.notify(null);
+            } else if (modelId !== store.selectedModelId) {
                 store.selectedModelId = store.collectionData[findModelIndexById(store.collectionData, modelId)]?.id || null;
+                store.selectedEventHandler.notify(store.selectedModelId);
             }
-            store.selectedEventHandler.notify(store.selectedModelId);
         },
     };
 

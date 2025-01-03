@@ -7,7 +7,7 @@
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "Marius Aabel",
-    "license": "Copyright 2024 Marius Aabel. Can be used as is, at your own respnsibility.",
+    "license": "Copyright 2024 Marius Aabel. Can be used as is, at your own responsibility.",
     "dependencies": {
         "react": "18"
     },
