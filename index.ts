@@ -7,4 +7,3 @@ import { CreateController, BaseController } from "./Store";
 
 export { createStore, CreateController, BaseController, };
 
-
