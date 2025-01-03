@@ -14,6 +14,7 @@ let collectionCounter = 0;
 
 type CreateCollectionOptions<Data, ExtraController = {}> = {
     createController?: CreateController<Data, ExtraController>
+    storage?: { set: (key: string, value: string) => void, get: (key: string) => string }
 };
 
 function createStore<Data extends { id: string }, ExtraController extends object = {}>(
