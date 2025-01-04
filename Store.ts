@@ -16,6 +16,8 @@ type BaseController<Data> = {
     setField: (modelId: string, key: keyof Data, value: any) => void,
 };
 
+type Persist = { set: (key: string, value: string) => void, get: (key: string) => string | undefined };
+
 type Controller<Data, ExtraController> = BaseController<Data> & ExtraController;
 type UseController<Data, ExtraController> = () => Controller<Data, ExtraController>;
 
@@ -41,6 +43,8 @@ type Store<Data extends { id: string }, ExtraController = {}> = {
     useSelected: UseSelected;
     useController: UseController<Data, ExtraController>;
     selectedModelId: string | null;
+    persist?: Persist;
+
 };
 
-export { stores, clearAll, CreateController, BaseController, Store, UseController, Controller };
+export { stores, clearAll, CreateController, BaseController, Store, UseController, Controller, Persist };
