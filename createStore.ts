@@ -1,6 +1,6 @@
 import React from "react";
 import { createEventHandler } from "./EventHandler";
-import { stores, CreateController, BaseController, Store, Controller, UseController } from "./Store";
+import { addStore, getStore, CreateController, BaseController, Store, Controller, UseController, Persist } from "./Store";
 import createBaseController from "./BaseController";
 import createUseCollection, { UseCollection, UseCollectionReturn } from "./useCollection";
 import createUseSelected, { UseSelected, UseSelectedReturn } from "./useSelected";
@@ -14,7 +14,8 @@ let collectionCounter = 0;
 
 type CreateCollectionOptions<Data, ExtraController = {}> = {
     createController?: CreateController<Data, ExtraController>
-    persist?: { set: (key: string, value: string) => void, get: (key: string) => string | undefined }
+    persist?: Persist,
+    sync?: true | string
 };
 
 function createStore<Data extends { id: string }, ExtraController extends object = {}>(
@@ -23,19 +24,22 @@ function createStore<Data extends { id: string }, ExtraController extends object
     options?: CreateCollectionOptions<Data, ExtraController>
 ): Store<Data, ExtraController> {
 
-    if (stores.has(id)) {
+    const existingStore = getStore(id) as Store<Data, ExtraController>;
+    if (existingStore) {
         console.log("Collection with id already exists: ", id);
-        return stores.get(id) as Store<Data, ExtraController>;
+        return existingStore;
     }
 
     console.log("createCollection() creating collection: ", id, "create count: ", ++collectionCounter);
 
+    // If we have a persist option, try to load the data from the persist store
     if (options?.persist) {
         const json = options.persist.get(id);
         if (json) {
             initialData = JSON.parse(json);
         }
     }
+
 
     const store: Store<Data, ExtraController> = {
         id,
@@ -50,23 +54,35 @@ function createStore<Data extends { id: string }, ExtraController extends object
         useController: null as any, // will be assigned later
         selectedModelId: null,
         persist: options?.persist,
+        sync: options?.sync
     };
 
     let timeOut: number | undefined;
-    // Persist data if available
-    if (store.persist) {
 
+    // If we have a persist option, subscribe to the event handler
+    // so that we can persist the data to the store
+    if (store.persist || store.sync) {
         store.eventHandler.subscribe((data) => {
 
             if (timeOut) clearTimeout(timeOut);
+
             timeOut = setTimeout(() => {
                 const json = JSON.stringify(data);
                 console.log("Persisting data: ", id, json);
-                store.persist?.set(id, json);
+
+                if (store.persist) {
+                    store.persist?.set(id, json);
+                }
+
+                if (store.sync) {
+
+                }
+
             }, 100);
 
         });
     }
+
 
     // Set final values to the store
     store.baseController = createBaseController<Data>(store);
@@ -80,7 +96,7 @@ function createStore<Data extends { id: string }, ExtraController extends object
 
 
     // Store it in our global map
-    stores.set(id, store);
+    addStore(store);
     return store;
 }
 
