@@ -11,6 +11,7 @@ type BaseController<Data> = {
     getSelected: () => Data | null;
     getSelectedId(): string | null;
     select: (modelId: string | null) => void;
+    add: (model: Data) => void;
     set: (model: Data) => void;
     setCollection: (newCollection: Data[]) => void;
     setField: (modelId: string, key: keyof Data, value: any) => void;
@@ -22,13 +23,19 @@ type Persist = {
     name?: string;
 };
 
+type Model = {
+    id: string;
+    created_at?: Date;
+    updated_at?: Date;
+    synced_at?: Date;
+}
 
 type Controller<Data, ExtraController> = BaseController<Data> & ExtraController;
 type UseController<Data, ExtraController> = () => Controller<Data, ExtraController>;
 
 type CreateController<Data, ExtraController = {}> = (baseController: BaseController<Data>) => ExtraController;
 
-type Store<Data extends { id: string }, ExtraController = {}> = {
+type Store<Data extends Model, ExtraController = {}> = {
     id: string;
     eventHandler: EventHandler<Data[]>;
     selectedEventHandler: EventHandler<string | null>;
@@ -78,5 +85,5 @@ function clearAll() {
 
 
 
-export { addStore, getStore, clearAll, CreateController, BaseController, Store, UseController, Controller, Persist };
+export { addStore, getStore, clearAll, CreateController, BaseController, Store, UseController, Controller, Persist, Model };
 

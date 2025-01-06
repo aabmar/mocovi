@@ -3,7 +3,6 @@
 import createStore from "./createStore";
 // Remove or comment out references to old store
 
-import { CreateController, BaseController } from "./Store";
+import { CreateController, BaseController, Model } from "./Store";
 
-export { createStore, CreateController, BaseController, };
-
+export { createStore, CreateController, BaseController, Model};

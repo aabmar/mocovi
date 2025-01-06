@@ -1,6 +1,6 @@
 import React from "react";
 import { createEventHandler } from "./EventHandler";
-import { addStore, getStore, CreateController, BaseController, Store, Controller, UseController, Persist } from "./Store";
+import { addStore, getStore, CreateController, BaseController, Store, Controller, UseController, Persist, Model } from "./Store";
 import createBaseController from "./BaseController";
 import createUseCollection, { UseCollection, UseCollectionReturn } from "./useCollection";
 import createUseSelected, { UseSelected, UseSelectedReturn } from "./useSelected";
@@ -18,7 +18,7 @@ type CreateCollectionOptions<Data, ExtraController = {}> = {
     sync?: true | string
 };
 
-function createStore<Data extends { id: string }, ExtraController extends object = {}>(
+function createStore<Data extends Model, ExtraController extends object = {}>(
     id: string,
     initialData: Data[] = [],
     options?: CreateCollectionOptions<Data, ExtraController>

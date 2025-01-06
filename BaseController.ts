@@ -34,9 +34,22 @@ function createBaseController<Data extends { id: string }>(store: any) {
             store.eventHandler.notify(store.collectionData);
         },
 
+        add(model: Data) {
+            const idx = findModelIndexById<Data>(store.collectionData, model.id);
+            if (idx !== -1) {
+                console.error("Model with id already exists in collection: ", model.id);
+                return; // TODO: error handling
+            }
+            store.collectionData.push(model);
+            store.eventHandler.notify(store.collectionData);
+        },
+
         set(model: Data) {
             const idx = findModelIndexById<Data>(store.collectionData, model.id);
-            if (idx === -1) return; // TODO: error handling
+            if (idx === -1) {
+                console.error("Model with id does not exist in collection: ", model.id);
+                return; // TODO: error handling
+            }
             store.collectionData[idx] = { ...model };
             store.eventHandler.notify(store.collectionData);
         },
