@@ -12,6 +12,8 @@
 				"activityBar.background": "#530850",
 			},
 		},
+		"makefile.configureOnOpen": false,
+		"editor.formatOnSave": true,
 		"emeraldwalk.runonsave": {
 			"commands": [
 				// {

@@ -1,4 +1,5 @@
 import { EventHandler } from "./EventHandler";
+import { createSync } from "./sync";
 import { UseCollection, UseCollectionReturn } from "./useCollection";
 import { UseModel, UseModelReturn } from "./useModel";
 import { UseSelected, UseSelectedReturn } from "./useSelected";
@@ -23,11 +24,19 @@ type Persist = {
     name?: string;
 };
 
+type Sync = {
+    send: (msg: Message) => boolean;
+    close: () => void;
+    findChangedData: (storeId: string, data: Model[]) => Model[];
+}
+
+
 type Model = {
     id: string;
     created_at?: Date;
     updated_at?: Date;
     synced_at?: Date;
+    deleted_at?: Date;
 }
 
 type Controller<Data, ExtraController> = BaseController<Data> & ExtraController;
@@ -48,29 +57,25 @@ type Store<Data extends Model, ExtraController = {}> = {
     useController: UseController<Data, ExtraController>;
     selectedModelId: string | null;
     persist?: Persist;
-    sync?: true | string;
+    sync?: Sync;
     syncCallback?: (data: Data[]) => void;
+    previousData?: Map<string, Model>;
+
 };
+
 const stores = new Map<string, Store<any>>();
-let syncActive = false;
-let previousData = new Map<string, any[]>();
 
-function sync(cid: string, data: any[]) {
-    console.log("sync() ", cid, data);
-    if (!syncActive) return;
-
+type Message = {
+    // Object with storename as key, and one array of models for each store
+    storeId: string;
+    models: Model[];
+    sessionId: string;
 }
+
 
 function addStore(store: Store<any>) {
     stores.set(store.id, store);
 
-    // If the store has sync enabled, add a callback function
-    if (store.sync) {
-        function callback(data: any) {
-            sync(store.id, data);
-        }
-        store.syncCallback = callback;
-    }
 }
 
 function getStore(id: string) {
@@ -83,7 +88,24 @@ function clearAll() {
     }
 }
 
+let sync_: Sync | undefined;
+let sessionId_: string;
 
+function startSync(url: string, sessionId: string) {
+    sessionId_ = sessionId;
+    sync_ = createSync(url, sessionId);
 
-export { addStore, getStore, clearAll, CreateController, BaseController, Store, UseController, Controller, Persist, Model };
+    // Set sync to stores that have syncCallback
+    for (let store of stores.values()) {
+        if (store.syncCallback) {
+            store.sync = sync_;
+        }
+    }
+}
+
+export {
+    addStore, getStore, clearAll,
+    CreateController, BaseController, Store, UseController, Controller,
+    Persist, Model, Sync, Message, startSync
+};
 
