@@ -72,7 +72,6 @@ type Message = {
     sessionId: string;
 }
 
-
 function addStore(store: Store<any>) {
     stores.set(store.id, store);
 
