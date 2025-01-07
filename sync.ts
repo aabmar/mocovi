@@ -1,4 +1,4 @@
-import React from "react";
+
 import { Message, Model, Store, Sync, getStore } from "./Store";
 
 
@@ -27,7 +27,7 @@ const createSync = (
 
     ws.onmessage = (e) => {
         console.log("Message from server:", e.data);
-        if (!e?.data) return;
+        if (!e.data) return;
         let msg;
         try {
             msg = JSON.parse(e.data) as Message;
@@ -35,6 +35,7 @@ const createSync = (
             console.error("Error parsing message:", e);
             return;
         }
+
         // Check if the session id is the same as the current session
         if (msg.sessionId !== sessionId) {
             console.log("Session id mismatch, ignoring message");
@@ -138,7 +139,9 @@ const createSync = (
             }
 
             return updatedModels;
-        }
+        },
+
+        sessionId
     };
 
     return sync;

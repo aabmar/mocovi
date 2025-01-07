@@ -6,6 +6,8 @@ import { nanoid } from "nanoid/non-secure";
 export type UseModelReturn<Data extends { id: string }> = [Data | null, (newModel: Data) => void];
 export type UseModel<Data extends { id: string }> = (modelId: string | null) => UseModelReturn<Data>;
 
+let prevId = "";
+
 function createUseModel<Data extends { id: string }>(store: Store<Data>): UseModel<Data> {
     return function useModel(modelId): UseModelReturn<Data> {
 
@@ -21,6 +23,11 @@ function createUseModel<Data extends { id: string }>(store: Store<Data>): UseMod
             //     const newModel = { id: modelId } as Data;
             //     store.mergedController.add(newModel);
             // }
+        }
+
+        // If this is the first time, we set the previous ID
+        if (!prevId && modelId) {
+            prevId = modelId;
         }
 
         // Find the initial model based on the modelId
@@ -47,9 +54,11 @@ function createUseModel<Data extends { id: string }>(store: Store<Data>): UseMod
         }, []);
 
         useEffect(() => {
-            console.log("useModel() modelId changed: ", modelId);
+            if (prevId === modelId) return;
+            console.log("useModel() ", store.id + " modelId changed: ", modelId);
             const newModel = findModelById(store.collectionData, modelId) || null;
             if (model === newModel) return;
+            prevId = modelId;
             setModel(newModel);
         }, [modelId]);
 

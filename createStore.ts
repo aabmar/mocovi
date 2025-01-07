@@ -39,7 +39,11 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
     if (options?.persist) {
         const json = options.persist.get(id);
         if (json) {
-            initialData = JSON.parse(json);
+            try {
+                initialData = JSON.parse(json);
+            } catch (e) {
+                console.error("createCollection() Error parsing JSON: ", e);
+            }
         }
     }
 
@@ -72,10 +76,10 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
 
             timeOut = setTimeout(() => {
                 const json = JSON.stringify(data);
-                console.log("Persisting data: ", id, json);
+                console.log("Persisting data: ", id, data.length, json.length);
 
                 if (store.persist) {
-                    store.persist?.set(id, json);
+                    store.persist.set(id, json);
                 }
 
                 if (store.syncCallback) {
@@ -86,7 +90,6 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
 
         });
     }
-
 
     // Set final values to the store
     store.baseController = createBaseController<Data>(store);
@@ -112,16 +115,17 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
         const callback = (data: Model[]) => {
 
             if (!store.sync) {
-                console.error("Store: store has no sync object. store:", store.id);
+                console.error("createStore(): store has no sync object. store:", store.id);
                 return;
             }
             const models = store.sync?.findChangedData(storeId, data);
             if (!models || models.length === 0) {
                 return;
             }
+            console.log("createStore() ", store.id, " sending sync message: ", models.length);
             const message: Message = {
                 storeId,
-                sessionId: "1",
+                sessionId: store.sync.sessionId,
                 models
             }
 
@@ -129,14 +133,16 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
             store.sync.send(message);
         }
 
-        // Set selected to the first model, if any
-        if (store.collectionData.length > 0) {
-            store.baseController.select(store.collectionData[0].id);
-        }
-
+        console.log("createStore() ", store.id, " setting sync callback");
         store.syncCallback = callback;
     }
 
+    // Set selected to the first model, if any
+    console.log("createStore() ", store.id, " if we have data, select first model");
+    if (store.collectionData.length > 0) {
+        console.log("createStore() ", store.id, " selecting first model: ", store.collectionData[0].id);
+        store.baseController.select(store.collectionData[0].id);
+    }
 
     // Store it in our global map
     addStore(store);

@@ -28,6 +28,7 @@ type Sync = {
     send: (msg: Message) => boolean;
     close: () => void;
     findChangedData: (storeId: string, data: Model[]) => Model[];
+    sessionId: string;
 }
 
 
@@ -93,11 +94,14 @@ let sessionId_: string;
 
 function startSync(url: string, sessionId: string) {
     sessionId_ = sessionId;
+    console.log("Store: startSync() url: ", url, "sessionId: ", sessionId);
     sync_ = createSync(url, sessionId);
+
+    console.log("Store: startSync() sync: ", stores);
 
     // Set sync to stores that have syncCallback
     for (let store of stores.values()) {
-        if (store.syncCallback) {
+        if (store?.syncCallback) {
             store.sync = sync_;
         }
     }

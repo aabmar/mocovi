@@ -31,6 +31,13 @@ function createBaseController<Data extends Model>(store: any) {
         setCollection(newCollection: Data[]) {
             // mutate the reference and notify
             store.collectionData = [...newCollection];
+            if (newCollection.length === 0) {
+                store.selectedModelId = null;
+            }
+            else if (!store.selectedModelId || !store.collectionData.find((m: Data) => m.id === store.selectedModelId)) {
+                store.selectedModelId = store.collectionData[0].id;
+            }
+
             store.eventHandler.notify(store.collectionData);
         },
 
