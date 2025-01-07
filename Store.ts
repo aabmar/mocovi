@@ -33,10 +33,11 @@ type Sync = {
 
 type Model = {
     id: string;
-    created_at?: Date;
-    updated_at?: Date;
-    synced_at?: Date;
-    deleted_at?: Date;
+    created_at?: Date; //  Set on server
+    updated_at?: Date; // Set on server
+    synced_at?: Date; // set on client
+    deleted_at?: Date; // set on client
+    changed_at?: Date; // set on client
 }
 
 type Controller<Data, ExtraController> = BaseController<Data> & ExtraController;

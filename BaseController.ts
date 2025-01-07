@@ -1,8 +1,8 @@
 import { findModelById, findModelIndexById } from "./findModelIndexById";
-import { BaseController } from "./Store";
+import { BaseController, Model } from "./Store";
 
 
-function createBaseController<Data extends { id: string }>(store: any) {
+function createBaseController<Data extends Model>(store: any) {
 
     const baseController: BaseController<Data> = {
         getCollection(): Data[] {
@@ -40,6 +40,7 @@ function createBaseController<Data extends { id: string }>(store: any) {
                 console.error("Model with id already exists in collection: ", model.id);
                 return; // TODO: error handling
             }
+            model.changed_at = new Date();
             store.collectionData.push(model);
             store.eventHandler.notify(store.collectionData);
 
@@ -55,6 +56,7 @@ function createBaseController<Data extends { id: string }>(store: any) {
                 console.error("Model with id does not exist in collection: ", model.id);
                 return; // TODO: error handling
             }
+            model.changed_at = new Date();
             store.collectionData[idx] = { ...model };
             store.eventHandler.notify(store.collectionData);
         },
@@ -62,7 +64,7 @@ function createBaseController<Data extends { id: string }>(store: any) {
         setField(modelId: string, key: keyof Data, value: any) {
             const idx = findModelIndexById(store.collectionData, modelId);
             if (idx === -1) return; // TODO: error handling
-            store.collectionData[idx] = { ...store.collectionData[idx], [key]: value };
+            store.collectionData[idx] = { ...store.collectionData[idx], [key]: value, updated_at: new Date() };
             store.eventHandler.notify(store.collectionData);
         },
 
