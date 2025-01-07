@@ -13,14 +13,14 @@ function createUseModel<Data extends { id: string }>(store: Store<Data>): UseMod
 
         if (modelId === null) {
             modelId = store.selectedModelId;
-            console.log("useModel() called with modelId: null, using selectedModelId: ", modelId);
+            console.log("useModel() ", store.id, " called with modelId: null, using selectedModelId: ", modelId);
 
-            if (modelId === null) {
-                console.error("useModel() called with modelId: null and no model is selected. We create a new model.");
-                modelId = nanoid();
-                const newModel = { id: modelId } as Data;
-                store.mergedController.add(newModel);
-            }
+            // if (modelId === null) {
+            //     console.error("useModel() ", store.id, " called with modelId: null and no model is selected. We create a new model.");
+            //     modelId = nanoid();
+            //     const newModel = { id: modelId } as Data;
+            //     store.mergedController.add(newModel);
+            // }
         }
 
         // Find the initial model based on the modelId
