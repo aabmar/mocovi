@@ -16,18 +16,14 @@
 		"editor.formatOnSave": true,
 		"emeraldwalk.runonsave": {
 			"commands": [
-				// {
-				// 	"match": "\\.(ts|tsx)$",
-				// 	"cmd": "copy ${fileBasename} ..\\backend\\dashboard\\\node_modules\\react-mocovi\\",
-				// },
 				{
 					"match": "\\.(ts|json|tsx|code-workspace)$",
 					"cmd": "cp ${fileBasename} ../ruter/node_modules/mocovi/",
 				},
-				// {
-				// 	"match": "\\.(ts|json|tsx|code-workspace)$",
-				// 	"cmd": "copy ${fileBasename} ..\\ruter\\node_modules\\react-mocovi\\",
-				// }
+				{
+					"match": "\\.(ts|json|tsx|code-workspace)$",
+					"cmd": "cp ${fileBasename} ../exp-ble/node_modules/mocovi/",
+				}
 			]
 		}
 	}

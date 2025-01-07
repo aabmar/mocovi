@@ -61,7 +61,7 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
         previousData: undefined
     };
 
-    let timeOut: number | undefined;
+    let timeOut: any;
 
     // If we have a persist option, subscribe to the event handler
     // so that we can persist the data to the store
@@ -118,6 +118,11 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
             store.sync.send(message);
         }
 
+        // Set selected to the first model, if any
+        if (store.collectionData.length > 0) {
+            store.baseController.select(store.collectionData[0].id);
+        }
+
         store.syncCallback = callback;
     }
 
@@ -125,9 +130,9 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
     store.baseController = createBaseController<Data>(store);
     const customController = options?.createController?.(store.baseController) || {} as ExtraController;
     store.mergedController = { ...store.baseController, ...customController } as BaseController<Data> & ExtraController;
-    store.useCollection = createUseCollection(store);
-    store.useModel = createUseModel(store);
-    store.useSelected = createUseSelected(store);
+    store.useCollection = createUseCollection<Data>(store);
+    store.useModel = createUseModel<Data>(store);
+    store.useSelected = createUseSelected<Data>(store);
     store.useController = () => store.mergedController;
 
 

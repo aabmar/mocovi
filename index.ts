@@ -1,8 +1,7 @@
 // Map all exports
 
 import createStore from "./createStore";
-// Remove or comment out references to old store
 
-import { CreateController, BaseController, Model, Persist } from "./Store";
+import { CreateController, BaseController, Model, Persist, clearAll } from "./Store";
 
-export { createStore, CreateController, BaseController, Model, Persist };
+export { createStore, CreateController, BaseController, Model, Persist, clearAll };

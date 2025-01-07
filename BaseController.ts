@@ -42,6 +42,11 @@ function createBaseController<Data extends { id: string }>(store: any) {
             }
             store.collectionData.push(model);
             store.eventHandler.notify(store.collectionData);
+
+            // If this is the first model added, select it
+            if (store.collectionData.length === 1) {
+                this.select(model.id);
+            }
         },
 
         set(model: Data) {

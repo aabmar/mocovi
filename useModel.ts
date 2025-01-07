@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { findModelIndexById, findModelById } from "./findModelIndexById";
 import { Store } from "./Store";
+import { nanoid } from "nanoid/non-secure";
 
 export type UseModelReturn<Data extends { id: string }> = [Data | null, (newModel: Data) => void];
 export type UseModel<Data extends { id: string }> = (modelId: string | null) => UseModelReturn<Data>;
@@ -9,6 +10,18 @@ function createUseModel<Data extends { id: string }>(store: Store<Data>): UseMod
     return function useModel(modelId): UseModelReturn<Data> {
 
         // console.log("useModel() called with modelId: ", modelId);
+
+        if (modelId === null) {
+            modelId = store.selectedModelId;
+            console.log("useModel() called with modelId: null, using selectedModelId: ", modelId);
+
+            if (modelId === null) {
+                console.error("useModel() called with modelId: null and no model is selected. We create a new model.");
+                modelId = nanoid();
+                const newModel = { id: modelId } as Data;
+                store.mergedController.add(newModel);
+            }
+        }
 
         // Find the initial model based on the modelId
         const initialModel = findModelById(store.collectionData, modelId) || null;
@@ -40,9 +53,17 @@ function createUseModel<Data extends { id: string }>(store: Store<Data>): UseMod
             setModel(newModel);
         }, [modelId]);
 
-        // We make a function to set model data so that this hook works like useState for the user
+        // We make a function to set model data so that this hook works like useState for the user.
+        // It will call add() on the controller if the model is not found, otherwise it will call set()
         const setModelData = (newModel: Data) => {
-            store.mergedController.set(newModel);
+            if (newModel.id.length === 0) {
+                newModel.id = nanoid();
+            }
+            if (findModelById(store.collectionData, newModel.id) === null) {
+                store.mergedController.add(newModel);
+            } else {
+                store.mergedController.set(newModel);
+            }
         };
 
         if (!modelId) {
