@@ -90,10 +90,13 @@ const createSync = (
 
         if (sync__) {
             sync__ = undefined;
-            sync__ = createSync(endpoint, sessionId, stores);
-        }
 
-    };
+            setTimeout(() => {
+                sync__ = createSync(endpoint, sessionId, stores);
+            }, 5000);
+
+        }
+    }
 
     function getPrevious(storeId: string): Map<string, Model> {
         let store = getStore(storeId);

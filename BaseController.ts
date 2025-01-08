@@ -76,7 +76,11 @@ function createBaseController<Data extends Model>(store: any) {
         },
 
         clear() {
-            store.collectionData = [];
+            store.collectionData = store.initialData;
+            store.selectedModelId = null;
+            if (store.collectionData.length > 0) {
+                store.selectedModelId = store.collectionData[0].id;
+            }
             store.eventHandler.notify(store.collectionData);
         },
 

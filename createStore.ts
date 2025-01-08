@@ -5,7 +5,7 @@ import createBaseController from "./BaseController";
 import createUseCollection, { UseCollection, UseCollectionReturn } from "./useCollection";
 import createUseSelected, { UseSelected, UseSelectedReturn } from "./useSelected";
 import createUseModel, { UseModel, UseModelReturn } from "./useModel";
-import { createSync } from "./sync";
+
 
 // Global data store that updates components when data changes.
 // Data is mutable, and is updated by calling setState on components
@@ -35,12 +35,13 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
 
     console.log("createCollection() creating collection: ", id, "create count: ", ++collectionCounter);
 
+    let persistedData: Data[] | undefined = undefined;
     // If we have a persist option, try to load the data from the persist store
     if (options?.persist) {
         const json = options.persist.get(id);
         if (json) {
             try {
-                initialData = JSON.parse(json);
+                persistedData = JSON.parse(json);
             } catch (e) {
                 console.error("createCollection() Error parsing JSON: ", e);
             }
@@ -52,7 +53,7 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
         id,
         eventHandler: createEventHandler<Data[]>(),
         selectedEventHandler: createEventHandler<string | null>(),
-        collectionData: initialData,
+        collectionData: persistedData || initialData,
         baseController: null as any, // will be assigned later
         mergedController: null as any, // will be assigned later
         useCollection: null as any, // will be assigned later
@@ -62,7 +63,8 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
         selectedModelId: null,
         persist: options?.persist,
         sync: undefined,
-        previousData: undefined
+        previousData: undefined,
+        initialData: initialData,
     };
 
     let timeOut: any;
