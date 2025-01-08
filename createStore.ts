@@ -1,4 +1,4 @@
-import React from "react";
+import "react";
 import { createEventHandler } from "./EventHandler";
 import { addStore, getStore, CreateController, BaseController, Store, Controller, UseController, Persist, Model, Sync, Message } from "./Store";
 import createBaseController from "./BaseController";
