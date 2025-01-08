@@ -1,5 +1,5 @@
 import { EventHandler } from "./EventHandler";
-import { createSync } from "./sync";
+import { getSync } from "./sync";
 import { UseCollection, UseCollectionReturn } from "./useCollection";
 import { UseModel, UseModelReturn } from "./useModel";
 import { UseSelected, UseSelectedReturn } from "./useSelected";
@@ -95,16 +95,9 @@ let sessionId_: string;
 function startSync(url: string, sessionId: string) {
     sessionId_ = sessionId;
     console.log("Store: startSync() url: ", url, "sessionId: ", sessionId);
-    sync_ = createSync(url, sessionId);
+    sync_ = getSync(url, sessionId, stores);
 
-    console.log("Store: startSync() sync: ", stores);
 
-    // Set sync to stores that have syncCallback
-    for (let store of stores.values()) {
-        if (store?.syncCallback) {
-            store.sync = sync_;
-        }
-    }
 }
 
 export {

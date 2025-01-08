@@ -1,11 +1,12 @@
 
 import { Message, Model, Store, Sync, getStore } from "./Store";
 
-
+let sync__: Sync | undefined;
 
 const createSync = (
     endpoint: string,
-    sessionId: string
+    sessionId: string,
+    stores: Map<string, Store<any>>,
 ): Sync => {
 
     const ws = new WebSocket(endpoint);
@@ -81,6 +82,17 @@ const createSync = (
         console.log("WebSocket connection closed:", e.code, e.reason);
         connected = false;
 
+        stores.forEach((store) => {
+            if (store.sync) {
+                store.sync = undefined;
+            }
+        });
+
+        if (sync__) {
+            sync__ = undefined;
+            sync__ = createSync(endpoint, sessionId, stores);
+        }
+
     };
 
     function getPrevious(storeId: string): Map<string, Model> {
@@ -101,13 +113,17 @@ const createSync = (
     // The objec we send back to the Store
     let sync: Sync = {
         send: (msg: Message): boolean => {
+            if (!connected) {
+                const ws = new WebSocket(endpoint);
+            }
+
             if (connected) {
                 let data: string;
                 try {
                     data = JSON.stringify(msg);
                     ws.send(data);
                 } catch (e) {
-                    console.error("Error sending message:", e);
+                    console.error("sync: Error sending message:", e);
                     return false;
                 }
 
@@ -118,12 +134,13 @@ const createSync = (
                 }
                 return true;
             } else {
-                console.log("WebSocket not connected");
+                console.log("sync: WebSocket not connected");
                 return false;
             }
         },
 
         close: () => {
+            sync__ = undefined;
             ws.close();
         },
 
@@ -144,8 +161,26 @@ const createSync = (
         sessionId
     };
 
+    // Set sync to stores that have syncCallback
+    for (let store of stores.values()) {
+        if (store?.syncCallback) {
+            store.sync = sync;
+        }
+    }
+
     return sync;
 
 };
 
-export { createSync };
+function getSync(endpoint: string,
+    sessionId: string,
+    stores: Map<string, Store<any>>,): Sync {
+
+    if (sync__) {
+        return sync__;
+    }
+    sync__ = createSync(endpoint, sessionId, stores);
+    return sync__;
+}
+
+export { getSync };
