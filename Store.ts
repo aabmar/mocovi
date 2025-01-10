@@ -12,7 +12,7 @@ type BaseController<Data> = {
     getSelected: () => Data | null;
     getSelectedId(): string | null;
     select: (modelId: string | null) => void;
-    add: (model: Data) => void;
+    add: (model: Data, select?: boolean) => void;
     set: (model: Data) => void;
     setCollection: (newCollection: Data[]) => void;
     setField: (modelId: string, key: keyof Data, value: any) => void;
@@ -49,7 +49,6 @@ type CreateController<Data, ExtraController = {}> = (baseController: BaseControl
 type Store<Data extends Model, ExtraController = {}> = {
     id: string;
     eventHandler: EventHandler<Data[]>;
-    selectedEventHandler: EventHandler<string | null>;
     collectionData: Data[];
     baseController: BaseController<Data>;
     mergedController: BaseController<Data> & ExtraController;

@@ -52,7 +52,6 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
     const store: Store<Data, ExtraController> = {
         id,
         eventHandler: createEventHandler<Data[]>(),
-        selectedEventHandler: createEventHandler<string | null>(),
         collectionData: persistedData || initialData,
         baseController: null as any, // will be assigned later
         mergedController: null as any, // will be assigned later

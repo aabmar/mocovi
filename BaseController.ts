@@ -41,7 +41,7 @@ function createBaseController<Data extends Model>(store: any) {
             store.eventHandler.notify(store.collectionData);
         },
 
-        add(model: Data) {
+        add(model: Data, select = true) {
             const idx = findModelIndexById<Data>(store.collectionData, model.id);
             if (idx !== -1) {
                 console.error("Model with id already exists in collection: ", model.id);
@@ -49,10 +49,11 @@ function createBaseController<Data extends Model>(store: any) {
             }
             model.changed_at = new Date();
             store.collectionData.push(model);
-            store.eventHandler.notify(store.collectionData);
+            // store.eventHandler.notify(store.collectionData);
+            store.baseController.setCollection(store.collectionData);
 
             // If this is the first model added, select it
-            if (store.collectionData.length === 1) {
+            if (select) {
                 this.select(model.id);
             }
         },
@@ -65,7 +66,7 @@ function createBaseController<Data extends Model>(store: any) {
             }
             model.changed_at = new Date();
             store.collectionData[idx] = { ...model };
-            store.eventHandler.notify(store.collectionData);
+            store.mergedController.setCollection(store.collectionData);
         },
 
         setField(modelId: string, key: keyof Data, value: any) {
@@ -88,11 +89,10 @@ function createBaseController<Data extends Model>(store: any) {
             // console.log("BaseController: select() ", modelId);
             if (!modelId) {
                 store.selectedModelId = null;
-                store.selectedEventHandler.notify(null);
             } else if (modelId !== store.selectedModelId) {
                 store.selectedModelId = store.collectionData[findModelIndexById(store.collectionData, modelId)]?.id || null;
-                store.selectedEventHandler.notify(store.selectedModelId);
             }
+            store.mergedController.setCollection(store.collectionData);
         },
     };
 

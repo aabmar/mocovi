@@ -17,12 +17,14 @@ function createUseSelected<Data extends { id: string }>(store: Store<Data>): Use
         const [sid, setSid] = useState<string | null>(initialId);
 
         useEffect(() => {
-            function handleChange(selectedModelId: string | null) {
-                setSid(selectedModelId);
+            function handleChange([]: Data[]) {
+                const newSelectedModelId = store.selectedModelId;
+                if (sid === newSelectedModelId) return;
+                setSid(newSelectedModelId);
             }
-            store.selectedEventHandler.subscribe(handleChange);
+            store.eventHandler.subscribe(handleChange);
             return () => {
-                store.selectedEventHandler.unsubscribe(handleChange);
+                store.eventHandler.unsubscribe(handleChange);
             };
         }, [store]);
 

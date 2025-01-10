@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Store } from "./Store";
 
-export type UseCollectionReturn<Data extends { id: string }> = [Data[], (newCollection: Data[]) => void];
+export type UseCollectionReturn<Data extends { id: string }> = [Data[], (newCollection: Data[]) => void, string | null];
 export type UseCollection<Data extends { id: string }> = () => UseCollectionReturn<Data>;
 
 function createUseCollection<Data extends { id: string }>(store: Store<Data>): UseCollection<Data> {
@@ -14,6 +14,7 @@ function createUseCollection<Data extends { id: string }>(store: Store<Data>): U
 
             // Make a subscription to changes in the data
             function handleChange(d: Data[]) {
+                if (data === d) return;
                 setData(d);
             }
             store.eventHandler.subscribe(handleChange);
@@ -29,7 +30,7 @@ function createUseCollection<Data extends { id: string }>(store: Store<Data>): U
             store.mergedController.setCollection(newCollection);
         };
 
-        return [data, setCollection] as UseCollectionReturn<Data>;
+        return [data, setCollection, store.selectedModelId] as UseCollectionReturn<Data>;
     };
 }
 
