@@ -54,7 +54,7 @@ type Store<Data extends Model, ExtraController = {}> = {
     mergedController: BaseController<Data> & ExtraController;
     useCollection: UseCollection<Data>;
     useModel: UseModel<Data>;
-    useSelected: UseSelected;
+    useSelected: UseSelected<Data>;
     useController: UseController<Data, ExtraController>;
     selectedModelId: string | null;
     persist?: Persist;
@@ -88,6 +88,7 @@ function clearAll() {
     for (let store of stores.values()) {
         store.useController().clear();
     }
+
 }
 
 let sync_: Sync | undefined;

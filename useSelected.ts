@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { findModelById, findModelIndexById } from "./findModelIndexById";
 import { Store } from "./Store";
-import { nanoid } from "nanoid/non-secure";
+import { nanoid } from "./nanoid";
 
 export type UseSelectedReturn<Data> = [Data | null, (model: Data) => void];
 export type UseSelected<Data> = () => UseSelectedReturn<Data>;
@@ -46,7 +46,7 @@ function createUseSelected<Data extends { id: string }>(store: Store<Data>): Use
             }
         };
 
-        return [model, setModelData] as UseSelectedReturn;
+        return [model, setModelData] as UseSelectedReturn<Data>;
     }
 
     return useSelected;

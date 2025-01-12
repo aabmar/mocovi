@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { findModelIndexById, findModelById } from "./findModelIndexById";
 import { Model, Store } from "./Store";
-import { nanoid } from "nanoid/non-secure";
+import { nanoid } from "./nanoid";
 
 export type UseModelReturn<Data extends { id: string }> = [Data | null, (newModel: Data) => void];
 export type UseModel<Data extends { id: string }> = (modelId: string | undefined) => UseModelReturn<Data>;
