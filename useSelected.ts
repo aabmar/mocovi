@@ -1,39 +1,52 @@
 import { useEffect, useState } from "react";
-import { findModelIndexById } from "./findModelIndexById";
+import { findModelById, findModelIndexById } from "./findModelIndexById";
 import { Store } from "./Store";
+import { nanoid } from "nanoid/non-secure";
 
-export type UseSelectedReturn = [string | null, (modelId: string) => void];
-export type UseSelected = () => UseSelectedReturn;
+export type UseSelectedReturn<Data> = [Data | null, (model: Data) => void];
+export type UseSelected<Data> = () => UseSelectedReturn<Data>;
 
-function createUseSelected<Data extends { id: string }>(store: Store<Data>): UseSelected {
+function createUseSelected<Data extends { id: string }>(store: Store<Data>): UseSelected<Data> {
 
     function useSelected() {
 
-        let initialId: string | null = null
-        if (store.selectedModelId !== null) {
-            initialId = store.collectionData[findModelIndexById(store.collectionData, store.selectedModelId)].id || null;
-        }
+        const selectedModel = findModelById(store.collectionData, store.selectedModelId);
 
-        const [sid, setSid] = useState<string | null>(initialId);
+        // The local state data
+        const [model, setModel] = useState<Data | null>(selectedModel);
 
         useEffect(() => {
-            function handleChange([]: Data[]) {
-                const newSelectedModelId = store.selectedModelId;
-                if (sid === newSelectedModelId) return;
-                setSid(newSelectedModelId);
+
+            function handleChange(d: Data[]) {
+
+                const newModel = findModelById(d, store.selectedModelId);
+                if (model === newModel) return;
+                // TODO: optimize can be deep or level 1 compare
+                setModel(newModel);
             }
+
             store.eventHandler.subscribe(handleChange);
+
             return () => {
                 store.eventHandler.unsubscribe(handleChange);
             };
-        }, [store]);
+        }, []);
 
-        const setSelectedModel = (modelId: string) => {
-            // console.log("setSelectedModel() ", modelId);
-            store.mergedController.select(modelId);
-        }
 
-        return [sid, setSelectedModel] as UseSelectedReturn;
+        // We make a function to set model data so that this hook works like useState for the user.
+        // It will call add() on the controller if the model is not found, otherwise it will call set()
+        const setModelData = (newModel: Data) => {
+            if (newModel.id.length === 0) {
+                newModel.id = nanoid();
+            }
+            if (findModelById(store.collectionData, newModel.id) === null) {
+                store.mergedController.add(newModel);
+            } else {
+                store.mergedController.set(newModel);
+            }
+        };
+
+        return [model, setModelData] as UseSelectedReturn;
     }
 
     return useSelected;

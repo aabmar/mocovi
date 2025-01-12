@@ -18,7 +18,8 @@ let sessionId = "1";
 type CreateCollectionOptions<Data, ExtraController = {}> = {
     createController?: CreateController<Data, ExtraController>
     persist?: Persist,
-    sync?: true | string
+    sync?: true | string,
+    autoSelect?: boolean,
 };
 
 function createStore<Data extends Model, ExtraController extends object = {}>(
@@ -63,7 +64,8 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
         persist: options?.persist,
         sync: undefined,
         previousData: undefined,
-        initialData: initialData,
+        initialData: JSON.parse(JSON.stringify(initialData)), // should we do this? might be a lot of data
+        autoSelect: options?.autoSelect,
     };
 
     let timeOut: any;

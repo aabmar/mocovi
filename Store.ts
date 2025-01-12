@@ -62,6 +62,7 @@ type Store<Data extends Model, ExtraController = {}> = {
     syncCallback?: (data: Data[]) => void;
     previousData?: Map<string, Model>;
     initialData?: Data[];
+    autoSelect?: boolean;
 
 };
 
