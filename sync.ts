@@ -56,19 +56,30 @@ const createSync = (
         }
 
         // Update the store with the new data
+        const newModels: Model[] = [];
+        if (newModels.length === 0) return;
+
         for (let model of msg.models) {
 
             let existingModel = store.baseController.get(model.id);
 
             if (existingModel) {
                 const updatedModel = { ...existingModel, ...model };
-                store.baseController.set(updatedModel);
+                // store.baseController.set(updatedModel);
                 previous.set(updatedModel.id, updatedModel);
+                newModels.push(updatedModel);
             } else {
-                store.baseController.add(model);
+                // store.baseController.add(model);
+                newModels.push(model);
                 previous.set(model.id, model);
             }
         }
+
+        // TODO: this must be based on ID.
+
+        // Merge existing models with the new and updated and set it all in one operation
+        // const mergedModels = [...store.baseController.getCollection(), ...newModels];
+        // store.baseController.setCollection(mergedModels);
 
     }
 
@@ -119,6 +130,7 @@ const createSync = (
             if (!connected) {
                 const ws = new WebSocket(endpoint);
             }
+            if (!msg.operation) msg.operation = "set";
 
             if (connected) {
                 let data: string;

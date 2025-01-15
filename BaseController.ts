@@ -1,5 +1,6 @@
 import { findModelById, findModelIndexById } from "./findModelIndexById";
-import { BaseController, Model } from "./Store";
+import { BaseController, historyMark, Model } from "./Store";
+import { printDiff } from "./util";
 
 
 function createBaseController<Data extends Model>(store: any) {
@@ -7,6 +8,41 @@ function createBaseController<Data extends Model>(store: any) {
     const baseController: BaseController<Data> = {
         getCollection(): Data[] {
             return store.collectionData;
+        },
+
+        // ALL data change should go through setCollection.
+        // All functions working on a Model, a Field, selecting the current model, etc
+        // will call setCollection to update the data.
+        // This is to ensure that the eventHandler is called and the data is updated in the store
+        // in a uniform way, and to prevent bugs.
+        setCollection(newCollection: Data[]) {
+            // mutate the reference
+
+            const a = store.collectionData;
+            store.collectionData = [...newCollection];
+            const b = store.collectionData;
+            console.log("setCollection: ", a === b, a, b);
+
+            if (store.history) {
+                historyMark();
+            }
+
+            // If the collection is empty, set selectedModelId to null
+            if (newCollection.length === 0) {
+                store.selectedModelId = null;
+            }
+
+            // If the selected is no longer in the collection, remove selection
+            if (!store.collectionData.find((m: Data) => m.id === store.selectedModelId)) {
+                store.selectedModelId = null;
+            }
+
+            // If autoSelect is enabled, and no model is selected, select the first model
+            if (store.autoSelect && !store.selectedModelId) {
+                store.selectedModelId = store.collectionData[0].id;
+            }
+
+            store.eventHandler.notify(store.collectionData);
         },
 
         get(modelId: string): Data | null {
@@ -28,28 +64,6 @@ function createBaseController<Data extends Model>(store: any) {
             return store.selectedModelId;
         },
 
-        setCollection(newCollection: Data[]) {
-            // mutate the reference
-            store.collectionData = [...newCollection];
-
-            // If the collection is empty, set selectedModelId to null
-            if (newCollection.length === 0) {
-                store.selectedModelId = null;
-            }
-
-            // If the selected is no longer in the collection, remove selection
-            if (!store.collectionData.find((m: Data) => m.id === store.selectedModelId)) {
-                store.selectedModelId = null;
-            }
-
-            // If autoSelect is enabled, and no model is selected, select the first model
-            if (store.autoSelect && !store.selectedModelId) {
-                store.selectedModelId = store.collectionData[0].id;
-            }
-
-            store.eventHandler.notify(store.collectionData);
-        },
-
         add(model: Data, select = true) {
             const idx = findModelIndexById<Data>(store.collectionData, model.id);
             if (idx !== -1) {
@@ -66,6 +80,8 @@ function createBaseController<Data extends Model>(store: any) {
             }
         },
 
+        // Set one eisting model to the collection. The model will be overwritten, not merged.
+        // Todo: support array of models? Or maybe make a setModels or updateCollection instead? Goal: less calls to setCollection
         set(model: Data) {
             const idx = findModelIndexById<Data>(store.collectionData, model.id);
             if (idx === -1) {
@@ -73,15 +89,21 @@ function createBaseController<Data extends Model>(store: any) {
                 return; // TODO: error handling
             }
             model.changed_at = new Date();
+            const a = store.collectionData[idx];
             store.collectionData[idx] = { ...model };
             store.mergedController.setCollection(store.collectionData);
+            const b = store.collectionData[idx];
+            // console.log("&&& set: ", a === b, a, b);
+            // List the fields different from a and b
+            printDiff("BaseController.set() ", a, b);
+
         },
 
         setField(modelId: string, key: keyof Data, value: any) {
             const idx = findModelIndexById(store.collectionData, modelId);
+            const oldModel = store.collectionData[idx];
             if (idx === -1) return; // TODO: error handling
-            store.collectionData[idx] = { ...store.collectionData[idx], [key]: value, updated_at: new Date() };
-            store.mergedController.setCollection(store.collectionData);
+            store.baseController.set({ ...oldModel, [key]: value });
         },
 
         clear() {

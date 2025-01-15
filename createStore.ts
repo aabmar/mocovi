@@ -1,6 +1,6 @@
 import "react";
 import { createEventHandler } from "./EventHandler";
-import { addStore, getStore, CreateController, BaseController, Store, Controller, UseController, Persist, Model, Sync, Message } from "./Store";
+import { addStore, getStore, CreateController, BaseController, Store, Controller, UseController, Persist, Model, Sync, Message, CreateCollectionOptions } from "./Store";
 import createBaseController from "./BaseController";
 import createUseCollection, { UseCollection, UseCollectionReturn } from "./useCollection";
 import createUseSelected, { UseSelected, UseSelectedReturn } from "./useSelected";
@@ -15,12 +15,7 @@ let collectionCounter = 0;
 let sync_: Sync | undefined; // This should be moved to sync.ts
 let sessionId = "1";
 
-type CreateCollectionOptions<Data, ExtraController = {}> = {
-    createController?: CreateController<Data, ExtraController>
-    persist?: Persist,
-    sync?: true | string,
-    autoSelect?: boolean,
-};
+const useHistoryDefault = __DEV__ ? true : false;
 
 function createStore<Data extends Model, ExtraController extends object = {}>(
     id: string,
@@ -66,7 +61,15 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
         previousData: undefined,
         initialData: JSON.parse(JSON.stringify(initialData)), // should we do this? might be a lot of data
         autoSelect: options?.autoSelect,
+        history: options?.useHistory === undefined ? useHistoryDefault : options.useHistory,
     };
+
+    // If history is enabled, we run this hack to expose it to debugging.
+    // We are going to make a dev attacment point to this later, and 
+    // make dev tools enabling us to go back and forth in history.
+    if (store.history) {
+
+    }
 
     let timeOut: any;
 
@@ -89,7 +92,7 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
                     store.syncCallback(data);
                 }
 
-            }, 100);
+            }, 1000);
 
         });
     }
