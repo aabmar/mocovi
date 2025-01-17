@@ -92,7 +92,7 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
                     store.syncCallback(data);
                 }
 
-            }, 1000);
+            }, 100);
 
         });
     }
