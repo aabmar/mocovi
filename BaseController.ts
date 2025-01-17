@@ -1,7 +1,5 @@
 import { findModelById, findModelIndexById } from "./findModelIndexById";
 import { BaseController, historyMark, Model } from "./Store";
-import { printDiff } from "./util";
-
 
 function createBaseController<Data extends Model>(store: any) {
 
@@ -96,9 +94,6 @@ function createBaseController<Data extends Model>(store: any) {
             store.collectionData[idx] = { ...model };
             store.mergedController.setCollection(store.collectionData);
             const b = store.collectionData[idx];
-            // console.log("&&& set: ", a === b, a, b);
-            // List the fields different from a and b
-            // printDiff("BaseController.set() ", a, b);
 
         },
 
