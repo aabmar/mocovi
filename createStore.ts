@@ -131,6 +131,7 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
             console.log("createStore() ", store.id, " sending sync message: ", models.length);
             const message: Message = {
                 storeId,
+                operation: "set",
                 sessionId: store.sync.sessionId,
                 models
             }

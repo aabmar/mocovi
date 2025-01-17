@@ -70,7 +70,10 @@ function createBaseController<Data extends Model>(store: any) {
                 console.error("Model with id already exists in collection: ", model.id);
                 return; // TODO: error handling
             }
-            model.changed_at = new Date();
+
+            model.created_at = new Date();
+            model.changed_at = model.created_at;
+
             store.collectionData.push(model);
             store.baseController.setCollection(store.collectionData);
 
