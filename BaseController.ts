@@ -21,7 +21,7 @@ function createBaseController<Data extends Model>(store: any) {
             const a = store.collectionData;
             store.collectionData = [...newCollection];
             const b = store.collectionData;
-            console.log("setCollection: ", a === b, a, b);
+            // console.log("setCollection: ", a === b, a, b);
 
             if (store.history) {
                 historyMark();
@@ -98,7 +98,7 @@ function createBaseController<Data extends Model>(store: any) {
             const b = store.collectionData[idx];
             // console.log("&&& set: ", a === b, a, b);
             // List the fields different from a and b
-            printDiff("BaseController.set() ", a, b);
+            // printDiff("BaseController.set() ", a, b);
 
         },
 
