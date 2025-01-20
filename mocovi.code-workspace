@@ -5,8 +5,11 @@
 		}
 	],
 	"settings": {
-		"workbench.colorTheme": "Monokai Dimmed",
 		"workbench.colorCustomizations": {
+			"[Solarized Light]": {
+				"titleBar.activeBackground": "#e68fe3",
+				"activityBar.background": "#e68fe3",
+			},
 			"[Monokai Dimmed]": {
 				"titleBar.activeBackground": "#530850",
 				"activityBar.background": "#530850",

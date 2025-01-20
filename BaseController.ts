@@ -105,12 +105,7 @@ function createBaseController<Data extends Model>(store: any) {
         },
 
         clear() {
-            store.collectionData = store.initialData; // should we use inital data?
-            store.selectedModelId = null;
-            if (store.autoSelect && store.collectionData.length > 0) {
-                store.selectedModelId = store.collectionData[0].id;
-            }
-            store.mergedController.setCollection(store.collectionData);
+            store.mergedController.setCollection(store.initialData);
         },
 
         select(modelId: string | null) {

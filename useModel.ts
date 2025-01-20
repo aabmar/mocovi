@@ -58,7 +58,7 @@ function createUseModel<Data extends { id: string }>(store: Store<Data>): UseMod
             }
         };
 
-        return [initialModel, setModelData] as UseModelReturn<Data>;
+        return [model, setModelData] as UseModelReturn<Data>;
     };
 }
 

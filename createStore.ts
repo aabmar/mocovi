@@ -123,7 +123,7 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
         const callback = (data: Model[]) => {
 
             if (!store.sync) {
-                console.error("createStore(): store has no sync object. store:", store.id);
+                console.log("createStore(): store has no sync object. store:", store.id);
                 return;
             }
             const models = store.sync?.findChangedData(storeId, data);
