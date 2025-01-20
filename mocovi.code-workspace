@@ -28,6 +28,8 @@
 					"cmd": "cp ${fileBasename} ../exp-ble/node_modules/mocovi/",
 				}
 			]
-		}
+		},
+		"workbench.preferredLightColorTheme": "Solarized Light",
+		"workbench.preferredDarkColorTheme": "Monokai Dimmed"
 	}
 }
