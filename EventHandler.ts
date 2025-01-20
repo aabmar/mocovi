@@ -19,30 +19,32 @@ export function createEventHandler<Data>(): EventHandler<Data> {
     function subscribe(callback: (data: Data) => void) {
 
         // Add to array if not present already
-        setSubscribers((subscribers) => {
-            if (subscribers.indexOf(callback) > -1) return subscribers
-            const s = [...subscribers, callback];
-            // console.log("EventHandler subscribe() ", s.length);
-            return s;
-        });
+        subscribers = [...subscribers, callback];
+
+        // setSubscribers((subscribers) => {
+        //     if (subscribers.indexOf(callback) > -1) return subscribers
+        //     const s = [...subscribers, callback];
+        //     // console.log("EventHandler subscribe() ", s.length);
+        //     return s;
+        // });
     }
 
     function notify(data: Data) {
         // console.log("EventHandler notify() ", subscribers.length, data);
-        setSubscribers((subscribers) => {
-            for (let i = 0; i < subscribers.length; i++) {
-                subscribers[i](data);
-            }
-            return subscribers;
-        });
+        // setSubscribers((subscribers) => {
+        for (let i = 0; i < subscribers.length; i++) {
+            subscribers[i](data);
+        }
+        //     return subscribers;
+        // });
     }
 
     function unsubscribe(callback: (data: Data) => void) {
-        setSubscribers((subscribers) => {
-            const s = subscribers.filter((subscriber) => subscriber !== callback);
-            // console.log("EventHandler unsubscribe() ", s.length);
-            return s;
-        });
+        // setSubscribers((subscribers) => {
+        subscribers = subscribers.filter((subscriber) => subscriber !== callback);
+        // console.log("EventHandler unsubscribe() ", s.length);
+        //     return s;
+        // });
     }
 
     return { subscribe, notify, unsubscribe };

@@ -8,21 +8,27 @@ export type UseSelected<Data> = () => UseSelectedReturn<Data>;
 
 function createUseSelected<Data extends { id: string }>(store: Store<Data>): UseSelected<Data> {
 
+    let first: Data | null = null;
     function useSelected() {
 
-        const selectedModel = findModelById(store.collectionData, store.selectedModelId);
+        if (first === null) {
+            first = findModelById(store.collectionData, store.selectedModelId);
+            console.log(" ==== SETTING FIRST ==== createUseSelected: first: ", first?.id);
+        }
 
         // The local state data
-        const [model, setModel] = useState<Data | null>(selectedModel);
+        const [model, setModel] = useState<Data | null>(first);
 
         useEffect(() => {
 
             function handleChange(d: Data[]) {
 
                 const newModel = findModelById(d, store.selectedModelId);
+                console.log("useSelected: handleChange: ", model?.id, newModel?.id, model === newModel);
                 if (model === newModel) return;
                 // TODO: optimize can be deep or level 1 compare
                 setModel(newModel);
+                first = newModel;
             }
 
             store.eventHandler.subscribe(handleChange);

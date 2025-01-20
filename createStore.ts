@@ -78,6 +78,8 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
     if (store.persist || options?.sync) {
         store.eventHandler.subscribe((data) => {
 
+            // Todo: add to a queue and only persist every 500 ms or so
+
             if (timeOut) clearTimeout(timeOut);
 
             timeOut = setTimeout(() => {
@@ -92,7 +94,7 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
                     store.syncCallback(data);
                 }
 
-            }, 100);
+            }, 500);
 
         });
     }

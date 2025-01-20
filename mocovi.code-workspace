@@ -5,9 +5,9 @@
 		}
 	],
 	"settings": {
-		"workbench.colorTheme": "Quiet Light",
+		"workbench.colorTheme": "Monokai Dimmed",
 		"workbench.colorCustomizations": {
-			"[Default High Contrast]": {
+			"[Monokai Dimmed]": {
 				"titleBar.activeBackground": "#530850",
 				"activityBar.background": "#530850",
 			},

@@ -16,14 +16,14 @@ function createBaseController<Data extends Model>(store: any) {
         setCollection(newCollection: Data[]) {
             // mutate the reference
 
-            const a = store.collectionData;
+            // const a = store.collectionData;
             store.collectionData = [...newCollection];
-            const b = store.collectionData;
+            // const b = store.collectionData;
             // console.log("setCollection: ", a === b, a, b);
 
-            if (store.history) {
-                historyMark();
-            }
+            // if (store.history) {
+            //     historyMark();
+            // }
 
             // If the collection is empty, set selectedModelId to null
             if (newCollection.length === 0) {
@@ -115,10 +115,16 @@ function createBaseController<Data extends Model>(store: any) {
 
         select(modelId: string | null) {
             // console.log("BaseController: select() ", modelId);
+            let selectedNew = findModelById(store.collectionData, modelId);
             if (!modelId) {
                 store.selectedModelId = null;
             } else if (modelId !== store.selectedModelId) {
-                store.selectedModelId = store.collectionData[findModelIndexById(store.collectionData, modelId)]?.id || null;
+                const newIndex = findModelIndexById(store.collectionData, modelId);
+                const lookedUpId = store.collectionData[newIndex]?.id || null;
+                store.selectedModelId = lookedUpId;
+                if (newIndex !== null) {
+                    store.collectionData[newIndex] = { ...store.collectionData[newIndex] };
+                }
             }
             store.mergedController.setCollection(store.collectionData);
         },

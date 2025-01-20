@@ -6,18 +6,22 @@ import { nanoid } from "./nanoid";
 export type UseModelReturn<Data extends { id: string }> = [Data | null, (newModel: Data) => void];
 export type UseModel<Data extends { id: string }> = (modelId: string | undefined) => UseModelReturn<Data>;
 
-//let prevId: string | null = "";
 
 function createUseModel<Data extends { id: string }>(store: Store<Data>): UseModel<Data> {
+
+    let first: Data | null = null;
+
     return function useModel(modelId): UseModelReturn<Data> {
 
 
         // Find the initial model based on the modelId
-        let initialModel: Data | null = null;
-        if (modelId) initialModel = findModelById(store.collectionData, modelId);
+        if (first === null) {
+            // let initialModel: Data | null = null;
+            if (modelId) first = findModelById(store.collectionData, modelId);
+        }
 
         // This state will be set to the component that uses this hook
-        const [model, setModel] = useState<Data | null>(initialModel);
+        const [model, setModel] = useState<Data | null>(first);
 
         useEffect(() => {
 
@@ -26,10 +30,12 @@ function createUseModel<Data extends { id: string }>(store: Store<Data>): UseMod
                 // if (!modelId) return;
                 const newModel = modelId ? findModelById(d, modelId) : null;
 
+                console.log("useModel: handleChange: ", model?.id, newModel?.id, model === newModel);
                 if (model === newModel) return;
                 // TODO: optimize can be deep or level 1 compare
 
                 setModel(newModel);
+                first = newModel;
             }
             store.eventHandler.subscribe(handleChange);
 
