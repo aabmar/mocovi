@@ -1,5 +1,5 @@
 import { findModelById, findModelIndexById } from "./findModelIndexById";
-import { BaseController, historyMark, Model } from "./Store";
+import { BaseController, historyMark, Message, Model } from "./Store";
 
 function createBaseController<Data extends Model>(store: any) {
 
@@ -110,7 +110,6 @@ function createBaseController<Data extends Model>(store: any) {
 
         select(modelId: string | null) {
             // console.log("BaseController: select() ", modelId);
-            let selectedNew = findModelById(store.collectionData, modelId);
             if (!modelId) {
                 store.selectedModelId = null;
             } else if (modelId !== store.selectedModelId) {
@@ -123,6 +122,21 @@ function createBaseController<Data extends Model>(store: any) {
             }
             store.mergedController.setCollection(store.collectionData);
         },
+
+        fetch() {
+            if (store.sync) {
+
+                // Send a get data message
+                const message: Message = {
+                    storeId: store.id,
+                    operation: "get",
+                    sessionId: store.sync.sessionId,
+                    models: []
+                }
+                store.sync.send(message);
+                store.ws.send({})
+            }
+        }
     };
 
     return baseController;

@@ -16,6 +16,7 @@ type BaseController<Data> = {
     set: (model: Data) => void;
     setCollection: (newCollection: Data[]) => void;
     setField: (modelId: string, key: keyof Data, value: any) => void;
+    fetch(): void;
 };
 
 type Persist = {

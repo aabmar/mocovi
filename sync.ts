@@ -24,15 +24,7 @@ const createSync = (
         for (let store of stores.values()) {
             if (store?.syncCallback) {
                 store.sync = sync;
-
-                // Send a get data message
-                const message: Message = {
-                    storeId: store.id,
-                    operation: "get",
-                    sessionId: sync.sessionId,
-                    models: []
-                }
-                store.sync.send(message);
+                store.mergedController.fetch();
             }
         }
     };
