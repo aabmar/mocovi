@@ -209,7 +209,7 @@ const createSync = (
 
 }
 
-function isDifferent(oldModel: Model | undefined, newModel: Model): boolean {
+function isDifferent(oldModel: { [key: string]: any } | undefined, newModel: { [key: string]: any }): boolean {
     if (!oldModel) return true;
 
     for (let key in newModel) {

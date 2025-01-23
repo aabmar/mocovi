@@ -41,7 +41,7 @@ type Model = {
     deleted_at?: Date; // set on client
     changed_at?: Date; // set on client
     // other properties
-    [key: string]: any;
+    // [key: string]: any;
 }
 
 type CreateCollectionOptions<Data, ExtraController = {}> = {
