@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
-import { Store } from "./Store";
+import { Store, UseCollection, UseCollectionReturn } from "./types";
 
-export type UseCollectionReturn<Data extends { id: string }> = [Data[], (newCollection: Data[]) => void, string | null];
-export type UseCollection<Data extends { id: string }> = () => UseCollectionReturn<Data>;
 
 function createUseCollection<Data extends { id: string }>(store: Store<Data>): UseCollection<Data> {
     return function useCollection() {

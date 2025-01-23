@@ -1,12 +1,14 @@
 
-import { Message, Model, Store, Sync, getStore } from "./Store";
+
+import { Message, Model, Store, Sync } from "./types";
 
 let sync__: Sync | undefined;
 
 const createSync = (
     endpoint: string,
     sessionId: string,
-    stores: Map<string, Store<any>>,
+    getStore: (storeId: string) => Store<any> | undefined,
+    getStores: () => IterableIterator<Store<any>>
 ): Sync => {
 
     const ws = new WebSocket(endpoint);
@@ -21,7 +23,7 @@ const createSync = (
         // to send message you can use like that :   ws.send("Hello, server!"); 
         connected = true;
         isReconnecting = false;
-        for (let store of stores.values()) {
+        for (let store of getStores()) {
             if (store?.syncCallback) {
                 store.sync = sync;
                 store.mergedController.fetch();
@@ -58,29 +60,28 @@ const createSync = (
             return;
         }
 
-        // // Update the store with the new data
-        // const newModels: Model[] = [];
-        // if (newModels.length === 0) return;
+        // Update the store with the new data
 
         for (let model of msg.models) {
 
             let existingModel = store.baseController.get(model.id);
 
             if (existingModel) {
+
                 const updatedModel = { ...existingModel, ...model };
+
                 if (existingModel.updated_at < updatedModel.updated_at) {
                     console.log("sync: Updating model: ", updatedModel.id);
                     store.baseController.set(updatedModel);
-                    previous.set(updatedModel.id, updatedModel);
-                    // newModels.push(updatedModel);
+                    previous.set(updatedModel.id, { ...updatedModel });
+
                 } else {
                     console.log("sync: Model already updated: ", updatedModel.id);
                 }
             } else {
                 console.log("sync: Adding new model: ", model.id);
                 store.baseController.add(model);
-                // newModels.push(model);
-                previous.set(model.id, model);
+                previous.set(model.id, { ...model });
             }
         }
 
@@ -102,11 +103,11 @@ const createSync = (
         console.log("WebSocket connection closed:", e.code, e.reason);
         connected = false;
 
-        stores.forEach((store) => {
+        for (let store of getStores()) {
             if (store.sync) {
                 store.sync = undefined;
             }
-        });
+        }
 
         if (sync__) {
             sync__ = undefined;
@@ -118,12 +119,13 @@ const createSync = (
         if (isReconnecting) return;
         isReconnecting = true;
         setTimeout(() => {
-            sync__ = createSync(endpoint, sessionId, stores);
+            sync__ = createSync(endpoint, sessionId, getStore, getStores);
             if (cb) cb();
         }, 5000);
     }
 
     function getPrevious(storeId: string): Map<string, Model> {
+
         let store = getStore(storeId);
         if (!store) {
             console.error("sync: Store not found: ", storeId);
@@ -132,9 +134,14 @@ const createSync = (
 
         let previous = store.previousData;
         if (!previous) {
+            console.error("sync: Store has no previous data: ", storeId);
+
             previous = new Map<string, Model>();
-            store.previousData = previous;
+            for (let model of store.collectionData) {
+                previous.set(model.id, { ...model });
+            }
         }
+
         return previous;
     }
 
@@ -164,7 +171,7 @@ const createSync = (
                 let previous = getPrevious(msg.storeId);
 
                 for (let model of msg.models) {
-                    previous.set(model.id, model);
+                    previous.set(model.id, { ...model });
                 }
                 return true;
             } else {
@@ -183,8 +190,11 @@ const createSync = (
             let updatedModels: Model[] = [];
 
             for (let model of data) {
+
                 const oldModel = previous.get(model.id);
-                if (oldModel !== model) {
+                const different = isDifferent(oldModel, model);
+
+                if (different) {
                     updatedModels.push(model);
                 }
             }
@@ -193,22 +203,31 @@ const createSync = (
         },
 
         sessionId
-    };
-
-    // Set sync to stores that have syncCallback
-
+    }
 
     return sync;
 
-};
+}
 
-function getSync(endpoint: string, sessionId: string, stores: Map<string, Store<any>>,): Sync {
+function isDifferent(oldModel: Model | undefined, newModel: Model): boolean {
+    if (!oldModel) return true;
+
+    for (let key in newModel) {
+        if (key === "id") continue;
+        if (oldModel[key] !== newModel[key]) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function getSync(endpoint: string, sessionId: string, getStore: (id: string) => Store<any> | undefined, getStores: () => MapIterator<Store<any>>): Sync {
 
     if (sync__) {
         return sync__;
     }
-    sync__ = createSync(endpoint, sessionId, stores);
+    sync__ = createSync(endpoint, sessionId, getStore, getStores);
     return sync__;
 }
 
-export { getSync };
+export { getSync }

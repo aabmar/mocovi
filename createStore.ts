@@ -1,10 +1,11 @@
 import "react";
-import { createEventHandler } from "./EventHandler";
-import { addStore, getStore, CreateController, BaseController, Store, Controller, UseController, Persist, Model, Sync, Message, CreateCollectionOptions } from "./Store";
 import createBaseController from "./BaseController";
-import createUseCollection, { UseCollection, UseCollectionReturn } from "./useCollection";
-import createUseSelected, { UseSelected, UseSelectedReturn } from "./useSelected";
-import createUseModel, { UseModel, UseModelReturn } from "./useModel";
+import { createEventHandler } from "./EventHandler";
+import { addStore, getStore, } from "./Store";
+import { BaseController, CreateCollectionOptions, Message, Model, Store } from "./types";
+import createUseCollection from "./useCollection";
+import createUseModel from "./useModel";
+import createUseSelected from "./useSelected";
 
 
 // Global data store that updates components when data changes.
@@ -12,10 +13,6 @@ import createUseModel, { UseModel, UseModelReturn } from "./useModel";
 // that has been subscribed by using useStore()
 
 let collectionCounter = 0;
-let sync_: Sync | undefined; // This should be moved to sync.ts
-let sessionId = "1";
-
-const useHistoryDefault = __DEV__ ? true : false;
 
 function createStore<Data extends Model, ExtraController extends object = {}>(
     id: string,
@@ -44,6 +41,7 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
         }
     }
 
+    const originalInitialData = JSON.parse(JSON.stringify(initialData));
 
     const store: Store<Data, ExtraController> = {
         id,
@@ -59,16 +57,16 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
         persist: options?.persist,
         sync: undefined,
         previousData: undefined,
-        initialData: JSON.parse(JSON.stringify(initialData)), // should we do this? might be a lot of data
+        initialData: originalInitialData, // should we do this? might be a lot of data
         autoSelect: options?.autoSelect,
-        history: options?.useHistory === undefined ? useHistoryDefault : options.useHistory,
+        // history: options?.useHistory === undefined ? useHistoryDefault : options.useHistory,
     };
 
     // If history is enabled, we run this hack to expose it to debugging.
     // We are going to make a dev attacment point to this later, and 
     // make dev tools enabling us to go back and forth in history.
     if (store.history) {
-
+        // TODO: Old implementation was removed. Make a new one.
     }
 
     let timeOut: any;
@@ -76,6 +74,9 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
     // If we have a persist option, subscribe to the event handler
     // so that we can persist the data to the store
     if (store.persist || options?.sync) {
+
+        const syncSet = options?.sync === true || options?.sync === "both" || options?.sync === "set";
+
         store.eventHandler.subscribe((data) => {
 
             // Todo: add to a queue and only persist every 500 ms or so
@@ -90,7 +91,9 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
                     store.persist.set(id, json);
                 }
 
-                if (store.syncCallback) {
+                // If we have a sync object and mode is set to one supporting SET,
+                // we send the data to the sync object
+                if (syncSet && store.syncCallback) {
                     store.syncCallback(data);
                 }
 
@@ -111,21 +114,22 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
     // If the store has sync enabled, add a callback function
     if (options?.sync) {
 
+        // Store the previous data for comparison
         store.previousData = new Map<string, Model>();
-
-        // Iterate collection and set previous data
         for (let model of store.collectionData) {
-            store.previousData.set(model.id, model);
+            store.previousData.set(model.id, { ...model });
         }
 
         const storeId = store.id;
 
+        // Every change done to the store will call this function
         const callback = (data: Model[]) => {
 
             if (!store.sync) {
                 console.log("createStore(): store has no sync object. store:", store.id);
                 return;
             }
+
             const models = store.sync?.findChangedData(storeId, data);
             if (!models || models.length === 0) {
                 return;
@@ -157,8 +161,6 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
     addStore(store);
     return store;
 }
-
-
 
 // Export as before for compatibility
 export default createStore;

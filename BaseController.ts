@@ -1,7 +1,7 @@
 import { findModelById, findModelIndexById } from "./findModelIndexById";
-import { BaseController, historyMark, Message, Model } from "./Store";
+import { BaseController, Message, Model, Store } from "./types";
 
-function createBaseController<Data extends Model>(store: any) {
+function createBaseController<Data extends Model>(store: Store<Data>) {
 
     const baseController: BaseController<Data> = {
         getCollection(): Data[] {
@@ -14,13 +14,11 @@ function createBaseController<Data extends Model>(store: any) {
         // This is to ensure that the eventHandler is called and the data is updated in the store
         // in a uniform way, and to prevent bugs.
         setCollection(newCollection: Data[]) {
+
             // mutate the reference
-
-            // const a = store.collectionData;
             store.collectionData = [...newCollection];
-            // const b = store.collectionData;
-            // console.log("setCollection: ", a === b, a, b);
 
+            // TODO: history is removed for now. Reimplement later
             // if (store.history) {
             //     historyMark();
             // }
@@ -105,7 +103,7 @@ function createBaseController<Data extends Model>(store: any) {
         },
 
         clear() {
-            store.mergedController.setCollection(store.initialData);
+            store.mergedController.setCollection(store.initialData ? [...store.initialData] : []);
         },
 
         select(modelId: string | null) {
@@ -123,18 +121,27 @@ function createBaseController<Data extends Model>(store: any) {
             store.mergedController.setCollection(store.collectionData);
         },
 
-        fetch() {
-            if (store.sync) {
+        fetch(id?: string | string[]) {
 
+            // If not id, let it be an empty array. If its a string, an array with one string. Else, its an array of strings.
+            let models: Model[];
+            if (!id) {
+                models = [];
+            } else if (typeof id === "string") {
+                models = [{ id }];
+            } else {
+                models = id.map(id => ({ id }));
+            }
+
+            if (store.sync) {
                 // Send a get data message
                 const message: Message = {
                     storeId: store.id,
                     operation: "get",
                     sessionId: store.sync.sessionId,
-                    models: []
+                    models
                 }
                 store.sync.send(message);
-                store.ws.send({})
             }
         }
     };

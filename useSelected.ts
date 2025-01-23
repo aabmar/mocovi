@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
 import { findModelById, findModelIndexById } from "./findModelIndexById";
-import { Store } from "./Store";
 import { nanoid } from "./nanoid";
+import { UseSelected, Store, UseSelectedReturn } from "./types";
 
-export type UseSelectedReturn<Data> = [Data | null, (model: Data) => void];
-export type UseSelected<Data> = () => UseSelectedReturn<Data>;
 
 function createUseSelected<Data extends { id: string }>(store: Store<Data>): UseSelected<Data> {
 
