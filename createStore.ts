@@ -84,8 +84,25 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
             if (timeOut) clearTimeout(timeOut);
 
             timeOut = setTimeout(() => {
-                const json = JSON.stringify(data);
-                console.log("Persisting data: ", id, data.length, json.length);
+                // Copy fields from data, except the ones starting with _
+                // We don't want to persist internal fields
+
+                const dataToStore = [] as Data[];
+
+                for (let model of data) {
+                    const newModel = {} as Data;
+                    for (let key in model) {
+                        if (key[0] !== "_") {
+                            newModel[key] = model[key];
+                        }
+                    }
+                    dataToStore.push(newModel);
+                }
+
+
+                const json = JSON.stringify(dataToStore);
+
+                console.log("Persisting data: ", id, dataToStore.length, json.length);
 
                 if (store.persist) {
                     store.persist.set(id, json);
@@ -97,7 +114,7 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
                     store.syncCallback(data);
                 }
 
-            }, 500);
+            }, 1500);
 
         });
     }
