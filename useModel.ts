@@ -5,10 +5,10 @@ import { Store, UseModel, UseModelReturn } from "./types";
 
 function createUseModel<Data extends { id: string }>(store: Store<Data>): UseModel<Data> {
 
-    let first: Data | null = null;
 
     return function useModel(modelId): UseModelReturn<Data> {
 
+        let first: Data | null = null;
 
         // Find the initial model based on the modelId
         if (first === null) {
