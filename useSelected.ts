@@ -6,13 +6,9 @@ import { UseSelected, Store, UseSelectedReturn } from "./types";
 
 function createUseSelected<Data extends { id: string }>(store: Store<Data>): UseSelected<Data> {
 
-    let first: Data | null = null;
     function useSelected() {
 
-        if (first === null) {
-            first = findModelById(store.collectionData, store.selectedModelId);
-            console.log(" ==== SETTING FIRST ==== createUseSelected: first: ", first?.id);
-        }
+        let first: Data | null = store.selectedModelId ? findModelById(store.collectionData, store.selectedModelId) : null;
 
         // The local state data
         const [model, setModel] = useState<Data | null>(first);
@@ -22,7 +18,7 @@ function createUseSelected<Data extends { id: string }>(store: Store<Data>): Use
             function handleChange(d: Data[]) {
 
                 const newModel = findModelById(d, store.selectedModelId);
-                console.log("useSelected: handleChange: ", model?.id, newModel?.id, model === newModel);
+                // console.log("useSelected: handleChange: ", model?.id, newModel?.id, model === newModel);
                 if (model === newModel) return;
                 // TODO: optimize can be deep or level 1 compare
                 setModel(newModel);

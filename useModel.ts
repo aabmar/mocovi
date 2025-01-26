@@ -8,13 +8,7 @@ function createUseModel<Data extends { id: string }>(store: Store<Data>): UseMod
 
     return function useModel(modelId): UseModelReturn<Data> {
 
-        let first: Data | null = null;
-
-        // Find the initial model based on the modelId
-        if (first === null) {
-            // let initialModel: Data | null = null;
-            if (modelId) first = findModelById(store.collectionData, modelId);
-        }
+        let first: Data | null = modelId ? findModelById(store.collectionData, modelId) : null;
 
         // This state will be set to the component that uses this hook
         const [model, setModel] = useState<Data | null>(first);
@@ -26,7 +20,7 @@ function createUseModel<Data extends { id: string }>(store: Store<Data>): UseMod
                 // if (!modelId) return;
                 const newModel = modelId ? findModelById(d, modelId) : null;
 
-                console.log("useModel: handleChange: ", model?.id, newModel?.id, model === newModel);
+                // console.log("useModel: handleChange: ", model?.id, newModel?.id, model === newModel);
                 if (model === newModel) return;
                 // TODO: optimize can be deep or level 1 compare
 
