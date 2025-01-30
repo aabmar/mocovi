@@ -48,6 +48,10 @@ const createSync = (
             return;
         }
 
+        if (msg.operation) {
+
+        }
+
         const store = getStore(msg.storeId) as Store<any>;
         if (!store) {
             console.error("Store not found: ", msg.storeId);
