@@ -10,11 +10,7 @@ function createUseModel<Data extends { id: string }>(store: Store<Data>): UseMod
     return function useModel(modelId): UseModelReturn<Data> {
 
 
-        // Find the initial model based on the modelId
-        if (first === null) {
-            // let initialModel: Data | null = null;
-            if (modelId) first = findModelById(store.collectionData, modelId);
-        }
+        if (modelId) first = findModelById(store.collectionData, modelId);
 
         // This state will be set to the component that uses this hook
         const [model, setModel] = useState<Data | null>(first);

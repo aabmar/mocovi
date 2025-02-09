@@ -9,10 +9,7 @@ function createUseSelected<Data extends { id: string }>(store: Store<Data>): Use
     let first: Data | null = null;
     function useSelected() {
 
-        if (first === null) {
-            first = findModelById(store.collectionData, store.selectedModelId);
-            console.log(" ==== SETTING FIRST ==== createUseSelected: first: ", first?.id);
-        }
+        first = findModelById(store.collectionData, store.selectedModelId);
 
         // The local state data
         const [model, setModel] = useState<Data | null>(first);
