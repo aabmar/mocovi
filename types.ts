@@ -80,7 +80,7 @@ type Store<Data extends Model, ExtraController = {}> = {
 type Message = {
     // Object with storename as key, and one array of models for each store
     storeId: string;
-    operation: "get" | "set" | "cmd";
+    operation: "get" | "set" | "cmd" | "response" | "update" | "subscribe" | "unsubscribe";
     models: Model[];
     sessionId: string;
 }

@@ -25,7 +25,7 @@
 				},
 				{
 					"match": "\\.(ts|json|tsx|code-workspace)$",
-					"cmd": "cp ${fileBasename} ../exp-ble/node_modules/mocovi/",
+					"cmd": "cp ${fileBasename} ../app/node_modules/mocovi/",
 				}
 			]
 		},
