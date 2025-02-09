@@ -48,6 +48,7 @@ const createSync = (
             return;
         }
 
+        // TODO: Add support for the different operations
         if (msg.operation) {
 
         }
