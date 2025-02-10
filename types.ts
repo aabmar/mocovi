@@ -66,15 +66,15 @@ type Store<Data extends Model, ExtraController = {}> = {
     useModel: UseModel<Data>;
     useSelected: UseSelected<Data>;
     useController: UseController<Data, ExtraController>;
-    useCommand:
+    useCommand: UseCommand<Data>;
     selectedModelId: string | null;
-persist ?: Persist;
-sync ?: Sync;
-syncCallback ?: (data: Data[]) => void;
-previousData ?: Map<string, Model>;
-initialData ?: Data[];
-autoSelect ?: boolean;
-history ?: boolean;
+    persist?: Persist;
+    sync?: Sync;
+    syncCallback?: (data: Data[]) => void;
+    previousData?: Map<string, Model>;
+    initialData?: Data[];
+    autoSelect?: boolean;
+    history?: boolean;
 
 };
 
