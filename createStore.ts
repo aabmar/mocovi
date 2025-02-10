@@ -53,6 +53,7 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
         useModel: null as any, // will be assigned later
         useSelected: null as any, // will be assigned later
         useController: null as any, // will be assigned later
+        useCommand: null as any, // will be assigned later
         selectedModelId: null,
         persist: options?.persist,
         sync: undefined,
