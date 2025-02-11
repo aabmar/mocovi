@@ -139,7 +139,7 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
                     storeId: store.id,
                     operation: "get",
                     sessionId: store.sync.sessionId,
-                    models
+                    payload: models
                 }
                 store.sync.send(message);
             }

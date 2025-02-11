@@ -6,6 +6,7 @@ import { BaseController, CreateCollectionOptions, Message, Model, Store } from "
 import createUseCollection from "./useCollection";
 import createUseModel from "./useModel";
 import createUseSelected from "./useSelected";
+import createUseCommand from "./useCommand";
 
 
 // Global data store that updates components when data changes.
@@ -43,6 +44,9 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
 
     const originalInitialData = JSON.parse(JSON.stringify(initialData));
 
+    // Set the sync mode
+    const syncMode = options?.sync ? options.sync : false;
+
     const store: Store<Data, ExtraController> = {
         id,
         eventHandler: createEventHandler<Data[]>(),
@@ -56,6 +60,7 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
         useCommand: null as any, // will be assigned later
         selectedModelId: null,
         persist: options?.persist,
+        syncMode,
         sync: undefined,
         previousData: undefined,
         initialData: originalInitialData, // should we do this? might be a lot of data
@@ -76,7 +81,7 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
     // so that we can persist the data to the store
     if (store.persist || options?.sync) {
 
-        const syncSet = options?.sync === true || options?.sync === "both" || options?.sync === "set";
+
 
         store.eventHandler.subscribe((data) => {
 
@@ -103,15 +108,15 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
 
                 const json = JSON.stringify(dataToStore);
 
-                console.log("Persisting data: ", id, dataToStore.length, json.length);
 
                 if (store.persist) {
+                    console.log("Persisting data: ", id, dataToStore.length, json.length);
                     store.persist.set(id, json);
                 }
 
                 // If we have a sync object and mode is set to one supporting SET,
                 // we send the data to the sync object
-                if (syncSet && store.syncCallback) {
+                if ((syncMode == "auto" || syncMode == "set") && store.syncCallback) {
                     store.syncCallback(data);
                 }
 
@@ -127,10 +132,11 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
     store.useCollection = createUseCollection<Data>(store);
     store.useModel = createUseModel<Data>(store);
     store.useSelected = createUseSelected<Data>(store);
+    store.useCommand = createUseCommand<Data>(store);
     store.useController = () => store.mergedController;
 
     // If the store has sync enabled, add a callback function
-    if (options?.sync) {
+    if (syncMode == "auto" || syncMode == "set" || syncMode == "manual") {
 
         // Store the previous data for comparison
         store.previousData = new Map<string, Model>();
@@ -157,7 +163,7 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
                 storeId,
                 operation: "set",
                 sessionId: store.sync.sessionId,
-                models
+                payload: models
             }
 
             // Todo: we are going to batch messages from different models here (?)
