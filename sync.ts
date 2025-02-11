@@ -19,14 +19,15 @@ const createSync = (
     // The store has given us callbacks we should call on events
 
     ws.onopen = () => {
-        console.log("WebSocket connection opened");
-        // to send message you can use like that :   ws.send("Hello, server!"); 
+        console.log("creasteSync() WebSocket connection opened");
         connected = true;
         isReconnecting = false;
         for (let store of getStores()) {
-            if (store?.syncCallback) {
+            if ((store.syncMode) && store?.syncCallback) {
                 store.sync = sync;
-                store.mergedController.fetch();
+                if (store.syncMode === "auto" || store.syncMode === "get") {
+                    store.mergedController.fetch();
+                }
             }
         }
     };
@@ -67,7 +68,12 @@ const createSync = (
 
         // Update the store with the new data
 
-        for (let model of msg.models) {
+        if (!msg.payload || !Array.isArray(msg.payload)) {
+            console.log("sync: No payload found in message: ", msg);
+            return;
+
+        }
+        for (let model of msg.payload) {
 
             let existingModel = store.baseController.get(model.id);
 
@@ -153,7 +159,7 @@ const createSync = (
     // The objec we send back to the Store
     let sync: Sync = {
         send: (msg: Message): boolean => {
-            console.log("sync: Sending message: ", msg.storeId, msg.operation, msg.models.length);
+            console.log("sync: Sending message: ", msg.storeId, msg.operation, typeof msg.payload);
             if (!connected) {
                 reconnect(() => {
                     sync.send(msg);
@@ -173,10 +179,12 @@ const createSync = (
                     return false;
                 }
 
-                let previous = getPrevious(msg.storeId);
+                if (msg.operation === "set") {
+                    let previous = getPrevious(msg.storeId);
 
-                for (let model of msg.models) {
-                    previous.set(model.id, { ...model });
+                    for (let model of (msg.payload) as Model[]) {
+                        previous.set(model.id, { ...model });
+                    }
                 }
                 return true;
             } else {

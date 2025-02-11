@@ -47,7 +47,7 @@ type Model = {
 type CreateCollectionOptions<Data, ExtraController = {}> = {
     createController?: CreateController<Data, ExtraController>
     persist?: Persist,
-    sync?: true | "both" | "set" | "get" | undefined | false,
+    sync?: "auto" | "set" | "get" | "manual",
     autoSelect?: boolean,
     useHistory?: boolean,
 };
@@ -69,6 +69,7 @@ type Store<Data extends Model, ExtraController = {}> = {
     useCommand: UseCommand<Data>;
     selectedModelId: string | null;
     persist?: Persist;
+    syncMode: false | "auto" | "set" | "get" | "manual";
     sync?: Sync;
     syncCallback?: (data: Data[]) => void;
     previousData?: Map<string, Model>;
@@ -82,7 +83,7 @@ type Message = {
     // Object with storename as key, and one array of models for each store
     storeId: string;
     operation: "get" | "set" | "cmd" | "response" | "update" | "subscribe" | "unsubscribe" | "list";
-    models: Model[];
+    payload: Model[] | {};
     cmd?: string;
     sessionId: string;
 }
@@ -93,7 +94,7 @@ type UseCollectionReturn<Data extends { id: string }> = [Data[], (newCollection:
 type UseCollection<Data extends { id: string }> = () => UseCollectionReturn<Data>;
 type UseModelReturn<Data extends { id: string }> = [Data | null, (newModel: Data) => void];
 type UseModel<Data extends { id: string }> = (modelId: string | undefined) => UseModelReturn<Data>;
-type UseCommand<Data extends { id: string }> = (message: Message) => void;
+type UseCommand<Data extends { id: string }> = () => (cmd: string, payload?: any) => void;
 
 export type {
     Store, Sync, Persist,
