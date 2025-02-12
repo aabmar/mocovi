@@ -7,6 +7,7 @@ const stores = new Map<string, Store<any>>();
 // Add a store to the store map
 function addStore(store: Store<any>) {
     stores.set(store.id, store);
+    if (sync_) sync_.attach(store);
 }
 
 // Get a store from the store map

@@ -30,6 +30,7 @@ type Sync = {
     send: (msg: Message) => boolean;
     close: () => void;
     findChangedData: (storeId: string, data: Model[]) => Model[];
+    attach: (store: Store<any>) => void;
     sessionId: string;
 }
 

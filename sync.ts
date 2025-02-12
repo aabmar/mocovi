@@ -23,14 +23,7 @@ const createSync = (
         connected = true;
         isReconnecting = false;
         for (let store of getStores()) {
-            console.log("sync ws.onopen: store.syncMode", store.id, store.syncMode);
-            if ((store.syncMode)) {
-                store.sync = sync;
-                if (store.syncMode === "auto" || store.syncMode === "get") {
-                    console.log("sync ws.onopen: store.fetch()", store.id);
-                    store.mergedController.fetch();
-                }
-            }
+            sync.attach(store);
         }
     };
 
@@ -215,6 +208,17 @@ const createSync = (
             }
 
             return updatedModels;
+        },
+
+        attach: (store: Store<any>) => {
+            console.log("sync ws.onopen: store.syncMode", store.id, store.syncMode);
+            if ((store.syncMode)) {
+                store.sync = sync;
+                if (store.syncMode === "auto" || store.syncMode === "get") {
+                    console.log("sync ws.onopen: store.fetch()", store.id);
+                    store.mergedController.fetch();
+                }
+            }
         },
 
         sessionId
