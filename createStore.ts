@@ -136,7 +136,7 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
     store.useController = () => store.mergedController;
 
     // If the store has sync enabled, add a callback function
-    if (syncMode == "auto" || syncMode == "set" || syncMode == "manual") {
+    if (syncMode) {
 
         // Store the previous data for comparison
         store.previousData = new Map<string, Model>();
@@ -147,31 +147,33 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
         const storeId = store.id;
 
         // Every change done to the store will call this function
-        const callback = (data: Model[]) => {
+        if (syncMode == "auto" || syncMode == "set") {
+            const callback = (data: Model[]) => {
 
-            if (!store.sync) {
-                console.log("createStore(): store has no sync object. store:", store.id);
-                return;
+                if (!store.sync) {
+                    console.log("createStore(): store has no sync object. store:", store.id);
+                    return;
+                }
+
+                const models = store.sync?.findChangedData(storeId, data);
+                if (!models || models.length === 0) {
+                    return;
+                }
+                console.log("createStore() ", store.id, " sending sync message: ", models.length);
+                const message: Message = {
+                    storeId,
+                    operation: "set",
+                    sessionId: store.sync.sessionId,
+                    payload: models
+                }
+
+                // Todo: we are going to batch messages from different models here (?)
+                store.sync.send(message);
             }
 
-            const models = store.sync?.findChangedData(storeId, data);
-            if (!models || models.length === 0) {
-                return;
-            }
-            console.log("createStore() ", store.id, " sending sync message: ", models.length);
-            const message: Message = {
-                storeId,
-                operation: "set",
-                sessionId: store.sync.sessionId,
-                payload: models
-            }
-
-            // Todo: we are going to batch messages from different models here (?)
-            store.sync.send(message);
+            console.log("createStore() ", store.id, " setting sync callback");
+            store.syncCallback = callback;
         }
-
-        console.log("createStore() ", store.id, " setting sync callback");
-        store.syncCallback = callback;
     }
 
     // Set selected to the first model, if any
