@@ -23,9 +23,11 @@ const createSync = (
         connected = true;
         isReconnecting = false;
         for (let store of getStores()) {
-            if ((store.syncMode) && store?.syncCallback) {
+            console.log("sync ws.onopen: store.syncMode", store.id, store.syncMode);
+            if ((store.syncMode)) {
                 store.sync = sync;
                 if (store.syncMode === "auto" || store.syncMode === "get") {
+                    console.log("sync ws.onopen: store.fetch()", store.id);
                     store.mergedController.fetch();
                 }
             }
