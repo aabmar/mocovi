@@ -240,7 +240,16 @@ function isDifferent(oldModel: { [key: string]: any } | undefined, newModel: { [
     return false;
 }
 
-function getSync(endpoint: string, sessionId: string, getStore: (id: string) => Store<any> | undefined, getStores: () => MapIterator<Store<any>>): Sync {
+/**
+ * Gets the Sync instance for the given endpoint and session ID.
+ * 
+ * @param endpoint - The endpoint to connect to.
+ * @param sessionId - The session identifier.
+ * @param getStore - Function to retrieve a specific store based on its ID.
+ * @param getStores - Function to retrieve an iterable of all stores.
+ * @returns The Sync instance.
+ */
+function getSync(endpoint: string, sessionId: string, getStore: (id: string) => Store<any> | undefined, getStores: () => IterableIterator<Store<any>>): Sync {
 
     if (sync__) {
         return sync__;
@@ -248,5 +257,6 @@ function getSync(endpoint: string, sessionId: string, getStore: (id: string) => 
     sync__ = createSync(endpoint, sessionId, getStore, getStores);
     return sync__;
 }
+
 
 export { getSync }
