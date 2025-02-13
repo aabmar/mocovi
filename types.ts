@@ -13,11 +13,12 @@ type BaseController<Data> = {
     getSelected: () => Data | null;
     getSelectedId(): string | null;
     select: (modelId: string | null) => void;
-    add: (model: Data, select?: boolean) => void;
-    set: (model: Data) => void;
+    add: (model: Data, select?: boolean, markChanged?: boolean) => void;
+    set: (model: Data, markChanged?: boolean) => void;
     setCollection: (newCollection: Data[]) => void;
-    setField: (modelId: string, key: keyof Data, value: any) => void;
+    setField: (modelId: string, key: keyof Data, value: any, markChanged?: boolean) => void;
     fetch(id?: string | string[]): void;
+    delete: (modelId: string) => void;
 };
 
 type Persist = {

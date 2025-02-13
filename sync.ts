@@ -28,7 +28,6 @@ const createSync = (
     };
 
     ws.onmessage = (e) => {
-        console.log("Message from server:", e.data);
         if (!e.data) return;
         let msg;
         try {
@@ -37,16 +36,12 @@ const createSync = (
             console.error("Error parsing message:", e);
             return;
         }
+        console.log("====== ", msg.storeId, " ==== Message from server:", e.data);
 
         // Check if the session id is the same as the current session
         if (msg.sessionId !== sessionId) {
             console.log("Session id mismatch, ignoring message");
             return;
-        }
-
-        // TODO: Add support for the different operations
-        if (msg.operation) {
-
         }
 
         const store = getStore(msg.storeId) as Store<any>;
@@ -68,27 +63,54 @@ const createSync = (
             return;
 
         }
+
         for (let model of msg.payload) {
 
             let existingModel = store.baseController.get(model.id);
 
             if (existingModel) {
 
-                const updatedModel = { ...existingModel, ...model };
+                const updatedModel = { ...existingModel, ...model, synced_at: new Date() };
 
+                // If the model from the server is newer, we update the model in the store
                 if (existingModel.updated_at < updatedModel.updated_at) {
                     console.log("sync: Updating model: ", updatedModel.id);
-                    store.baseController.set(updatedModel);
+                    store.baseController.set(updatedModel, false);
                     previous.set(updatedModel.id, { ...updatedModel });
 
                 } else {
+                    // If the model is already updated, we just set the synced_at property if missing
                     console.log("sync: Model already updated: ", updatedModel.id);
+                    if (!existingModel.synced_at) {
+                        existingModel.synced_at = new Date();
+                        store.baseController.set(existingModel, false);
+                    }
                 }
+
             } else {
                 console.log("sync: Adding new model: ", model.id);
-                store.baseController.add(model);
+                store.baseController.add(model, false, false);
                 previous.set(model.id, { ...model });
             }
+        }
+
+        // Delete models that are in the local store, but not on the server, if they have been changed
+        // If they have not been synced, they are probably new on the device and should be saved (we don't do that now).
+
+        // Get Ids
+        const localModelIds = store.baseController.getCollection().map(m => m.id);
+        const serverModelIds = msg.payload.map(m => m.id);
+
+        // Find the models that are in the local store, but not on the server
+        const modelsToDelete = localModelIds.filter(id => !serverModelIds.includes(id));
+        console.log(" ======= Models to check for deletion ==== ", modelsToDelete);
+
+        for (let id of modelsToDelete) {
+            const model = store.baseController.get(id);
+            if (!model.synced_at && model.changed_at) continue;
+            console.log("sync: Deleting model: ", id);
+            store.baseController.delete(id);
+            previous.delete(id);
         }
 
         // TODO: this must be based on ID.
@@ -173,12 +195,13 @@ const createSync = (
                     console.error("sync: Error sending message:", e);
                     return false;
                 }
-
+                const baseConstroller = getStore(msg.storeId)?.baseController;
                 if (msg.operation === "set") {
                     let previous = getPrevious(msg.storeId);
 
                     for (let model of (msg.payload) as Model[]) {
                         previous.set(model.id, { ...model });
+                        baseConstroller?.setField(model.id, "synced_at", new Date(), false);
                     }
                 }
                 return true;

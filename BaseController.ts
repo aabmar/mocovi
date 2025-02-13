@@ -60,7 +60,7 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
             return store.selectedModelId;
         },
 
-        add(model: Data, select = true) {
+        add(model: Data, select = true, markChanged = true) {
             const idx = findModelIndexById<Data>(store.collectionData, model.id);
             if (idx !== -1) {
                 console.error("Model with id already exists in collection: ", model.id);
@@ -69,6 +69,7 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
 
             model.created_at = new Date();
             model.changed_at = model.created_at;
+            if (markChanged) model.changed_at = new Date();
 
             store.collectionData.push(model);
             store.baseController.setCollection(store.collectionData);
@@ -81,13 +82,13 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
 
         // Set one eisting model to the collection. The model will be overwritten, not merged.
         // Todo: support array of models? Or maybe make a setModels or updateCollection instead? Goal: less calls to setCollection
-        set(model: Data) {
+        set(model: Data, markChanged = true) {
             const idx = findModelIndexById<Data>(store.collectionData, model.id);
             if (idx === -1) {
                 console.error("Model with id does not exist in collection: ", model.id);
                 return; // TODO: error handling
             }
-            model.changed_at = new Date();
+            if (markChanged) model.changed_at = new Date();
             const a = store.collectionData[idx];
             store.collectionData[idx] = { ...model };
             store.mergedController.setCollection(store.collectionData);
@@ -95,11 +96,11 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
 
         },
 
-        setField(modelId: string, key: keyof Data, value: any) {
+        setField(modelId: string, key: keyof Data, value: any, markChanged = true) {
             const idx = findModelIndexById(store.collectionData, modelId);
             const oldModel = store.collectionData[idx];
             if (idx === -1) return; // TODO: error handling
-            store.baseController.set({ ...oldModel, [key]: value });
+            store.baseController.set({ ...oldModel, [key]: value }, markChanged);
         },
 
         clear() {
@@ -143,6 +144,14 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
                 }
                 store.sync.send(message);
             }
+        },
+
+        delete(modelId: string) {
+            const collection = store.mergedController.getCollection();
+            const idx = findModelIndexById(collection, modelId);
+            if (idx === -1) return; // TODO: error handling
+            collection.splice(idx, 1);
+            store.mergedController.setCollection(collection);
         }
     };
 
