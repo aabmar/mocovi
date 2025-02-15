@@ -1,6 +1,6 @@
 import { Model, Store } from "./types";
-import { getStores } from "mocovi/Store"
-import { useEffect, useState } from "react";
+import { getStores } from "./Store"
+import React, { useEffect, useState } from "react";
 import { Pressable, Text, View, ViewStyle } from "react-native";
 
 export default function StoreInspector() {
