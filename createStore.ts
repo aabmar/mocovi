@@ -157,6 +157,7 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
 
                 const models = store.sync?.findChangedData(storeId, data);
                 if (!models || models.length === 0) {
+                    console.log("createStore() ", store.id, " no changed on model count: ", data.length);
                     return;
                 }
                 console.log("createStore() ", store.id, " sending sync message: ", models.length);

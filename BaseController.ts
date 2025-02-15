@@ -75,12 +75,14 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
             store.baseController.setCollection(store.collectionData);
 
             // If this is the first model added, select it
-            if (select) {
+            if (select === true) {
+                this.select(model.id);
+            } else if (select === "if_empty" && store.collectionData.length === 0) {
                 this.select(model.id);
             }
         },
 
-        // Set one eisting model to the collection. The model will be overwritten, not merged.
+        // Set one existing model to the collection. The model will be overwritten, not merged.
         // Todo: support array of models? Or maybe make a setModels or updateCollection instead? Goal: less calls to setCollection
         set(model: Data, markChanged = true) {
             const idx = findModelIndexById<Data>(store.collectionData, model.id);
@@ -88,11 +90,11 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
                 console.error("Model with id does not exist in collection: ", model.id);
                 return; // TODO: error handling
             }
-            if (markChanged) model.changed_at = new Date();
-            const a = store.collectionData[idx];
+            if (markChanged) {
+                model.changed_at = new Date();
+            }
             store.collectionData[idx] = { ...model };
-            store.mergedController.setCollection(store.collectionData);
-            const b = store.collectionData[idx];
+            store.baseController.setCollection(store.collectionData);
 
         },
 

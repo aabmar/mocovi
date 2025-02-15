@@ -8,7 +8,7 @@ const createSync = (
     endpoint: string,
     sessionId: string,
     getStore: (storeId: string) => Store<any> | undefined,
-    getStores: () => IterableIterator<Store<any>>
+    getStores: () => Map<string, Store<any>>
 ): Sync => {
 
     const ws = new WebSocket(endpoint);
@@ -22,12 +22,12 @@ const createSync = (
         console.log("creasteSync() WebSocket connection opened");
         connected = true;
         isReconnecting = false;
-        for (let store of getStores()) {
+        for (let store of getStores().values()) {
             sync.attach(store);
         }
     };
 
-    ws.onmessage = (e) => {
+    ws.onmessage = async (e) => {
         if (!e.data) return;
         let msg;
         try {
@@ -64,34 +64,59 @@ const createSync = (
 
         }
 
-        for (let model of msg.payload) {
+        // TODO: Check operation field in message
 
-            let existingModel = store.baseController.get(model.id);
+        // Iterate over the incomming models
+        for (let incommingModel of msg.payload) {
 
-            if (existingModel) {
+            let localModel = store.baseController.get(incommingModel.id);
+            const different = isDifferent(localModel, incommingModel);
 
-                const updatedModel = { ...existingModel, ...model, synced_at: new Date() };
 
-                // If the model from the server is newer, we update the model in the store
-                if (existingModel.updated_at < updatedModel.updated_at) {
-                    console.log("sync: Updating model: ", updatedModel.id);
-                    store.baseController.set(updatedModel, false);
-                    previous.set(updatedModel.id, { ...updatedModel });
+            // If no local model, we add it
+            if (!localModel) {
+                console.log("sync: Adding new model: ", incommingModel.id);
+                store.baseController.add(incommingModel, "if_empty", false);
+                previous.set(incommingModel.id, { ...incommingModel });
+                continue;
+            }
 
-                } else {
-                    // If the model is already updated, we just set the synced_at property if missing
-                    console.log("sync: Model already updated: ", updatedModel.id);
-                    if (!existingModel.synced_at) {
-                        existingModel.synced_at = new Date();
-                        store.baseController.set(existingModel, false);
-                    }
-                }
+            // If incomming is newer, we update the local model
+            const incommingChangedTime = new Date(incommingModel.changed_at);
+            const localUpdatedTime = localModel.updated_at || localModel.changed_at;
+            const incommingIsNewer = (incommingChangedTime > (localUpdatedTime ? new Date(localUpdatedTime) : new Date(0)));
+
+            if (different && incommingIsNewer) {
+
+                console.log("sync: on message: updating model: ", store.id, incommingModel.id, "is different: ", different, "incommingIsNewer: ", incommingIsNewer, "incommingChangedTime: ", incommingChangedTime, "localUpdatedTime: ", localUpdatedTime);
+
+                const updatedModel = { ...localModel, ...incommingModel, synced_at: new Date() };
+                if (updatedModel.changed_at) delete updatedModel.changed_at;
+
+                store.baseController.set(updatedModel, false);
+                previous.set(updatedModel.id, { ...updatedModel });
+                continue;
 
             } else {
-                console.log("sync: Adding new model: ", model.id);
-                store.baseController.add(model, false, false);
-                previous.set(model.id, { ...model });
+
+                // If the model is already updated, we just set the synced_at property if missing
+                console.log("sync: on message: Model up to date: ", store.id, incommingModel.id, "is different: ", different, "incommingIsNewer: ", incommingIsNewer, "incommingChangedTime: ", incommingChangedTime, "localUpdatedTime: ", localUpdatedTime);
+
+                // Make sure all timestamps are correct.
+                if (!localModel.synced_at || !localModel.created_at || !localModel.updated_at || localModel.changed_at) {
+                    localModel.synced_at = new Date();
+                    localModel.created_at = incommingModel.created_at;
+                    localModel.updated_at = incommingModel.updated_at;
+                    delete localModel.changed_at;
+                    console.log("sync: on message: Model up to date, set syncedAt: ", store.id, incommingModel.id, localModel.synced_at);
+                    store.baseController.set(localModel, false);
+                }
+
+                continue;
             }
+
+            console.log("sync: on message: model not changed: ", store.id, incommingModel.id);
+
         }
 
         // Delete models that are in the local store, but not on the server, if they have been changed
@@ -107,7 +132,7 @@ const createSync = (
 
         for (let id of modelsToDelete) {
             const model = store.baseController.get(id);
-            if (!model.synced_at && model.changed_at) continue;
+            if ((!model.synced_at && model.changed_at) || (model.id === "0" || model.id === "1")) continue;
             console.log("sync: Deleting model: ", id);
             store.baseController.delete(id);
             previous.delete(id);
@@ -124,14 +149,13 @@ const createSync = (
     ws.onerror = (e) => {
         console.log("WebSocket error:", e);
         connected = false;
-
     };
 
     ws.onclose = (e) => {
         console.log("WebSocket connection closed:", e.code, e.reason);
         connected = false;
 
-        for (let store of getStores()) {
+        for (let store of getStores().values()) {
             if (store.sync) {
                 store.sync = undefined;
             }
@@ -252,10 +276,12 @@ const createSync = (
 }
 
 function isDifferent(oldModel: { [key: string]: any } | undefined, newModel: { [key: string]: any }): boolean {
-    if (!oldModel) return true;
+    if (!oldModel && !newModel) return false;
+    if (!oldModel || !newModel) return true;
 
     for (let key in newModel) {
         if (key === "id") continue;
+        if (key.endsWith("_at")) continue;
         if (oldModel[key] !== newModel[key]) {
             return true;
         }
@@ -272,7 +298,7 @@ function isDifferent(oldModel: { [key: string]: any } | undefined, newModel: { [
  * @param getStores - Function to retrieve an iterable of all stores.
  * @returns The Sync instance.
  */
-function getSync(endpoint: string, sessionId: string, getStore: (id: string) => Store<any> | undefined, getStores: () => IterableIterator<Store<any>>): Sync {
+function getSync(endpoint: string, sessionId: string, getStore: (id: string) => Store<any> | undefined, getStores: () => Map<string, Store<any>>): Sync {
 
     if (sync__) {
         return sync__;

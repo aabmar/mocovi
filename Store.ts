@@ -16,7 +16,7 @@ function getStore(id: string) {
 }
 
 function getStores() {
-    return stores.values();
+    return stores;
 }
 
 // Clear all stores
@@ -104,6 +104,6 @@ function diff(a: any, b: any, path = "") {
 
 
 export {
-    addStore, clearAll, getStore, historyMark, startSync, undo
+    addStore, clearAll, getStore, historyMark, startSync, undo, getStores
 };
 
