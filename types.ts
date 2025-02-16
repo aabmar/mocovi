@@ -19,6 +19,7 @@ type BaseController<Data> = {
     setField: (modelId: string, key: keyof Data, value: any, markChanged?: boolean) => void;
     fetch(id?: string | string[]): void;
     delete: (modelId: string) => void;
+    // notify: () => void;
 };
 
 type Persist = {
@@ -37,13 +38,12 @@ type Sync = {
 
 type Model = {
     id: string;
-    created_at?: Date; //  Set on server
-    updated_at?: Date; // Set on server
-    synced_at?: Date; // set on client
-    deleted_at?: Date; // set on client
-    changed_at?: Date; // set on client
-    // other properties
-    // [key: string]: any;
+    created_at?: number; //  Set on server
+    updated_at?: number; // Set on server
+    synced_at?: number; // set on client
+    deleted_at?: number; // set on client
+    changed_at?: number; // set on client
+
 }
 
 type CreateCollectionOptions<Data, ExtraController = {}> = {
@@ -61,14 +61,14 @@ type CreateController<Data, ExtraController = {}> = (baseController: BaseControl
 type Store<Data extends Model, ExtraController = {}> = {
     id: string;
     eventHandler: EventHandler<Data[]>;
-    collectionData: Data[];
+    // collectionData2: Map<string, Data>;
     baseController: BaseController<Data>;
     mergedController: BaseController<Data> & ExtraController;
     useCollection: UseCollection<Data>;
     useModel: UseModel<Data>;
     useSelected: UseSelected<Data>;
     useController: UseController<Data, ExtraController>;
-    useCommand: UseCommand<Data>;
+    useCommand: UseCommand;
     selectedModelId: string | null;
     persist?: Persist;
     syncMode: false | "auto" | "set" | "get" | "manual";
@@ -96,12 +96,29 @@ type UseCollectionReturn<Data extends { id: string }> = [Data[], (newCollection:
 type UseCollection<Data extends { id: string }> = () => UseCollectionReturn<Data>;
 type UseModelReturn<Data extends { id: string }> = [Data | null, (newModel: Data) => void];
 type UseModel<Data extends { id: string }> = (modelId: string | undefined) => UseModelReturn<Data>;
-type UseCommand<Data extends { id: string }> = () => (cmd: string, payload?: any) => void;
+type UseCommand = () => (cmd: string, payload?: any) => void;
+
+
+
+type History = HistoryEntry[];
+
+type HistoryEntry = {
+    [key: string]: HistoryDiff[];
+}
+
+type HistoryDiff = {
+    id: string;
+    type: "insert" | "delete" | "update";
+    from: Model | null;
+    change: { [key: string]: any };
+    to: Model | null;
+}
 
 export type {
     Store, Sync, Persist,
     EventHandler, CreateCollectionOptions, CreateController,
     UseController, UseCollection, UseModel, UseSelected,
     Message, Model, BaseController,
-    UseSelectedReturn, UseCollectionReturn, UseModelReturn
+    UseSelectedReturn, UseCollectionReturn, UseModelReturn,
+    UseCommand, HistoryEntry, HistoryDiff, History
 };

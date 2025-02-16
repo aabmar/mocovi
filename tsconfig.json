@@ -11,6 +11,8 @@
     "moduleResolution": "node",
     "noEmit": false,
     "outDir": "dist",
+    "declaration": true,
+    "declarationMap": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "target": "ESNext",
@@ -32,6 +34,7 @@
     "node_modules",
     "babel.config.js",
     "metro.config.js",
-    "jest.config.js"
+    "jest.config.js",
+    "./dist"
   ]
 }

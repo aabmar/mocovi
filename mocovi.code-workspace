@@ -20,11 +20,11 @@
 		"emeraldwalk.runonsave": {
 			"commands": [
 				{
-					"match": "\\.(ts|json|tsx|code-workspace)$",
+					"match": "\\.(ts|json|tsx)$",
 					"cmd": "cp ${fileBasename} ../ruter/node_modules/mocovi/",
 				},
 				{
-					"match": "\\.(ts|json|tsx|code-workspace)$",
+					"match": "\\.(ts|json|tsx)$",
 					"cmd": "cp ${fileBasename} ../app/node_modules/mocovi/",
 				}
 			]

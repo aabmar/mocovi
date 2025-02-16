@@ -1,5 +1,3 @@
-
-
 import { Message, Model, Store, Sync } from "./types";
 
 let sync__: Sync | undefined;
@@ -69,6 +67,10 @@ const createSync = (
         // Iterate over the incomming models
         for (let incommingModel of msg.payload) {
 
+            if (!incommingModel.created_at) {
+                console.error("sync: =================================== Model has no created_at field: ", incommingModel);
+                continue;
+            }
             let localModel = store.baseController.get(incommingModel.id);
             const different = isDifferent(localModel, incommingModel);
 
@@ -82,36 +84,36 @@ const createSync = (
             }
 
             // If incomming is newer, we update the local model
-            const incommingChangedTime = new Date(incommingModel.changed_at);
+            const incommingChangedTime = incommingModel.changed_at;
             const localUpdatedTime = localModel.updated_at || localModel.changed_at;
-            const incommingIsNewer = (incommingChangedTime > (localUpdatedTime ? new Date(localUpdatedTime) : new Date(0)));
+            const incommingIsNewer = incommingChangedTime > (localUpdatedTime || 0);
 
             if (different && incommingIsNewer) {
-
                 console.log("sync: on message: updating model: ", store.id, incommingModel.id, "is different: ", different, "incommingIsNewer: ", incommingIsNewer, "incommingChangedTime: ", incommingChangedTime, "localUpdatedTime: ", localUpdatedTime);
 
-                const updatedModel = { ...localModel, ...incommingModel, synced_at: new Date() };
+                const updatedModel = {
+                    ...localModel,
+                    ...incommingModel,
+                    synced_at: Date.now()
+                };
                 if (updatedModel.changed_at) delete updatedModel.changed_at;
 
                 store.baseController.set(updatedModel, false);
                 previous.set(updatedModel.id, { ...updatedModel });
                 continue;
-
             } else {
-
                 // If the model is already updated, we just set the synced_at property if missing
                 console.log("sync: on message: Model up to date: ", store.id, incommingModel.id, "is different: ", different, "incommingIsNewer: ", incommingIsNewer, "incommingChangedTime: ", incommingChangedTime, "localUpdatedTime: ", localUpdatedTime);
 
                 // Make sure all timestamps are correct.
                 if (!localModel.synced_at || !localModel.created_at || !localModel.updated_at || localModel.changed_at) {
-                    localModel.synced_at = new Date();
+                    localModel.synced_at = Date.now();
                     localModel.created_at = incommingModel.created_at;
                     localModel.updated_at = incommingModel.updated_at;
                     delete localModel.changed_at;
                     console.log("sync: on message: Model up to date, set syncedAt: ", store.id, incommingModel.id, localModel.synced_at);
                     store.baseController.set(localModel, false);
                 }
-
                 continue;
             }
 
@@ -225,7 +227,7 @@ const createSync = (
 
                     for (let model of (msg.payload) as Model[]) {
                         previous.set(model.id, { ...model });
-                        baseConstroller?.setField(model.id, "synced_at", new Date(), false);
+                        baseConstroller?.setField(model.id, "synced_at", Date.now(), false);
                     }
                 }
                 return true;
@@ -261,6 +263,7 @@ const createSync = (
             console.log("sync ws.onopen: store.syncMode", store.id, store.syncMode);
             if ((store.syncMode)) {
                 store.sync = sync;
+
                 if (store.syncMode === "auto" || store.syncMode === "get") {
                     console.log("sync ws.onopen: store.fetch()", store.id);
                     store.mergedController.fetch();
@@ -273,20 +276,6 @@ const createSync = (
 
     return sync;
 
-}
-
-function isDifferent(oldModel: { [key: string]: any } | undefined, newModel: { [key: string]: any }): boolean {
-    if (!oldModel && !newModel) return false;
-    if (!oldModel || !newModel) return true;
-
-    for (let key in newModel) {
-        if (key === "id") continue;
-        if (key.endsWith("_at")) continue;
-        if (oldModel[key] !== newModel[key]) {
-            return true;
-        }
-    }
-    return false;
 }
 
 /**

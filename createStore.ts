@@ -7,6 +7,7 @@ import createUseCollection from "./useCollection";
 import createUseModel from "./useModel";
 import createUseSelected from "./useSelected";
 import createUseCommand from "./useCommand";
+import { addStoreToHistory } from "./history";
 
 
 // Global data store that updates components when data changes.
@@ -29,20 +30,8 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
 
     console.log("createCollection() creating collection: ", id, "create count: ", ++collectionCounter);
 
-    let persistedData: Data[] | undefined = undefined;
-    // If we have a persist option, try to load the data from the persist store
-    if (options?.persist) {
-        const json = options.persist.get(id);
-        if (json) {
-            try {
-                persistedData = JSON.parse(json);
-            } catch (e) {
-                console.error("createCollection() Error parsing JSON: ", e);
-            }
-        }
-    }
-
     const originalInitialData = JSON.parse(JSON.stringify(initialData));
+
 
     // Set the sync mode
     const syncMode = options?.sync ? options.sync : false;
@@ -50,7 +39,7 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
     const store: Store<Data, ExtraController> = {
         id,
         eventHandler: createEventHandler<Data[]>(),
-        collectionData: persistedData || initialData,
+        // collectionData2: new Map<string, Data>(),
         baseController: null as any, // will be assigned later
         mergedController: null as any, // will be assigned later
         useCollection: null as any, // will be assigned later
@@ -65,23 +54,53 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
         previousData: undefined,
         initialData: originalInitialData, // should we do this? might be a lot of data
         autoSelect: options?.autoSelect,
-        // history: options?.useHistory === undefined ? useHistoryDefault : options.useHistory,
+        history: true
     };
 
     // If history is enabled, we run this hack to expose it to debugging.
     // We are going to make a dev attacment point to this later, and 
     // make dev tools enabling us to go back and forth in history.
     if (store.history) {
-        // TODO: Old implementation was removed. Make a new one.
+        addStoreToHistory(store);
     }
 
-    let timeOut: any;
+
+    let persistedData: Data[] | undefined = undefined;
+    // If we have a persist option, try to load the data from the persist store
+    if (options?.persist) {
+        const json = options.persist.get(id);
+        if (!json) return;
+
+        try {
+            persistedData = JSON.parse(json);
+            // If any of the date fields (ending in _at) are strings, convert them to timestamps
+            for (let model of persistedData) {
+                for (let key in model) {
+                    if (key.endsWith("_at") && typeof model[key] === "string") {
+                        const m = model as any;
+                        const original = model[key];
+                        m[key] = new Date(original).getTime();
+                        console.log("createCollection() converting date: ", id, key, original, m[key]);
+                    }
+                }
+            }
+
+
+        } catch (e) {
+            console.error("createCollection() Error parsing JSON: ", e);
+            return;
+        }
+
+        store.baseController.setCollection(persistedData);
+
+    }
+
 
     // If we have a persist option, subscribe to the event handler
     // so that we can persist the data to the store
-    if (store.persist || options?.sync) {
+    if (store.persist || store.syncMode || store.history) {
 
-
+        let timeOut: any;
 
         store.eventHandler.subscribe((data) => {
 
@@ -92,7 +111,7 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
             timeOut = setTimeout(() => {
                 // Copy fields from data, except the ones starting with _
                 // We don't want to persist internal fields
-
+                console.log("SYNC TIMEOUT: ", id);
                 const dataToStore = [] as Data[];
 
                 for (let model of data) {
