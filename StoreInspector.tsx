@@ -117,7 +117,13 @@ export default function StoreInspector() {
             <View style={{ flexBasis: "auto", flexDirection: "column", minWidth: 1280, paddingTop: 5 }}>
                 <Text style={{ fontWeight: 'bold' }}> Change Log </Text>
                 {history.map((entry, index) => (
-                    <Text key={"H_" + index} style={cellStyle} >{entry}</Text>
+                    <Text key={"H_" + index} style={cellStyle} >
+                        {entry.storeId}
+                        Deleted: {entry.deleted.length}
+                        Inserted: {entry.inserted.length}
+                        Updated: {entry.updated.length}
+
+                    </Text>
                 ))}
             </View>
         </>

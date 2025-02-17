@@ -1,7 +1,7 @@
 import { createStorage } from "./storage";
 import { BaseController, Message, Model, Store } from "./types";
 
-function createBaseController<Data extends Model>(store: Store<Data>,) {
+function createBaseController<Data extends Model>(store: Store<Data>) {
 
     let notifyTimer: any;
 
@@ -12,7 +12,7 @@ function createBaseController<Data extends Model>(store: Store<Data>,) {
         }, 5);
     }
 
-    const storage = createStorage<Data>(notify);
+    const storage = createStorage<Data>(notify, store.id);
 
     const baseController: BaseController<Data> = {
 
@@ -20,9 +20,9 @@ function createBaseController<Data extends Model>(store: Store<Data>,) {
             return [...storage.values()];
         },
 
-        setCollection(newCollection: Data[]) {
+        setCollection(newCollection: Data[], keepNonSync?: boolean) {
 
-            if (storage.setArray(newCollection)) {
+            if (storage.setArray(newCollection, keepNonSync)) {
 
                 // If the collection is empty, set selectedModelId to null
                 if (newCollection.length === 0) {
@@ -36,7 +36,7 @@ function createBaseController<Data extends Model>(store: Store<Data>,) {
 
                 // If autoSelect is enabled, and no model is selected, select the first model
                 if (store.autoSelect && !store.selectedModelId && storage.size() > 0) {
-                    store.selectedModelId = storage.keys().next().value;
+                    store.selectedModelId = storage.getFirst().id;
                 }
             }
         },
@@ -59,45 +59,31 @@ function createBaseController<Data extends Model>(store: Store<Data>,) {
             return store.selectedModelId;
         },
 
-        add(model: Data, select = true, markChanged = true) {
+        // Set one existing model to the collection. The model will be overwritten, not merged.
+        // Todo: support array of models? Or maybe make a setModels or updateCollection instead? Goal: less calls to setCollection
+        set(model: Data, select: "no" | "if_empty" | "yes" = "no", markChanged = true) {
 
-            // Check if model already
-            if (storage.has(model.id)) {
-                throw new Error(`Model with id already exists in collection: ${model.id}`);
+            // Normally we need to mark the the model as updated due to sync
+            if (markChanged) {
+                model.changed_at = Date.now();
             }
 
-            if (markChanged) model.changed_at = Date.now();
-
+            // Store
             storage.set(model);
 
-            // If this is the first model added, select it
-            if (select === true) {
+            // Should we set this model as selected?
+            if (select === "yes") {
                 this.select(model.id);
             } else if (select === "if_empty" && storage.size() === 0) {
                 this.select(model.id);
             }
         },
 
-        // Set one existing model to the collection. The model will be overwritten, not merged.
-        // Todo: support array of models? Or maybe make a setModels or updateCollection instead? Goal: less calls to setCollection
-        set(model: Data, markChanged = true) {
-            if (!storage.has(model.id)) {
-                throw new Error(`Model with id does not exist in collection: ${model.id}`);
-            }
-
-            if (markChanged) {
-                model.changed_at = Date.now();
-            }
-
-            storage.set(model);
-
-        },
-
         setField(modelId: string, key: keyof Data, value: any, markChanged = true) {
             const oldModel = storage.get(modelId);
             if (!oldModel) return false;
 
-            store.baseController.set({ ...oldModel, [key]: value }, markChanged);
+            store.baseController.set({ ...oldModel, [key]: value }, "no", markChanged);
         },
 
         clear() {
@@ -127,8 +113,6 @@ function createBaseController<Data extends Model>(store: Store<Data>,) {
 
         },
 
-
-
         fetch(id?: string | string[] | [{ id: string }]) {
 
             // If not id, let it be an empty array. If its a string, an array with one string. Else, its an array of strings.
@@ -153,6 +137,21 @@ function createBaseController<Data extends Model>(store: Store<Data>,) {
                 }
                 store.sync.send(message);
             }
+        },
+
+        __getAndResetChanges() {
+            return storage.getAndResetChange();
+        },
+
+        size() {
+            return storage.size();
+        },
+
+        getFirst() {
+            return storage.getFirst();
+        },
+        has(modelId: string) {
+            return storage.has(modelId);
         },
 
     };

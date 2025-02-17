@@ -6,15 +6,19 @@ function createUseCollection<Data extends { id: string }>(store: Store<Data>): U
     return function useCollection() {
 
         // This state will be set to the component that uses this hook
-        const [data, setData] = useState<Data[]>(store.collectionData);
+        const [data, setData] = useState<Data[]>(store.baseController.getCollection());
 
         useEffect(() => {
 
             // Make a subscription to changes in the data
             function handleChange(d: Data[]) {
-                if (data === d) return;
+                if (data === d) {
+                    console.log("&&&&&&&&&&&&&&&&&&&&& useCollection() handleChange() Data is the same");
+                    return;
+                }
                 setData(d);
             }
+
             store.eventHandler.subscribe(handleChange);
 
             // Unsubscribe when the component is unmounted

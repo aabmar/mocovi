@@ -1,4 +1,3 @@
-import { HistoryDiff, History, HistoryEntry, Model } from "./types";
 
 // Print the differences between two objects with deep path
 function diff(name: string, oldObject: any, newObject: any, changes: string[]) {
@@ -39,34 +38,34 @@ function diff(name: string, oldObject: any, newObject: any, changes: string[]) {
 // This function takes an array of previous models and of current model and retruns
 // an array of HistoryDiff objects. Each HistoryDiff contains the original model,
 // the type of change (insert, update, delete), a change object with the changes, and the new model.
-function modelArrayDiff(previousModels: Model[], currentModels: Model[]): HistoryDiff[] {
-    const changes: HistoryDiff[] = [];
+// function modelArrayDiff(previousModels: Model[], currentModels: Model[]): ChangeEntry[] {
+//     const changes: ChangeEntry[] = [];
 
-    const combinedIds = new Set([...previousModels.map(m => m.id), ...currentModels.map(m => m.id)]);
+//     const combinedIds = new Set([...previousModels.map(m => m.id), ...currentModels.map(m => m.id)]);
 
-    combinedIds.forEach(id => {
-        const previousModel = previousModels.find(m => m.id === id);
-        const currentModel = currentModels.find(m => m.id === id);
+//     combinedIds.forEach(id => {
+//         const previousModel = previousModels.find(m => m.id === id);
+//         const currentModel = currentModels.find(m => m.id === id);
 
-        let entry: HistoryDiff | undefined;
+//         let entry: ChangeEntry | undefined;
 
-        // Find deleted model
-        if (previousModel && !currentModel) {
-            entry = {
-                id: previousModel.id,
-                type: "delete",
-                from: previousModel,
-                change: modelDiff(previousModel, {}),
-                to: null
-            };
-            changes[id] = entry;
-        } else if (currentModel && isDifferent(previousModel, currentModel)) {
-            changes[id] = currentModel;
-        }
-    });
+//         // Find deleted model
+//         if (previousModel && !currentModel) {
+//             entry = {
+//                 id: previousModel.id,
+//                 type: "delete",
+//                 from: previousModel,
+//                 change: modelDiff(previousModel, {}),
+//                 to: null
+//             };
+//             changes[id] = entry;
+//         } else if (currentModel && isDifferent(previousModel, currentModel)) {
+//             changes[id] = currentModel;
+//         }
+//     });
 
-    return changes;
-}
+//     return changes;
+// }
 
 function modelDiff(previousModel: { [key: string]: any }, currentModel: { [key: string]: any }): { [key: string]: any } {
     const changes: { [key: string]: any } = {};
@@ -103,5 +102,5 @@ function isDifferent(oldModel: { [key: string]: any } | undefined, newModel: { [
     return false;
 }
 
-export { diff, modelArrayDiff, modelDiff, isDifferent };
+export { diff, isDifferent, modelDiff };
 

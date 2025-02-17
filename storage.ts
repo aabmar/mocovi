@@ -2,7 +2,7 @@
 import { Model } from './types';
 import { isDifferent } from './util';
 
-function createStorage<Data extends Model>(notify: () => void) {
+function createStorage<Data extends Model>(notify: () => void, storeId: string) {
 
     const internalStorage = new Map<string, Data>();
     const deleted = new Map<string, Data>();
@@ -14,13 +14,16 @@ function createStorage<Data extends Model>(notify: () => void) {
         return internalStorage.get(modelId) || null;
     }
 
+    function getFirst(): Data | null {
+        return internalStorage.values().next().value || null
+    }
+
     function set(model: Data): boolean {
 
         const original = internalStorage.get(model.id);
         const originalJ = JSON.parse(JSON.stringify(original));
 
         if (!isDifferent(original, model)) return false;
-
 
         if (original) {
             updated.set(model.id, model);
@@ -29,7 +32,7 @@ function createStorage<Data extends Model>(notify: () => void) {
             inserted.set(model.id, model);
         }
 
-        internalStorage.set(model.id, model);
+        internalStorage.set(model.id, { ...model });
         notify();
         return true;
     }
@@ -49,7 +52,7 @@ function createStorage<Data extends Model>(notify: () => void) {
 
     }
 
-    function setArray(newCollection: Data[]): boolean {
+    function setArray(newCollection: Data[], keepNonSync?: boolean): boolean {
 
         const existingKeys = new Set(internalStorage.keys());
         const newStorage = new Map<string, Data>(newCollection.map(m => [m.id, m]));
@@ -66,6 +69,7 @@ function createStorage<Data extends Model>(notify: () => void) {
             //Move data from storage to deleted
             for (let key of deletedKeys) {
                 const original = internalStorage.get(key);
+                if (keepNonSync && original.changed_at) continue;
                 deleted.set(key, original);
                 internalStorage.delete(key);
                 previous.set(key, JSON.parse(JSON.stringify(original)));
@@ -97,7 +101,8 @@ function createStorage<Data extends Model>(notify: () => void) {
     }
 
     function getAndResetChange() {
-        const data = {
+        const changes = {
+            storeId,
             inserted: Array.from(inserted.values()),
             updated: Array.from(updated.values()),
             deleted: Array.from(deleted.values()),
@@ -109,7 +114,7 @@ function createStorage<Data extends Model>(notify: () => void) {
         deleted.clear();
         previous.clear();
 
-        return data;
+        return changes;
     }
 
     function values() {
@@ -126,6 +131,7 @@ function createStorage<Data extends Model>(notify: () => void) {
 
     const storage = {
         get,
+        getFirst,
         set,
         delete: delete_,
         has,

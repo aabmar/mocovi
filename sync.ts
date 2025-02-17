@@ -1,4 +1,4 @@
-import { Message, Model, Store, Sync } from "./types";
+import { ChangeEntry, Message, Model, Store, Sync } from "./types";
 
 let sync__: Sync | undefined;
 
@@ -48,12 +48,6 @@ const createSync = (
             return;
         }
 
-        let previous = store.previousData;
-        if (!previous) {
-            console.error("sync: Store has no previous data: ", msg.storeId);
-            return;
-        }
-
         // Update the store with the new data
 
         if (!msg.payload || !Array.isArray(msg.payload)) {
@@ -63,88 +57,7 @@ const createSync = (
         }
 
         // TODO: Check operation field in message
-
-        // Iterate over the incomming models
-        for (let incommingModel of msg.payload) {
-
-            if (!incommingModel.created_at) {
-                console.error("sync: =================================== Model has no created_at field: ", incommingModel);
-                continue;
-            }
-            let localModel = store.baseController.get(incommingModel.id);
-            const different = isDifferent(localModel, incommingModel);
-
-
-            // If no local model, we add it
-            if (!localModel) {
-                console.log("sync: Adding new model: ", incommingModel.id);
-                store.baseController.add(incommingModel, "if_empty", false);
-                previous.set(incommingModel.id, { ...incommingModel });
-                continue;
-            }
-
-            // If incomming is newer, we update the local model
-            const incommingChangedTime = incommingModel.changed_at;
-            const localUpdatedTime = localModel.updated_at || localModel.changed_at;
-            const incommingIsNewer = incommingChangedTime > (localUpdatedTime || 0);
-
-            if (different && incommingIsNewer) {
-                console.log("sync: on message: updating model: ", store.id, incommingModel.id, "is different: ", different, "incommingIsNewer: ", incommingIsNewer, "incommingChangedTime: ", incommingChangedTime, "localUpdatedTime: ", localUpdatedTime);
-
-                const updatedModel = {
-                    ...localModel,
-                    ...incommingModel,
-                    synced_at: Date.now()
-                };
-                if (updatedModel.changed_at) delete updatedModel.changed_at;
-
-                store.baseController.set(updatedModel, false);
-                previous.set(updatedModel.id, { ...updatedModel });
-                continue;
-            } else {
-                // If the model is already updated, we just set the synced_at property if missing
-                console.log("sync: on message: Model up to date: ", store.id, incommingModel.id, "is different: ", different, "incommingIsNewer: ", incommingIsNewer, "incommingChangedTime: ", incommingChangedTime, "localUpdatedTime: ", localUpdatedTime);
-
-                // Make sure all timestamps are correct.
-                if (!localModel.synced_at || !localModel.created_at || !localModel.updated_at || localModel.changed_at) {
-                    localModel.synced_at = Date.now();
-                    localModel.created_at = incommingModel.created_at;
-                    localModel.updated_at = incommingModel.updated_at;
-                    delete localModel.changed_at;
-                    console.log("sync: on message: Model up to date, set syncedAt: ", store.id, incommingModel.id, localModel.synced_at);
-                    store.baseController.set(localModel, false);
-                }
-                continue;
-            }
-
-            console.log("sync: on message: model not changed: ", store.id, incommingModel.id);
-
-        }
-
-        // Delete models that are in the local store, but not on the server, if they have been changed
-        // If they have not been synced, they are probably new on the device and should be saved (we don't do that now).
-
-        // Get Ids
-        const localModelIds = store.baseController.getCollection().map(m => m.id);
-        const serverModelIds = msg.payload.map(m => m.id);
-
-        // Find the models that are in the local store, but not on the server
-        const modelsToDelete = localModelIds.filter(id => !serverModelIds.includes(id));
-        console.log(" ======= Models to check for deletion ==== ", modelsToDelete);
-
-        for (let id of modelsToDelete) {
-            const model = store.baseController.get(id);
-            if ((!model.synced_at && model.changed_at) || (model.id === "0" || model.id === "1")) continue;
-            console.log("sync: Deleting model: ", id);
-            store.baseController.delete(id);
-            previous.delete(id);
-        }
-
-        // TODO: this must be based on ID.
-
-        // Merge existing models with the new and updated and set it all in one operation
-        // const mergedModels = [...store.baseController.getCollection(), ...newModels];
-        // store.baseController.setCollection(mergedModels);
+        store.baseController.setCollection(msg.payload, true);
 
     }
 
@@ -178,27 +91,6 @@ const createSync = (
         }, 5000);
     }
 
-    function getPrevious(storeId: string): Map<string, Model> {
-
-        let store = getStore(storeId);
-        if (!store) {
-            console.error("sync: Store not found: ", storeId);
-            return new Map<string, Model>();
-        }
-
-        let previous = store.previousData;
-        if (!previous) {
-            console.error("sync: Store has no previous data: ", storeId);
-
-            previous = new Map<string, Model>();
-            for (let model of store.collectionData) {
-                previous.set(model.id, { ...model });
-            }
-        }
-
-        return previous;
-    }
-
     // The objec we send back to the Store
     let sync: Sync = {
         send: (msg: Message): boolean => {
@@ -210,7 +102,7 @@ const createSync = (
                 return true;
             }
 
-            if (!msg.operation) msg.operation = "set";
+            if (!msg.operation) throw new Error("sync: No operation in message");
 
             if (connected) {
                 let data: string;
@@ -221,42 +113,48 @@ const createSync = (
                     console.error("sync: Error sending message:", e);
                     return false;
                 }
-                const baseConstroller = getStore(msg.storeId)?.baseController;
-                if (msg.operation === "set") {
-                    let previous = getPrevious(msg.storeId);
-
-                    for (let model of (msg.payload) as Model[]) {
-                        previous.set(model.id, { ...model });
-                        baseConstroller?.setField(model.id, "synced_at", Date.now(), false);
-                    }
-                }
                 return true;
             } else {
                 console.log("sync: WebSocket not connected");
                 return false;
             }
         },
+        sendChanges: (changes: ChangeEntry): boolean => {
+
+            const models = [...changes.inserted, ...changes.updated];
+            const storeId = changes.storeId;
+
+            // Send over new and changed models
+            if (models.length > 0) {
+                console.log("createStore() ", storeId, " sending SET message: ", models.length);
+                const message: Message = {
+                    storeId,
+                    operation: "set",
+                    sessionId: sync.sessionId,
+                    payload: models
+                }
+
+                // Todo: we are going to batch messages from different models here (?)
+                return sync.send(message);
+            }
+
+            const deleted = changes.deleted.map((model) => ({ id: model.id }));
+
+            if (deleted.length > 0) {
+                console.log("createStore() ", storeId, " sending DELETE message: ", deleted.length);
+                const message: Message = {
+                    storeId,
+                    operation: "delete",
+                    sessionId: sync.sessionId,
+                    payload: deleted
+                }
+                return sync.send(message);
+            }
+        },
 
         close: () => {
             sync__ = undefined;
             ws.close();
-        },
-
-        findChangedData: (storeId: string, data: Model[]): Model[] => {
-            const previous = getPrevious(storeId);
-            let updatedModels: Model[] = [];
-
-            for (let model of data) {
-
-                const oldModel = previous.get(model.id);
-                const different = isDifferent(oldModel, model);
-
-                if (different) {
-                    updatedModels.push(model);
-                }
-            }
-
-            return updatedModels;
         },
 
         attach: (store: Store<any>) => {

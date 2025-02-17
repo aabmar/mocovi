@@ -13,13 +13,15 @@ type BaseController<Data> = {
     getSelected: () => Data | null;
     getSelectedId(): string | null;
     select: (modelId: string | null) => void;
-    add: (model: Data, select?: true | "if_empty" | false, markChanged?: boolean) => void;
-    set: (model: Data, markChanged?: boolean) => void;
-    setCollection: (newCollection: Data[]) => void;
+    set: (model: Data, select?: "no" | "if_empty" | "yes", markChanged?: boolean) => void;
+    setCollection: (newCollection: Data[], keepNonSync?: boolean) => void;
     setField: (modelId: string, key: keyof Data, value: any, markChanged?: boolean) => void;
     fetch(id?: string | string[]): void;
     delete: (modelId: string) => void;
-    // notify: () => void;
+    __getAndResetChanges: () => ChangeEntry;
+    size: () => number;
+    getFirst: () => Data | undefined;
+    has: (modelId: string) => boolean;
 };
 
 type Persist = {
@@ -30,8 +32,8 @@ type Persist = {
 
 type Sync = {
     send: (msg: Message) => boolean;
+    sendChanges: (changes: ChangeEntry) => boolean;
     close: () => void;
-    findChangedData: (storeId: string, data: Model[]) => Model[];
     attach: (store: Store<any>) => void;
     sessionId: string;
 }
@@ -73,8 +75,7 @@ type Store<Data extends Model, ExtraController = {}> = {
     persist?: Persist;
     syncMode: false | "auto" | "set" | "get" | "manual";
     sync?: Sync;
-    syncCallback?: (data: Data[]) => void;
-    previousData?: Map<string, Model>;
+    syncCallback?: (changes: { inserted: Model[]; updated: Model[]; deleted: Model[]; previous: Model[]; }) => void;
     initialData?: Data[];
     autoSelect?: boolean;
     history?: boolean;
@@ -84,7 +85,7 @@ type Store<Data extends Model, ExtraController = {}> = {
 type Message = {
     // Object with storename as key, and one array of models for each store
     storeId: string;
-    operation: "get" | "set" | "cmd" | "response" | "update" | "subscribe" | "unsubscribe" | "list";
+    operation: "get" | "set" | "cmd" | "response" | "update" | "subscribe" | "unsubscribe" | "list" | "delete";
     payload: Model[] | {};
     cmd?: string;
     sessionId: string;
@@ -100,18 +101,14 @@ type UseCommand = () => (cmd: string, payload?: any) => void;
 
 
 
-type History = HistoryEntry[];
+type ChangeLog = ChangeEntry[];
 
-type HistoryEntry = {
-    [key: string]: HistoryDiff[];
-}
-
-type HistoryDiff = {
-    id: string;
-    type: "insert" | "delete" | "update";
-    from: Model | null;
-    change: { [key: string]: any };
-    to: Model | null;
+type ChangeEntry = {
+    storeId: string;
+    inserted: Model[];
+    updated: Model[];
+    deleted: Model[];
+    previous: Model[];
 }
 
 export type {
@@ -120,5 +117,5 @@ export type {
     UseController, UseCollection, UseModel, UseSelected,
     Message, Model, BaseController,
     UseSelectedReturn, UseCollectionReturn, UseModelReturn,
-    UseCommand, HistoryEntry, HistoryDiff, History
+    UseCommand, ChangeEntry, ChangeLog
 };

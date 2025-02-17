@@ -8,7 +8,7 @@ function createUseModel<Data extends { id: string }>(store: Store<Data>): UseMod
 
     return function useModel(modelId): UseModelReturn<Data> {
 
-        let first: Data | null = modelId ? findModelById(store.collectionData, modelId) : null;
+        let first: Data | null = store.baseController.get(modelId);
 
         // This state will be set to the component that uses this hook
         const [model, setModel] = useState<Data | null>(first);
@@ -17,7 +17,7 @@ function createUseModel<Data extends { id: string }>(store: Store<Data>): UseMod
 
             // Make a subscription to changes in the data
             function handleChange(d: Data[]) {
-                // if (!modelId) return;
+
                 const newModel = modelId ? findModelById(d, modelId) : null;
 
                 // console.log("useModel: handleChange: ", model?.id, newModel?.id, model === newModel);
@@ -35,17 +35,11 @@ function createUseModel<Data extends { id: string }>(store: Store<Data>): UseMod
             };
         }, []);
 
-        // We make a function to set model data so that this hook works like useState for the user.
-        // It will call add() on the controller if the model is not found, otherwise it will call set()
         const setModelData = (newModel: Data) => {
-            if (newModel.id.length === 0) {
+            if (!newModel.id) {
                 newModel.id = nanoid();
             }
-            if (findModelById(store.collectionData, newModel.id) === null) {
-                store.mergedController.add(newModel);
-            } else {
-                store.mergedController.set(newModel);
-            }
+            store.baseController.set(newModel);
         };
 
         return [model, setModelData] as UseModelReturn<Data>;

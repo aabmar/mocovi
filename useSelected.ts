@@ -8,7 +8,7 @@ function createUseSelected<Data extends { id: string }>(store: Store<Data>): Use
 
     function useSelected() {
 
-        let first: Data | null = store.selectedModelId ? findModelById(store.collectionData, store.selectedModelId) : null;
+        let first: Data | null = store.selectedModelId ? store.baseController.getSelected() : null;
 
         // The local state data
         const [model, setModel] = useState<Data | null>(first);
@@ -36,14 +36,11 @@ function createUseSelected<Data extends { id: string }>(store: Store<Data>): Use
         // We make a function to set model data so that this hook works like useState for the user.
         // It will call add() on the controller if the model is not found, otherwise it will call set()
         const setModelData = (newModel: Data) => {
-            if (newModel.id.length === 0) {
+            if (!newModel.id) {
                 newModel.id = nanoid();
             }
-            if (findModelById(store.collectionData, newModel.id) === null) {
-                store.mergedController.add(newModel);
-            } else {
-                store.mergedController.set(newModel);
-            }
+
+            store.mergedController.set(newModel);
         };
 
         return [model, setModelData] as UseSelectedReturn<Data>;
