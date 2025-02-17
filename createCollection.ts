@@ -67,15 +67,6 @@ function createCollection<Data extends Model, ExtraController extends object = {
     store.useCommand = createUseCommand<Data>(store);
     store.useController = () => store.mergedController;
 
-
-    // Set selected to the first model, if any
-    console.log("createStore() ", store.id, " if we have data, select first model");
-    if (store.baseController.size() > 0) {
-        const first = store.baseController.getCollection()[0].id
-        console.log("createStore() ", store.id, " selecting first model: ", first);
-        store.baseController.select(first);
-    }
-
     // Store it in our global map
     addStore(store);
 
@@ -88,29 +79,33 @@ function createCollection<Data extends Model, ExtraController extends object = {
     }
 
 
-    let persistedData: Data[] | undefined = undefined;
+    let persistedData: Data[] = [];
     // If we have a persist option, try to load the data from the persist store
     if (options?.persist) {
         const json = options.persist.get(id);
         if (!json) return;
 
         try {
-            persistedData = JSON.parse(json);
+            const tmp = JSON.parse(json);
             // If any of the date fields (ending in _at) are strings, convert them to timestamps
-            for (let model of persistedData) {
+            for (let model of tmp) {
+                if (model.id === "0" || model.id === "1") {
+                    continue;
+                }
                 for (let key in model) {
                     if (key.endsWith("_at") && typeof model[key] === "string") {
                         (model as any)[key] = new Date(model[key] as string).getTime();
                         console.log("createStore() persist converting date: ", id, key, model[key]);
                     }
                 }
+                persistedData.push(model);
             }
-
-            store.baseController.setCollection(persistedData);
         } catch (e) {
             console.error("createStore() Error parsing JSON: ", e);
             return;
         }
+        console.log("createStore() persist loaded data: ", id, persistedData);
+        store.baseController.setCollection(persistedData);
 
     }
 
@@ -145,6 +140,15 @@ function createCollection<Data extends Model, ExtraController extends object = {
             }, 1500);
 
         });
+    }
+
+
+    // Set selected to the first model, if any
+    if (store.baseController.size() > 0) {
+        console.log("createStore() ", store.id, " we have data, select first model");
+        const first = store.baseController.getFirst();
+        console.log("createStore() ", store.id, " selecting first model: ", first);
+        store.baseController.select(first.id);
     }
 
     return store;
