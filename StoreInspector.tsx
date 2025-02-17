@@ -118,10 +118,7 @@ export default function StoreInspector() {
                 <Text style={{ fontWeight: 'bold' }}> Change Log </Text>
                 {history.map((entry, index) => (
                     <Text key={"H_" + index} style={cellStyle} >
-                        {entry.storeId}
-                        Deleted: {entry.deleted.length}
-                        Inserted: {entry.inserted.length}
-                        Updated: {entry.updated.length}
+                        {entry.storeId} U: {entry.updated.length} D: {entry.deleted.length} I: {entry.inserted.length}
 
                     </Text>
                 ))}
