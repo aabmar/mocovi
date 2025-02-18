@@ -17,12 +17,12 @@ function createUseSelected<Data extends { id: string }>(store: Store<Data>): Use
 
             function handleChange(d: Data[]) {
 
-                const newModel = findModelById(d, store.selectedModelId);
-                // console.log("useSelected: handleChange: ", model?.id, newModel?.id, model === newModel);
-                if (model === newModel) return;
-                // TODO: optimize can be deep or level 1 compare
+                const newModel = store.baseController.getSelected();
+                console.log("useSelected: handleChange: ", model?.id, newModel?.id, model === newModel);
+                // if (model === newModel) return;
+
                 setModel(newModel);
-                first = newModel;
+                // first = newModel;s
             }
 
             store.eventHandler.subscribe(handleChange);

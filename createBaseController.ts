@@ -25,18 +25,21 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
             if (storage.setArray(newCollection, keepNonSync)) {
 
                 // If the collection is empty, set selectedModelId to null
-                if (newCollection.length === 0) {
+                if (storage.size() === 0) {
+                    console.log("BaseController: setCollection() empty collection, deselecting");
                     store.selectedModelId = null;
                 }
 
                 // If the selected is no longer in the collection, remove selection
                 if (!storage.has(store.selectedModelId)) {
+                    console.log(`BaseController: setCollection() selected model (${store.selectedModelId}) no longer in collection, deselecting`);
                     store.selectedModelId = null;
                 }
 
                 // If autoSelect is enabled, and no model is selected, select the first model
                 if (store.autoSelect && !store.selectedModelId && storage.size() > 0) {
                     store.selectedModelId = storage.getFirst().id;
+                    console.log(`BaseController: setCollection() auto-selected model (${store.selectedModelId})`);
                 }
             }
         },

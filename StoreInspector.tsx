@@ -17,19 +17,28 @@ export default function StoreInspector() {
         const [collection] = store.useCollection();
         const [selected] = store.useSelected();
 
-        useEffect(() => {
-            store.baseController.fetch();
-            controller.select(null);
-        }, []);
+        // useEffect(() => {
+        //     store.baseController.fetch();
+        //     // controller.select(null);
+        // }, []);
 
         const handleFetch = () => {
+            store.baseController.fetch();
+        };
+        const handleReload = () => {
+            store.baseController.clear();
             store.baseController.fetch();
         };
 
         return (
             <>
                 <Text style={{ fontWeight: 'bold' }}> Store: {store.id} </Text>
-                <Pressable onPress={handleFetch}><Text>Fetch</Text></Pressable>
+                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                    <Pressable onPress={handleFetch} style={{ flexBasis: "auto" }}><Text numberOfLines={1}>Fetch</Text></Pressable>
+                    <Pressable onPress={handleReload} style={{ flexBasis: "auto" }}><Text numberOfLines={1}>Reload</Text></Pressable>
+                    <Text style={{ flexBasis: "auto" }} numberOfLines={1}> Length: {collection.length} </Text>
+                    <Text ellipsizeMode="head" style={{ flex: 1 }} numberOfLines={1}> Selected: {selected ? selected.id : 'None'}</Text>
+                </View>
 
                 {
                     collection.map((model) => {
