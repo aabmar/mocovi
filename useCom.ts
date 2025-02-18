@@ -1,10 +1,11 @@
+import { useEffect } from "react";
 import { Message, Store, Sync } from "./types";
 
 
 
-export default function createUseCommand<Data extends { id: string }>(store: Store<Data>) {
+export default function createUseCom<Data extends { id: string }>(store: Store<Data>) {
 
-    return function useCommand() {
+    return function useCom(callback?: (message: Message) => void,) {
 
         function send(cmd: string, payload?: any) {
             console.log("useCommand() send(): ", cmd, payload);
@@ -13,14 +14,21 @@ export default function createUseCommand<Data extends { id: string }>(store: Sto
                 storeId: store.id,
                 operation: "cmd",
                 cmd,
-                sessionId: store.sync?.sessionId || "",
                 payload: payload || []
             }
             console.log("useCommand(): ", message.storeId, message.operation, message.cmd, message.payload);
             store.sync?.send(message);
         }
 
-        return send;
+        useEffect(() => {
+            store.sync.subscribe(store.id, callback);
+
+            return () => {
+                store.sync.unsubscribe(store.id, callback);
+            };
+        }, []);
+
+        return { send };
     }
 
 }

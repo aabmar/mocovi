@@ -35,7 +35,8 @@ type Sync = {
     sendChanges: (changes: ChangeEntry) => boolean;
     close: () => void;
     attach: (store: Store<any>) => void;
-    sessionId: string;
+    subscribe: (topic: string, callback: (msg: Message) => void) => void;
+    unsubscribe: (topic: string, callback: (msg: Message) => void) => void;
 }
 
 type Model = {
@@ -70,7 +71,7 @@ type Store<Data extends Model, ExtraController = {}> = {
     useModel: UseModel<Data>;
     useSelected: UseSelected<Data>;
     useController: UseController<Data, ExtraController>;
-    useCommand: UseCommand;
+    useCom: UseCom;
     selectedModelId: string | null;
     persist?: Persist;
     syncMode: false | "auto" | "set" | "get" | "manual";
@@ -84,11 +85,11 @@ type Store<Data extends Model, ExtraController = {}> = {
 
 type Message = {
     // Object with storename as key, and one array of models for each store
-    storeId: string;
-    operation: "get" | "set" | "cmd" | "response" | "update" | "subscribe" | "unsubscribe" | "list" | "delete";
+    storeId: string; // This is event name on broadcast and user session id on direct
+    operation: "get" | "set" | "cmd" | "response" | "update" | "subscribe" | "unsubscribe" | "direct" | "broadcast" | "list" | "delete";
     payload: Model[] | {};
-    cmd?: string;
-    sessionId: string;
+    cmd?: string; // Can be freely used on broadcast and direct
+    sessionId?: string; // set this to null, and the system will assign it on sync.send()
 }
 
 type UseSelectedReturn<Data> = [Data | null, (model: Data) => void];
@@ -97,7 +98,7 @@ type UseCollectionReturn<Data extends { id: string }> = [Data[], (newCollection:
 type UseCollection<Data extends { id: string }> = () => UseCollectionReturn<Data>;
 type UseModelReturn<Data extends { id: string }> = [Data | null, (newModel: Data) => void];
 type UseModel<Data extends { id: string }> = (modelId: string | undefined) => UseModelReturn<Data>;
-type UseCommand = () => (cmd: string, payload?: any) => void;
+type UseCom = (callback?: (message: Message) => void) => { send: (cmd: string, payload?: any) => void };
 
 
 
@@ -117,5 +118,5 @@ export type {
     UseController, UseCollection, UseModel, UseSelected,
     Message, Model, BaseController,
     UseSelectedReturn, UseCollectionReturn, UseModelReturn,
-    UseCommand, ChangeEntry, ChangeLog
+    UseCom as UseCommand, ChangeEntry, ChangeLog
 };

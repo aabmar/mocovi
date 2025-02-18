@@ -135,7 +135,6 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
                 const message: Message = {
                     storeId: store.id,
                     operation: "get",
-                    sessionId: store.sync.sessionId,
                     payload: models
                 }
                 store.sync.send(message);

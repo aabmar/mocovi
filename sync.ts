@@ -1,6 +1,8 @@
+import { createEventHandler } from "./EventHandler";
 import { ChangeEntry, Message, Model, Store, Sync } from "./types";
 
 let sync__: Sync | undefined;
+let eventHandler = createEventHandler<Message>();
 
 const createSync = (
     endpoint: string,
@@ -56,7 +58,13 @@ const createSync = (
 
         }
 
-        // TODO: Check operation field in message
+        // If this is a message, not data, we call listeners
+        if (msg.operation === "broadcast" || msg.operation === "direct") {
+            eventHandler.notify(msg);
+            return;
+        }
+
+        // If not handled, it is a data operation
         store.baseController.setCollection(msg.payload, true);
 
     }
@@ -104,6 +112,9 @@ const createSync = (
 
             if (!msg.operation) throw new Error("sync: No operation in message");
 
+            // Assign the session id to the message
+            msg.sessionId = sessionId;
+
             if (connected) {
                 let data: string;
                 try {
@@ -130,7 +141,7 @@ const createSync = (
                 const message: Message = {
                     storeId,
                     operation: "set",
-                    sessionId: sync.sessionId,
+                    sessionId: sessionId,
                     payload: models
                 }
 
@@ -145,11 +156,13 @@ const createSync = (
                 const message: Message = {
                     storeId,
                     operation: "delete",
-                    sessionId: sync.sessionId,
+                    sessionId: sessionId,
                     payload: deleted
-                }
+                };
+
                 return sync.send(message);
             }
+            return false;
         },
 
         close: () => {
@@ -169,7 +182,30 @@ const createSync = (
             }
         },
 
-        sessionId
+        subscribe: (topic: string, callback: (msg: Message) => void) => {
+            console.log("sync: Subscribing to topic: ", topic);
+            const message: Message = {
+                storeId: topic,
+                operation: "subscribe",
+                sessionId: sessionId,
+                payload: []
+            };
+
+            return sync.send(message);
+
+        },
+
+        unsubscribe: (topic: string, callback: (msg: Message) => void) => {
+            console.log("sync: Unsubscribing from topic: ", topic);
+            const message: Message = {
+                storeId: topic,
+                operation: "unsubscribe",
+                sessionId: sessionId,
+                payload: []
+            };
+
+            return sync.send(message);
+        }
     }
 
     return sync;

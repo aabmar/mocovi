@@ -5,9 +5,9 @@ import { addEntryToHistory, addStoreToHistory } from "./history";
 import { addStore, getStore, } from "./Store";
 import { BaseController, CreateCollectionOptions, Model, Store } from "./types";
 import createUseCollection from "./useCollection";
-import createUseCommand from "./useCommand";
 import createUseModel from "./useModel";
 import createUseSelected from "./useSelected";
+import createUseCom from "./useCom";
 
 
 // Global data store that updates components when data changes.
@@ -46,13 +46,13 @@ function createCollection<Data extends Model, ExtraController extends object = {
         useModel: null as any, // will be assigned later
         useSelected: null as any, // will be assigned later
         useController: null as any, // will be assigned later
-        useCommand: null as any, // will be assigned later
+        useCom: null as any, // will be assigned later
         selectedModelId: null,
         persist: options?.persist,
         syncMode,
         sync: undefined,
         initialData: originalInitialData, // should we do this? might be a lot of data
-        autoSelect: options?.autoSelect,
+        autoSelect: options?.autoSelect === false ? false : true,
         history: true
     };
 
@@ -64,7 +64,7 @@ function createCollection<Data extends Model, ExtraController extends object = {
     store.useCollection = createUseCollection<Data>(store);
     store.useModel = createUseModel<Data>(store);
     store.useSelected = createUseSelected<Data>(store);
-    store.useCommand = createUseCommand<Data>(store);
+    store.useCom = createUseCom<Data>(store);
     store.useController = () => store.mergedController;
 
     // Store it in our global map
@@ -122,13 +122,19 @@ function createCollection<Data extends Model, ExtraController extends object = {
 
                 const changes = store.baseController.__getAndResetChanges();
 
-                if (store.history) {
+                const isChanged = changes.deleted.length > 0 || changes.updated.length > 0 || changes.inserted.length > 0;
 
+                if (!isChanged) {
+                    console.log("createCollection() event handler: No changes, skipping");
+                    return;
+                }
+
+                if (store.history) {
                     addEntryToHistory(changes);
                 }
 
                 if (store.persist) {
-                    store.persist.set(id, JSON.stringify(data));
+                    store.persist.set(id, JSON.stringify(store.baseController.getCollection()));
                 }
 
                 // If we have a sync object and mode is set to one supporting SET,
