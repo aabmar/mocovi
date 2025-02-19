@@ -53,7 +53,7 @@ const createSync = (
         // If this is a message, not data, we call listeners
         if (msg.operation === "broadcast" || msg.operation === "direct") {
             console.log("sync: ===== Notifying listeners: ", msg.storeId, msg.operation, msg.cmd, msg.payload);
-            for (let [key, callback] of store.subscribesTo) {
+            for (let [callback, key] of store.subscribesTo) {
                 console.log("######################### broadcast/direct Callback ", store.id, key);
                 callback(msg);
             }
@@ -176,17 +176,19 @@ const createSync = (
             if ((store.syncMode)) {
 
                 store.sync = sync;
-                store.resubscribe();
 
-                if (store.syncMode === "auto" || store.syncMode === "get") {
-                    console.log("sync ws.onopen: store.fetch()", store.id);
-                    store.mergedController.fetch();
-                }
+                setTimeout(() => {
+                    store.resubscribe();
+
+                    if (store.syncMode === "auto" || store.syncMode === "get") {
+                        console.log("sync ws.onopen: store.fetch()", store.id);
+                        store.mergedController.fetch();
+                    }
+                }, 1000);
             }
         },
 
         subscribe: (topic: string, callback: (msg: Message) => void) => {
-            console.log("sync: Subscribing to topic: ", topic);
             const message: Message = {
                 storeId: topic,
                 operation: "subscribe",
@@ -194,6 +196,7 @@ const createSync = (
                 payload: []
             };
 
+            console.log("sync: Subscribing to topic: ", topic, message);
             return sync.send(message);
 
         },

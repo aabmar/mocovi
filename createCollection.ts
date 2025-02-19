@@ -54,24 +54,25 @@ function createCollection<Data extends Model, ExtraController extends object = {
         initialData: originalInitialData, // should we do this? might be a lot of data
         autoSelect: options?.autoSelect === false ? false : true,
         history: true,
-        subscribesTo: new Map<string, (msg: Message) => void>,
+        subscribesTo: new Map<(msg: Message) => void, string>,
 
         subscribe: (topic: string, callback: (msg: Message) => void) => {
             console.log("store: Subscribing to topic: ", topic);
-            store.subscribesTo.set(topic, callback);
+            store.subscribesTo.set(callback, topic);
             return store.sync.subscribe(topic, callback);
         },
 
         unsubscribe: (topic: string, callback: (msg: Message) => void) => {
             console.log("store: Unsubscribing from topic: ", topic);
-            store.subscribesTo.delete(topic);
-            return store.sync.unsubscribe(topic, callback) ?? false;
+            store.subscribesTo.delete(callback);
+            return store.sync.unsubscribe(topic, callback);
         },
 
         resubscribe: () => {
-            for (let [topic, callback] of store.subscribesTo) {
+            console.log("store: resubscribe: ", store.id);
+            for (let [callback, topic] of store.subscribesTo) {
                 console.log("\n\n\n\n\n\n###########)))))))))))))))))))##########store: resubscribe: ", store.id, topic);
-                store.sync.subscribe(topic, callback);
+                store.sync?.subscribe(topic, callback);
             }
         }
 

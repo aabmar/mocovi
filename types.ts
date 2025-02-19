@@ -80,7 +80,7 @@ type Store<Data extends Model, ExtraController = {}> = {
     initialData?: Data[];
     autoSelect?: boolean;
     history?: boolean;
-    subscribesTo: Map<string, (msg: Message) => void>;
+    subscribesTo: Map<(msg: Message) => void, string>;
     subscribe: (topic: string, callback: (msg: Message) => void) => void;
     unsubscribe: (topic: string, callback: (msg: Message) => void) => void;
     resubscribe: () => void;

@@ -1,11 +1,14 @@
 import { useEffect } from "react";
 import { Message, MessageTypes, Store } from "./types";
+import { nanoid } from "nanoid";
 
 
 
 export default function createUseCom<Data extends { id: string }>(store: Store<Data>) {
 
     return function useCom(callback?: (message: Message) => void,) {
+
+        const id = nanoid();
 
         function send(cmd: string, payload?: any, operation: MessageTypes = "cmd") {
             console.log("useCommand() send(): ", cmd, payload);
@@ -16,7 +19,7 @@ export default function createUseCom<Data extends { id: string }>(store: Store<D
                 cmd,
                 payload: payload || []
             }
-            console.log("useCommand(): ", message.storeId, message.operation, message.cmd, message.payload);
+            console.log("useCommand(): ", message);
             store.sync?.send(message);
         }
 
@@ -27,13 +30,15 @@ export default function createUseCom<Data extends { id: string }>(store: Store<D
                 return
             }
 
-            if (!store.sync) {
-                console.log("useCom() useEffect() no sync");
-                return
-            }
+            setTimeout(() => {
+                if (!store.sync) {
+                    console.log("useCom() useEffect() no sync");
+                    return
+                }
 
-            console.log("useCom() useEffect() subscribing to store: ", store.id);
-            store.subscribe(store.id, callback);
+                console.log("useCom() useEffect() subscribing to store: ", store.id);
+                store.subscribe(store.id, callback);
+            }, 500);
 
             return () => {
                 store.unsubscribe(store.id, callback);

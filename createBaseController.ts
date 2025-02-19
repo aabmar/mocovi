@@ -101,17 +101,17 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
             // console.log("BaseController: select() ", modelId);
             if (!modelId) {
                 store.selectedModelId = null;
+                notify();
                 return;
-            }
-
-            if (modelId == store.selectedModelId) {
+            } else if (modelId === store.selectedModelId) {
                 return;
+            } else if (!storage.has(modelId)) {
+                return;
+            } else if (!storage.has(modelId)) {
+                return
             }
 
-            if (storage.has(modelId)) {
-                store.selectedModelId = modelId;
-            }
-
+            store.selectedModelId = modelId;
             notify();
 
         },
