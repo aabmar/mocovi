@@ -1,11 +1,10 @@
-import { Model, Store } from "../types";
-import { getStores } from "../Store"
-import React, { useEffect, useState } from "react";
-import { Pressable, Text, View, ViewStyle } from "react-native";
-import { useHistory } from "../history";
-import { cellStyle } from "./styles";
-import ModelView from "./ModelView";
+import React, { useState } from "react";
+import { Pressable, Text, View } from "react-native";
+import { getStores } from "./Store";
+import { Model, Store } from "./types";
 import ModelList from "./ModelList";
+import ModelView from "./ModelView";
+import { cellStyle } from "./styles";
 
 export default function StorePanel() {
 
@@ -15,7 +14,7 @@ export default function StorePanel() {
     return (
 
 
-        <View style={{ flexBasis: "auto", flexDirection: "row", minWidth: 1280, paddingTop: 5 }}>
+        <View style={{ flexBasis: "auto", flexDirection: "row", paddingTop: 5 }}>
 
             <View style={{ flex: 1, flexDirection: "column", backgroundColor: "lightgray", padding: 8 }}>
                 {

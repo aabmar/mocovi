@@ -12,7 +12,6 @@ export function createEventHandler<Data>(): EventHandler<Data> {
 
     function notify(data: Data) {
         // console.log("EventHandler notify() ", subscribers.length, data);
-        // setSubscribers((subscribers) => {
         for (let i = 0; i < subscribers.length; i++) {
             subscribers[i](data);
         }

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Message, Store, Sync } from "./types";
+import { Message, MessageTypes, Store } from "./types";
 
 
 
@@ -7,12 +7,12 @@ export default function createUseCom<Data extends { id: string }>(store: Store<D
 
     return function useCom(callback?: (message: Message) => void,) {
 
-        function send(cmd: string, payload?: any) {
+        function send(cmd: string, payload?: any, operation: MessageTypes = "cmd") {
             console.log("useCommand() send(): ", cmd, payload);
 
             const message: Message = {
                 storeId: store.id,
-                operation: "cmd",
+                operation,
                 cmd,
                 payload: payload || []
             }
@@ -21,12 +21,24 @@ export default function createUseCom<Data extends { id: string }>(store: Store<D
         }
 
         useEffect(() => {
-            store.sync.subscribe(store.id, callback);
+
+            if (!callback) {
+                console.log("useCom() useEffect() no callback");
+                return
+            }
+
+            if (!store.sync) {
+                console.log("useCom() useEffect() no sync");
+                return
+            }
+
+            console.log("useCom() useEffect() subscribing to store: ", store.id);
+            store.subscribe(store.id, callback);
 
             return () => {
-                store.sync.unsubscribe(store.id, callback);
+                store.unsubscribe(store.id, callback);
             };
-        }, []);
+        }, []); // No dependencies, only run once and clean up
 
         return { send };
     }

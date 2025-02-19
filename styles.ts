@@ -9,7 +9,8 @@ const cellStyle: ViewStyle = {
     borderColor: "gray",
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between"
+    justifyContent: "space-between",
+    overflow: "hidden"
 };
 
 const buttonStyle: ViewStyle = {

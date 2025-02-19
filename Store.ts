@@ -1,5 +1,5 @@
 import { getSync } from "./sync";
-import { Model, Store, Sync } from "./types";
+import { Store, Sync } from "./types";
 
 // Global store map. This might be moved to a Context later.
 const stores = new Map<string, Store<any>>();
@@ -41,6 +41,6 @@ function startSync(url: string, sessionId: string) {
 
 
 export {
-    addStore, clearAll, getStore, startSync, getStores
+    addStore, clearAll, getStore, getStores, startSync
 };
 

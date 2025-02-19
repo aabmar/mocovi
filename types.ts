@@ -21,7 +21,7 @@ type BaseController<Data> = {
     __getAndResetChanges: () => ChangeEntry;
     size: () => number;
     getFirst: () => Data | undefined;
-    has: (modelId: string) => boolean;
+    has: (modelId: string) => boolean
 };
 
 type Persist = {
@@ -80,13 +80,18 @@ type Store<Data extends Model, ExtraController = {}> = {
     initialData?: Data[];
     autoSelect?: boolean;
     history?: boolean;
-
+    subscribesTo: Map<string, (msg: Message) => void>;
+    subscribe: (topic: string, callback: (msg: Message) => void) => void;
+    unsubscribe: (topic: string, callback: (msg: Message) => void) => void;
+    resubscribe: () => void;
 };
+
+type MessageTypes = "get" | "set" | "cmd" | "response" | "update" | "subscribe" | "unsubscribe" | "direct" | "broadcast" | "list" | "delete";
 
 type Message = {
     // Object with storename as key, and one array of models for each store
     storeId: string; // This is event name on broadcast and user session id on direct
-    operation: "get" | "set" | "cmd" | "response" | "update" | "subscribe" | "unsubscribe" | "direct" | "broadcast" | "list" | "delete";
+    operation: MessageTypes;
     payload: Model[] | {};
     cmd?: string; // Can be freely used on broadcast and direct
     sessionId?: string; // set this to null, and the system will assign it on sync.send()
@@ -98,7 +103,7 @@ type UseCollectionReturn<Data extends { id: string }> = [Data[], (newCollection:
 type UseCollection<Data extends { id: string }> = () => UseCollectionReturn<Data>;
 type UseModelReturn<Data extends { id: string }> = [Data | null, (newModel: Data) => void];
 type UseModel<Data extends { id: string }> = (modelId: string | undefined) => UseModelReturn<Data>;
-type UseCom = (callback?: (message: Message) => void) => { send: (cmd: string, payload?: any) => void };
+type UseCom = (callback?: (message: Message) => void) => { send: (cmd: string, payload?: any, operation?: MessageTypes) => void };
 
 
 
@@ -118,5 +123,6 @@ export type {
     UseController, UseCollection, UseModel, UseSelected,
     Message, Model, BaseController,
     UseSelectedReturn, UseCollectionReturn, UseModelReturn,
-    UseCom as UseCommand, ChangeEntry, ChangeLog
+    UseCom as UseCommand, ChangeEntry, ChangeLog,
+    MessageTypes
 };

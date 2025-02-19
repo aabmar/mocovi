@@ -1,5 +1,5 @@
 import { Pressable, Text, View } from "react-native";
-import { Model, Store } from "../types";
+import { Model, Store } from "./types";
 import { buttonStyle, cellStyle, infoStyle } from "./styles";
 
 

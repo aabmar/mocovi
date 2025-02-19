@@ -3,7 +3,7 @@ import createBaseController from "./createBaseController";
 import { createEventHandler } from "./EventHandler";
 import { addEntryToHistory, addStoreToHistory } from "./history";
 import { addStore, getStore, } from "./Store";
-import { BaseController, CreateCollectionOptions, Model, Store } from "./types";
+import { BaseController, CreateCollectionOptions, Message, Model, Store } from "./types";
 import createUseCollection from "./useCollection";
 import createUseModel from "./useModel";
 import createUseSelected from "./useSelected";
@@ -53,7 +53,28 @@ function createCollection<Data extends Model, ExtraController extends object = {
         sync: undefined,
         initialData: originalInitialData, // should we do this? might be a lot of data
         autoSelect: options?.autoSelect === false ? false : true,
-        history: true
+        history: true,
+        subscribesTo: new Map<string, (msg: Message) => void>,
+
+        subscribe: (topic: string, callback: (msg: Message) => void) => {
+            console.log("store: Subscribing to topic: ", topic);
+            store.subscribesTo.set(topic, callback);
+            return store.sync.subscribe(topic, callback);
+        },
+
+        unsubscribe: (topic: string, callback: (msg: Message) => void) => {
+            console.log("store: Unsubscribing from topic: ", topic);
+            store.subscribesTo.delete(topic);
+            return store.sync.unsubscribe(topic, callback) ?? false;
+        },
+
+        resubscribe: () => {
+            for (let [topic, callback] of store.subscribesTo) {
+                console.log("\n\n\n\n\n\n###########)))))))))))))))))))##########store: resubscribe: ", store.id, topic);
+                store.sync.subscribe(topic, callback);
+            }
+        }
+
     };
 
 

@@ -12,4 +12,5 @@ build: clean
 
 publish: build
 	# Publish only the content in dist/
-	cd dist && npm publish
+	cd dist
+	npm publish

@@ -1,8 +1,7 @@
 import { createEventHandler } from "./EventHandler";
-import { ChangeEntry, Message, Model, Store, Sync } from "./types";
+import { ChangeEntry, Message, Store, Sync } from "./types";
 
 let sync__: Sync | undefined;
-let eventHandler = createEventHandler<Message>();
 
 const createSync = (
     endpoint: string,
@@ -50,20 +49,22 @@ const createSync = (
             return;
         }
 
-        // Update the store with the new data
-
-        if (!msg.payload || !Array.isArray(msg.payload)) {
-            console.log("sync: No payload found in message: ", msg);
-            return;
-
-        }
 
         // If this is a message, not data, we call listeners
         if (msg.operation === "broadcast" || msg.operation === "direct") {
-            eventHandler.notify(msg);
+            console.log("sync: ===== Notifying listeners: ", msg.storeId, msg.operation, msg.cmd, msg.payload);
+            for (let [key, callback] of store.subscribesTo) {
+                console.log("######################### broadcast/direct Callback ", store.id, key);
+                callback(msg);
+            }
             return;
         }
 
+        // Update the store with the new data
+        if (!msg.payload || !Array.isArray(msg.payload)) {
+            console.log("sync: No payload found in message: ", msg);
+            return;
+        }
         // If not handled, it is a data operation
         store.baseController.setCollection(msg.payload, true);
 
@@ -171,9 +172,11 @@ const createSync = (
         },
 
         attach: (store: Store<any>) => {
-            console.log("sync ws.onopen: store.syncMode", store.id, store.syncMode);
+            console.log("\n\n\n\n\n\n\n =================== sync ws.onopen: store.syncMode", store.id, store.syncMode);
             if ((store.syncMode)) {
+
                 store.sync = sync;
+                store.resubscribe();
 
                 if (store.syncMode === "auto" || store.syncMode === "get") {
                     console.log("sync ws.onopen: store.fetch()", store.id);
@@ -231,4 +234,4 @@ function getSync(endpoint: string, sessionId: string, getStore: (id: string) => 
 }
 
 
-export { getSync }
+export { getSync };
