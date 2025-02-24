@@ -1,4 +1,7 @@
-import { createEventHandler } from "./EventHandler";
+import useLog, { setLog } from "./useLog";
+const { log, err, dbg } = useLog("sync");
+setLog("sync", 3);
+
 import { ChangeEntry, Message, Store, Sync } from "./types";
 
 let sync__: Sync | undefined;
@@ -9,16 +12,17 @@ const createSync = (
     getStore: (storeId: string) => Store<any> | undefined,
     getStores: () => Map<string, Store<any>>
 ): Sync => {
-
+    dbg("createSync() endpoint: ", endpoint, "sessionId: ", sessionId);
     const ws = new WebSocket(endpoint);
 
     let connected: boolean = false;
     let isReconnecting: boolean = false;
 
+
     // The store has given us callbacks we should call on events
 
     ws.onopen = () => {
-        console.log("creasteSync() WebSocket connection opened");
+        log("WebSocket connection opened");
         connected = true;
         isReconnecting = false;
         for (let store of getStores().values()) {
@@ -32,29 +36,28 @@ const createSync = (
         try {
             msg = JSON.parse(e.data) as Message;
         } catch (e) {
-            console.error("Error parsing message:", e);
+            err("Error parsing message:", e);
             return;
         }
-        console.log("====== ", msg.storeId, " ==== Message from server:", e.data);
+        dbg("====== ", msg.storeId, " ==== Message from server:", e.data);
 
         // Check if the session id is the same as the current session
         if (msg.sessionId !== sessionId) {
-            console.log("Session id mismatch, ignoring message");
+            log("Session id mismatch, ignoring message");
             return;
         }
 
         const store = getStore(msg.storeId) as Store<any>;
         if (!store) {
-            console.error("Store not found: ", msg.storeId);
+            err("Store not found: ", msg.storeId);
             return;
         }
 
-
         // If this is a message, not data, we call listeners
         if (msg.operation === "broadcast" || msg.operation === "direct") {
-            console.log("sync: ===== Notifying listeners: ", msg.storeId, msg.operation, msg.cmd, msg.payload);
+            dbg("sync: ===== Notifying listeners: ", msg.storeId, msg.operation, msg.cmd, msg.payload);
             for (let [callback, key] of store.subscribesTo) {
-                console.log("######################### broadcast/direct Callback ", store.id, key);
+                dbg("broadcast/direct Callback ", store.id, key);
                 callback(msg);
             }
             return;
@@ -62,21 +65,23 @@ const createSync = (
 
         // Update the store with the new data
         if (!msg.payload || !Array.isArray(msg.payload)) {
-            console.log("sync: No payload found in message: ", msg);
+            log("sync: No payload found in message: ", msg);
             return;
         }
+
+        dbg("!!!!!!!!!!!!!!!!! Setting collection: ", msg.storeId, msg.operation, msg.payload);
         // If not handled, it is a data operation
         store.baseController.setCollection(msg.payload, true);
 
     }
 
     ws.onerror = (e) => {
-        console.log("WebSocket error:", e);
+        dbg("WebSocket error:", e);
         connected = false;
     };
 
     ws.onclose = (e) => {
-        console.log("WebSocket connection closed:", e.code, e.reason);
+        dbg("WebSocket connection closed:", e.code, e.reason);
         connected = false;
 
         for (let store of getStores().values()) {
@@ -103,7 +108,7 @@ const createSync = (
     // The objec we send back to the Store
     let sync: Sync = {
         send: (msg: Message): boolean => {
-            console.log("sync: Sending message: ", msg.storeId, msg.operation, typeof msg.payload);
+            log("sync: Sending message: ", msg.storeId, msg.operation, typeof msg.payload);
             if (!connected) {
                 reconnect(() => {
                     sync.send(msg);
@@ -122,12 +127,12 @@ const createSync = (
                     data = JSON.stringify(msg);
                     ws.send(data);
                 } catch (e) {
-                    console.error("sync: Error sending message:", e);
+                    err("sync: Error sending message:", e);
                     return false;
                 }
                 return true;
             } else {
-                console.log("sync: WebSocket not connected");
+                log("sync: WebSocket not connected");
                 return false;
             }
         },
@@ -138,7 +143,7 @@ const createSync = (
 
             // Send over new and changed models
             if (models.length > 0) {
-                console.log("createStore() ", storeId, " sending SET message: ", models.length);
+                dbg("createStore() ", storeId, " sending SET message: ", models.length);
                 const message: Message = {
                     storeId,
                     operation: "set",
@@ -153,7 +158,7 @@ const createSync = (
             const deleted = changes.deleted.map((model) => ({ id: model.id }));
 
             if (deleted.length > 0) {
-                console.log("createStore() ", storeId, " sending DELETE message: ", deleted.length);
+                dbg("createStore() ", storeId, " sending DELETE message: ", deleted.length);
                 const message: Message = {
                     storeId,
                     operation: "delete",
@@ -172,7 +177,7 @@ const createSync = (
         },
 
         attach: (store: Store<any>) => {
-            console.log("\n\n\n\n\n\n\n =================== sync ws.onopen: store.syncMode", store.id, store.syncMode);
+            dbg("store.syncMode", store.id, store.syncMode);
             if ((store.syncMode)) {
 
                 store.sync = sync;
@@ -181,7 +186,7 @@ const createSync = (
                     store.resubscribe();
 
                     if (store.syncMode === "auto" || store.syncMode === "get") {
-                        console.log("sync ws.onopen: store.fetch()", store.id);
+                        dbg("sync ws.onopen: store.fetch()", store.id);
                         store.mergedController.fetch();
                     }
                 }, 1000);
@@ -196,13 +201,13 @@ const createSync = (
                 payload: []
             };
 
-            console.log("sync: Subscribing to topic: ", topic, message);
+            dbg("sync: Subscribing to topic: ", topic, message);
             return sync.send(message);
 
         },
 
         unsubscribe: (topic: string, callback: (msg: Message) => void) => {
-            console.log("sync: Unsubscribing from topic: ", topic);
+            dbg("sync: Unsubscribing from topic: ", topic);
             const message: Message = {
                 storeId: topic,
                 operation: "unsubscribe",

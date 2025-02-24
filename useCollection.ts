@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Store, UseCollection, UseCollectionReturn } from "./types";
-
+import useLog from "./useLog";
 
 function createUseCollection<Data extends { id: string }>(store: Store<Data>): UseCollection<Data> {
+    const { log, dbg } = useLog("useCollection");
+
     return function useCollection() {
 
         // This state will be set to the component that uses this hook
@@ -13,7 +15,7 @@ function createUseCollection<Data extends { id: string }>(store: Store<Data>): U
             // Make a subscription to changes in the data
             function handleChange(d: Data[]) {
                 if (data === d) {
-                    console.log("&&&&&&&&&&&&&&&&&&&&& useCollection() handleChange() Data is the same");
+                    dbg("handleChange() Data is the same");
                     return;
                 }
                 setData(d);

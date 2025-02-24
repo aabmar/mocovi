@@ -1,5 +1,9 @@
+import useLog, { setLog } from "./useLog";
+const { log, dbg } = useLog("createBaseController");
 import { createStorage } from "./storage";
 import { BaseController, Message, Model, Store } from "./types";
+
+setLog("createBaseController", 3);
 
 function createBaseController<Data extends Model>(store: Store<Data>) {
 
@@ -26,20 +30,23 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
 
                 // If the collection is empty, set selectedModelId to null
                 if (storage.size() === 0) {
-                    console.log("BaseController: setCollection() empty collection, deselecting");
+                    dbg("BaseController: setCollection() empty collection, deselecting", store.id);
                     store.selectedModelId = null;
                 }
 
                 // If the selected is no longer in the collection, remove selection
                 if (!storage.has(store.selectedModelId)) {
-                    console.log(`BaseController: setCollection() selected model (${store.selectedModelId}) no longer in collection, deselecting`);
+                    log(`BaseController: setCollection() ${store.id} selected model (${store.selectedModelId}) no longer in collection, deselecting`);
                     store.selectedModelId = null;
                 }
 
                 // If autoSelect is enabled, and no model is selected, select the first model
                 if (store.autoSelect && !store.selectedModelId && storage.size() > 0) {
-                    store.selectedModelId = storage.getFirst().id;
-                    console.log(`BaseController: setCollection() auto-selected model (${store.selectedModelId})`);
+                    const firstModel = storage.getFirst();
+                    if (firstModel) {
+                        store.selectedModelId = firstModel.id;
+                        dbg(`BaseController: setCollection() ${store.id} auto-selected model (${store.selectedModelId})`);
+                    }
                 }
             }
         },
@@ -66,6 +73,8 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
         // Todo: support array of models? Or maybe make a setModels or updateCollection instead? Goal: less calls to setCollection
         set(model: Data, select: "no" | "if_empty" | "yes" = "no", markChanged = true) {
 
+            dbg("BaseController: set() ", store.id, model, select, markChanged);
+
             // Normally we need to mark the the model as updated due to sync
             if (markChanged) {
                 model.changed_at = Date.now();
@@ -75,7 +84,7 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
             storage.set(model);
 
             // Should we set this model as selected?
-            if (select === "yes") {
+            if (select === "yes" || store.autoSelect) {
                 this.select(model.id);
             } else if (select === "if_empty" && storage.size() === 0) {
                 this.select(model.id);
@@ -94,26 +103,48 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
         },
 
         delete(modelId: string) {
+
+            // Delete
             storage.delete(modelId);
+
+            // Handle selected
+            if (store.selectedModelId === modelId) {
+                if (store.autoSelect) {
+                    baseController.select(true);
+                } else {
+                    baseController.select(null);
+                }
+            }
         },
 
-        select(modelId: string | null) {
-            // console.log("BaseController: select() ", modelId);
+        // ID of the model to select. If null, deselect. If true, select the first model.
+        select(modelId: string | null | true): null | Data {
+            dbg("BaseController: select() ", store.id, modelId);
             if (!modelId) {
                 store.selectedModelId = null;
                 notify();
-                return;
+                return null;
+            } else if (modelId === true) {
+                // Return first model
+                const first = storage.getFirst();
+                if (first) {
+                    store.selectedModelId = first.id;
+                    notify();
+                    return first;
+                } else {
+                    return null;
+                }
             } else if (modelId === store.selectedModelId) {
-                return;
+                return null;
             } else if (!storage.has(modelId)) {
-                return;
+                return null;
             } else if (!storage.has(modelId)) {
-                return
+                return null;
             }
 
             store.selectedModelId = modelId;
             notify();
-
+            return storage.get(modelId);
         },
 
         fetch(id?: string | string[] | [{ id: string }]) {

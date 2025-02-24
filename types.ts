@@ -12,7 +12,7 @@ type BaseController<Data> = {
     getField: (modelId: string, key: keyof Data) => any;
     getSelected: () => Data | null;
     getSelectedId(): string | null;
-    select: (modelId: string | null) => void;
+    select: (modelId: string | null | true) => null | Data;
     set: (model: Data, select?: "no" | "if_empty" | "yes", markChanged?: boolean) => void;
     setCollection: (newCollection: Data[], keepNonSync?: boolean) => void;
     setField: (modelId: string, key: keyof Data, value: any, markChanged?: boolean) => void;

@@ -2,22 +2,24 @@ import React, { useEffect } from "react";
 import { NativeSyntheticEvent, Text, TextInput, View } from "react-native";
 import { createStore, Message, Model, Store } from ".";
 import { cellStyle } from "./styles";
+import useLog from "./useLog";
 
-let store: Store<Model> = createStore("system", [], { sync: "auto" })
+const { log } = useLog("CommunicationPanel");
 
+let store: Store<Model> = createStore("system", [], { sync: "auto" });
 
 export default function CommunicationPanel() {
 
     // The system will call this on new messages
     const callback = (message: Message) => {
-        console.log("CommunicationPanel CALLBACK::: ", message);
+        log("CommunicationPanel CALLBACK::: ", message);
         setLog(prevLog => [...prevLog, message]);
     };
 
     const comm = store.useCom(callback);
 
     // We store all the messages here
-    const [log, setLog] = React.useState<Message[]>([]);
+    const [logEntries, setLog] = React.useState<Message[]>([]);
     const [broadcast, setBroadcast] = React.useState<string>("");
 
     useEffect(() => {
@@ -43,7 +45,7 @@ export default function CommunicationPanel() {
     };
 
 
-    if (!log) {
+    if (!logEntries) {
         return <Text> No messages </Text>
     }
     return (
@@ -52,7 +54,7 @@ export default function CommunicationPanel() {
 
             <TextInput style={cellStyle} placeholder="Type message" placeholderTextColor="#888" onKeyPress={handleBroadcast} value={broadcast} onChangeText={setBroadcast} />
 
-            {log.map((entry, index) => (
+            {logEntries.map((entry, index) => (
                 <Text key={"CP_" + index} style={cellStyle} >
                     {entry.storeId} {entry.operation} {entry.cmd} {entry.payload ? JSON.stringify(entry.payload) : ""}
 

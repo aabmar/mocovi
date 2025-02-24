@@ -1,8 +1,11 @@
-
+import useLog, { setLog } from "./useLog";
 import { Model } from './types';
 import { isDifferent } from './util';
 
+setLog("storage", 3);
+
 function createStorage<Data extends Model>(notify: () => void, storeId: string) {
+    const { err, log, dbg } = useLog("storage");
 
     const internalStorage = new Map<string, Data>();
     const deleted = new Map<string, Data>();
@@ -21,8 +24,17 @@ function createStorage<Data extends Model>(notify: () => void, storeId: string) 
     function set(model: Data): boolean {
 
         const original = internalStorage.get(model.id);
-        const originalJ = JSON.parse(JSON.stringify(original));
 
+        let originalJ = null;
+
+        if (original) {
+            try {
+                originalJ = JSON.parse(JSON.stringify(original));
+            } catch (error) {
+                err("Error parsing original model:", error);
+                return false;
+            }
+        }
         if (!isDifferent(original, model)) return false;
 
         if (original) {
@@ -54,6 +66,7 @@ function createStorage<Data extends Model>(notify: () => void, storeId: string) 
 
     function setArray(newCollection: Data[], keepNonSync?: boolean): boolean {
 
+        dbg("setArray() ", newCollection, keepNonSync);
         const existingKeys = new Set(internalStorage.keys());
         const newStorage = new Map<string, Data>(newCollection.map(m => [m.id, m]));
         const newKeys = new Set(newStorage.keys());
@@ -63,6 +76,10 @@ function createStorage<Data extends Model>(notify: () => void, storeId: string) 
         const deletedKeys = new Set([...existingKeys].filter(x => !newKeys.has(x)));
         const insertedKeys = new Set([...newKeys].filter(x => !existingKeys.has(x)));
         const updatedKeys = new Set([...coexistingKeys].filter(x => isDifferent(internalStorage.get(x), newStorage.get(x))));
+
+        dbg("setArray() deleted: ", deletedKeys);
+        dbg("setArray() inserted: ", insertedKeys);
+        dbg("setArray() updated: ", updatedKeys);
 
         if (deletedKeys.size > 0 || insertedKeys.size > 0 || updatedKeys.size > 0) {
 

@@ -9,6 +9,10 @@ import createUseModel from "./useModel";
 import createUseSelected from "./useSelected";
 import createUseCom from "./useCom";
 
+import useLog, { setLog } from "./useLog";
+const { log, err, dbg } = useLog("createCollection");
+
+setLog("createCollection", 3);
 
 // Global data store that updates components when data changes.
 // Data is mutable, and is updated by calling setState on components
@@ -24,14 +28,13 @@ function createCollection<Data extends Model, ExtraController extends object = {
 
     const existingStore = getStore(id) as Store<Data, ExtraController>;
     if (existingStore) {
-        console.log("Collection with id already exists: ", id);
+        dbg("Collection with id already exists: ", id);
         return existingStore;
     }
 
-    console.log("createCollection() creating collection: ", id, "create count: ", ++collectionCounter);
+    log("createCollection() creating collection: ", id, "create count: ", ++collectionCounter);
 
     const originalInitialData = JSON.parse(JSON.stringify(initialData));
-
 
     // Set the sync mode
     const syncMode = options?.sync ? options.sync : false;
@@ -57,21 +60,21 @@ function createCollection<Data extends Model, ExtraController extends object = {
         subscribesTo: new Map<(msg: Message) => void, string>,
 
         subscribe: (topic: string, callback: (msg: Message) => void) => {
-            console.log("store: Subscribing to topic: ", topic);
+            dbg("store: Subscribing to topic: ", topic);
             store.subscribesTo.set(callback, topic);
             return store.sync.subscribe(topic, callback);
         },
 
         unsubscribe: (topic: string, callback: (msg: Message) => void) => {
-            console.log("store: Unsubscribing from topic: ", topic);
+            dbg("store: Unsubscribing from topic: ", topic);
             store.subscribesTo.delete(callback);
             return store.sync.unsubscribe(topic, callback);
         },
 
         resubscribe: () => {
-            console.log("store: resubscribe: ", store.id);
+            dbg("store: resubscribe: ", store.id);
             for (let [callback, topic] of store.subscribesTo) {
-                console.log("\n\n\n\n\n\n###########)))))))))))))))))))##########store: resubscribe: ", store.id, topic);
+                dbg("store: resubscribe: ", store.id, topic);
                 store.sync?.subscribe(topic, callback);
             }
         }
@@ -105,32 +108,37 @@ function createCollection<Data extends Model, ExtraController extends object = {
     // If we have a persist option, try to load the data from the persist store
     if (options?.persist) {
         const json = options.persist.get(id);
-        if (!json) return;
+        if (json) {
 
-        try {
-            const tmp = JSON.parse(json);
-            // If any of the date fields (ending in _at) are strings, convert them to timestamps
-            for (let model of tmp) {
-                if (model.id === "0" || model.id === "1") {
-                    continue;
-                }
-                for (let key in model) {
-                    if (key.endsWith("_at") && typeof model[key] === "string") {
-                        (model as any)[key] = new Date(model[key] as string).getTime();
-                        console.log("createStore() persist converting date: ", id, key, model[key]);
+            try {
+                const tmp = JSON.parse(json);
+                // If any of the date fields (ending in _at) are strings, convert them to timestamps
+                for (let model of tmp) {
+                    if (model.id === "0" || model.id === "1") {
+                        continue;
                     }
+                    for (let key in model) {
+                        if (key.endsWith("_at") && typeof model[key] === "string") {
+                            (model as any)[key] = new Date(model[key] as string).getTime();
+                            dbg("createStore() persist converting date: ", id, key, model[key]);
+                        }
+                    }
+                    persistedData.push(model);
                 }
-                persistedData.push(model);
+            } catch (e) {
+                err("createStore() Error parsing JSON: ", e);
             }
-        } catch (e) {
-            console.error("createStore() Error parsing JSON: ", e);
-            return;
-        }
-        console.log("createStore() persist loaded data: ", id, persistedData);
-        store.baseController.setCollection(persistedData);
+        };
 
     }
 
+    if (persistedData.length > 0) {
+        dbg("Setting persited data: ", id, persistedData);
+        store.baseController.setCollection(persistedData);
+    } else if (initialData.length > 0) {
+        dbg("Setting initial data: ", id, initialData);
+        store.baseController.setCollection(initialData);
+    }
 
     // Subscription to changes in the store
     if (store.persist || store.syncMode || store.history) {
@@ -147,7 +155,7 @@ function createCollection<Data extends Model, ExtraController extends object = {
                 const isChanged = changes.deleted.length > 0 || changes.updated.length > 0 || changes.inserted.length > 0;
 
                 if (!isChanged) {
-                    console.log("createCollection() event handler: No changes, skipping");
+                    dbg("createCollection() event handler: No changes, skipping");
                     return;
                 }
 
@@ -170,12 +178,11 @@ function createCollection<Data extends Model, ExtraController extends object = {
         });
     }
 
-
     // Set selected to the first model, if any
     if (store.baseController.size() > 0) {
-        console.log("createStore() ", store.id, " we have data, select first model");
+        dbg("createStore() ", store.id, " we have data, select first model");
         const first = store.baseController.getFirst();
-        console.log("createStore() ", store.id, " selecting first model: ", first);
+        dbg("createStore() ", store.id, " selecting first model: ", first);
         store.baseController.select(first.id);
     }
 

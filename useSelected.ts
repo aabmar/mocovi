@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { findModelById, findModelIndexById } from "./findModelIndexById";
 import { nanoid } from "./nanoid";
 import { UseSelected, Store, UseSelectedReturn } from "./types";
-
+import useLog from "./useLog";
 
 function createUseSelected<Data extends { id: string }>(store: Store<Data>): UseSelected<Data> {
+    const { log, dbg } = useLog("createUseSelected");
 
     function useSelected() {
 
@@ -18,7 +19,7 @@ function createUseSelected<Data extends { id: string }>(store: Store<Data>): Use
             function handleChange(d: Data[]) {
 
                 const newModel = store.baseController.getSelected();
-                console.log("useSelected: handleChange: ", model?.id, newModel?.id, model === newModel);
+                dbg("useSelected: handleChange: ", model?.id, newModel?.id, model === newModel);
                 // if (model === newModel) return;
 
                 setModel(newModel);

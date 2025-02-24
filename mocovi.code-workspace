@@ -31,6 +31,8 @@
 		},
 		"workbench.preferredLightColorTheme": "Solarized Light",
 		"workbench.preferredDarkColorTheme": "Monokai Dimmed",
+		"terminal.integrated.fontSize": 12,
+		"editor.minimap.enabled": false,
 		"github.copilot.chat.edits.codesearch.enabled": true,
 		"github.copilot.nextEditSuggestions.enabled": true,
 		"github.copilot.chat.editor.temporalContext.enabled": true,

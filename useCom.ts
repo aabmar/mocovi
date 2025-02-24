@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Message, MessageTypes, Store } from "./types";
-import { nanoid } from "nanoid";
+import { nanoid } from "./nanoid";
 
 
 
