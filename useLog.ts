@@ -7,7 +7,6 @@ const LOG_LEVEL_ERROR = 0;
 const tags: Map<string, number> = new Map();
 
 export default function useLog(tag: string) {
-    console.log(`[${tag}] Log entry.`);
 
     // Default to info
     if (!tags.has(tag)) tags.set(tag, LOG_LEVEL_INFO);
