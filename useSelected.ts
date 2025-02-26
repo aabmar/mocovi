@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { findModelById, findModelIndexById } from "./findModelIndexById";
 import { nanoid } from "./nanoid";
 import { UseSelected, Store, UseSelectedReturn } from "./types";
-import useLog from "./useLog";
+import useLog from "./logger";
 
 function createUseSelected<Data extends { id: string }>(store: Store<Data>): UseSelected<Data> {
     const { log, dbg } = useLog("createUseSelected");

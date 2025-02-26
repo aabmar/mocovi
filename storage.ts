@@ -1,8 +1,8 @@
-import useLog, { setLog } from "./useLog";
+import useLog, { setLog } from "./logger";
 import { Model } from './types';
 import { isDifferent } from './util';
 
-setLog("storage", 3);
+// setLog("storage", 3);
 
 function createStorage<Data extends Model>(notify: () => void, storeId: string) {
     const { err, log, dbg } = useLog("storage");
@@ -64,9 +64,9 @@ function createStorage<Data extends Model>(notify: () => void, storeId: string) 
 
     }
 
-    function setArray(newCollection: Data[], keepNonSync?: boolean): boolean {
+    function setArray(newCollection: Data[], fromSync?: boolean): boolean {
 
-        dbg("setArray() ", newCollection, keepNonSync);
+        dbg("setArray() ", newCollection, fromSync);
         const existingKeys = new Set(internalStorage.keys());
         const newStorage = new Map<string, Data>(newCollection.map(m => [m.id, m]));
         const newKeys = new Set(newStorage.keys());
@@ -86,16 +86,25 @@ function createStorage<Data extends Model>(notify: () => void, storeId: string) 
             //Move data from storage to deleted
             for (let key of deletedKeys) {
                 const original = internalStorage.get(key);
-                if (keepNonSync && original.changed_at) continue;
-                deleted.set(key, original);
-                internalStorage.delete(key);
-                previous.set(key, JSON.parse(JSON.stringify(original)));
+
+                if (!fromSync) {
+                    internalStorage.delete(key);
+                    deleted.set(key, original);
+                    previous.set(key, JSON.parse(JSON.stringify(original)));
+                } else {
+                    if (!original.changed_at) {
+                        internalStorage.delete(key);
+                        dbg(`Delete form server: Original model ${key} so it is not deleted.`);
+                    }
+                }
             }
 
             // Insert new data to storage
             for (let key of insertedKeys) {
                 internalStorage.set(key, newStorage.get(key));
-                inserted.set(key, newStorage.get(key));
+                if (!fromSync) {
+                    inserted.set(key, newStorage.get(key));
+                }
             }
 
             // Update existing data
@@ -103,8 +112,10 @@ function createStorage<Data extends Model>(notify: () => void, storeId: string) 
                 const original = internalStorage.get(key);
                 const newModel = newStorage.get(key);
                 internalStorage.set(key, newModel);
-                updated.set(key, newModel);
-                previous.set(key, JSON.parse(JSON.stringify(original)));
+                if (!fromSync) {
+                    previous.set(key, JSON.parse(JSON.stringify(original)));
+                    updated.set(key, newModel);
+                }
             }
             notify();
             return true;

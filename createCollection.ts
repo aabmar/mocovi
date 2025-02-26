@@ -9,7 +9,7 @@ import createUseModel from "./useModel";
 import createUseSelected from "./useSelected";
 import createUseCom from "./useCom";
 
-import useLog, { setLog } from "./useLog";
+import useLog, { setLog } from "./logger";
 const { log, err, dbg } = useLog("createCollection");
 
 setLog("createCollection", 3);
@@ -143,38 +143,48 @@ function createCollection<Data extends Model, ExtraController extends object = {
     // Subscription to changes in the store
     if (store.persist || store.syncMode || store.history) {
 
-        let timeOut: any;
-        store.eventHandler.subscribe((data) => {
+        function cb() {
 
-            if (timeOut) clearTimeout(timeOut);
+            const changes = store.baseController.__getAndResetChanges();
 
-            timeOut = setTimeout(() => {
+            const isChanged = changes.deleted.length > 0 || changes.updated.length > 0 || changes.inserted.length > 0;
 
-                const changes = store.baseController.__getAndResetChanges();
+            if (!isChanged) {
+                dbg("createCollection() event handler: No changes, skipping");
+                return;
+            }
 
-                const isChanged = changes.deleted.length > 0 || changes.updated.length > 0 || changes.inserted.length > 0;
+            if (store.history) {
+                addEntryToHistory(changes);
+            }
 
-                if (!isChanged) {
-                    dbg("createCollection() event handler: No changes, skipping");
+            if (store.persist) {
+                store.persist.set(id, JSON.stringify(store.baseController.getCollection()));
+            }
+
+            if (!store) err("No store");
+            const sync = store.sync;
+            if (!sync) err("No sync");
+            const sendChanges = store.sync?.sendChanges
+            if (!sendChanges) err("no sendChanges")
+
+            // If we have a sync object and mode is set to one supporting SET,
+            // we send the data to the sync object
+            if ((syncMode === "auto" || syncMode === "set")) {
+                log(syncMode);
+                if (!sendChanges) {
+                    err("No sendChanges on model ", id, sendChanges, typeof sendChanges);
                     return;
                 }
+                sendChanges(changes);
+            }
+        }
 
-                if (store.history) {
-                    addEntryToHistory(changes);
-                }
-
-                if (store.persist) {
-                    store.persist.set(id, JSON.stringify(store.baseController.getCollection()));
-                }
-
-                // If we have a sync object and mode is set to one supporting SET,
-                // we send the data to the sync object
-                if ((syncMode == "auto" || syncMode == "set") && store.syncCallback) {
-                    store.sync.sendChanges(changes);
-                }
-
-            }, 1500);
-
+        // Subscribe to changes
+        let timeOut: any;
+        store.eventHandler.subscribe((data) => {
+            if (timeOut) clearTimeout(timeOut);
+            timeOut = setTimeout(cb, 1500);
         });
     }
 

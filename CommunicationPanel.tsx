@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { NativeSyntheticEvent, Text, TextInput, View } from "react-native";
 import { createStore, Message, Model, Store } from ".";
 import { cellStyle } from "./styles";
-import useLog from "./useLog";
+import useLog from "./logger";
 
 const { log } = useLog("CommunicationPanel");
 

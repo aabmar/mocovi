@@ -1,6 +1,6 @@
-import useLog, { setLog } from "./useLog";
+import useLog, { setLog } from "./logger";
 const { log, err, dbg } = useLog("sync");
-setLog("sync", 3);
+// setLog("sync", 3);
 
 import { ChangeEntry, Message, Store, Sync } from "./types";
 
@@ -39,7 +39,7 @@ const createSync = (
             err("Error parsing message:", e);
             return;
         }
-        dbg("====== ", msg.storeId, " ==== Message from server:", e.data);
+        log("====== ", msg.storeId, " ==== Message from server:", e.data);
 
         // Check if the session id is the same as the current session
         if (msg.sessionId !== sessionId) {
@@ -69,7 +69,7 @@ const createSync = (
             return;
         }
 
-        dbg("!!!!!!!!!!!!!!!!! Setting collection: ", msg.storeId, msg.operation, msg.payload);
+        dbg("!!!!!!!!!!!!!!!!! Setting collection: ", msg.storeId, msg.operation, msg.payload?.length);
         // If not handled, it is a data operation
         store.baseController.setCollection(msg.payload, true);
 
@@ -108,7 +108,7 @@ const createSync = (
     // The objec we send back to the Store
     let sync: Sync = {
         send: (msg: Message): boolean => {
-            log("sync: Sending message: ", msg.storeId, msg.operation, typeof msg.payload);
+            log("sync: Sending message: ", msg.operation, msg.storeId, typeof msg.payload);
             if (!connected) {
                 reconnect(() => {
                     sync.send(msg);

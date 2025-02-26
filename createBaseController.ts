@@ -1,4 +1,4 @@
-import useLog, { setLog } from "./useLog";
+import useLog, { setLog } from "./logger";
 const { log, dbg } = useLog("createBaseController");
 import { createStorage } from "./storage";
 import { BaseController, Message, Model, Store } from "./types";
@@ -24,9 +24,9 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
             return [...storage.values()];
         },
 
-        setCollection(newCollection: Data[], keepNonSync?: boolean) {
-
-            if (storage.setArray(newCollection, keepNonSync)) {
+        setCollection(newCollection: Data[], fromSync?: boolean) {
+            console.log("---------------------------------setCollection", store.id, newCollection.length)
+            if (storage.setArray(newCollection, fromSync)) {
 
                 // If the collection is empty, set selectedModelId to null
                 if (storage.size() === 0) {
