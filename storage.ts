@@ -25,6 +25,7 @@ function createStorage<Data extends Model>(notify: () => void, storeId: string) 
 
         const original = internalStorage.get(model.id);
 
+
         let originalJ = null;
 
         if (original) {
@@ -35,7 +36,13 @@ function createStorage<Data extends Model>(notify: () => void, storeId: string) 
                 return false;
             }
         }
-        if (!isDifferent(original, model)) return false;
+
+        dbg("set() ", original, model);
+
+        if (!isDifferent(original, model)) {
+            dbg("set() No changes", original, model);
+            return false;
+        }
 
         if (original) {
             updated.set(model.id, model);
