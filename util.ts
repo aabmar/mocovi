@@ -92,7 +92,9 @@ function isDifferent(oldModel: { [key: string]: any } | undefined, newModel: { [
     if (!oldModel && !newModel) return false;
     if (!oldModel || !newModel) return true;
 
-    for (let key in newModel) {
+    const combinedKeys = [...new Set([...Object.keys(oldModel), ...Object.keys(newModel)])];
+
+    for (let key of combinedKeys) {
         if (key === "id") continue;
         if (key.endsWith("_at")) continue;
         if (oldModel[key] !== newModel[key]) {
