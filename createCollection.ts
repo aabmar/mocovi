@@ -12,7 +12,7 @@ import createUseCom from "./useCom";
 import useLog, { setLog } from "./logger";
 const { log, err, dbg } = useLog("createCollection");
 
-setLog("createCollection", 3);
+// setLog("createCollection", 3);
 
 // Global data store that updates components when data changes.
 // Data is mutable, and is updated by calling setState on components
@@ -68,7 +68,8 @@ function createCollection<Data extends Model, ExtraController extends object = {
         unsubscribe: (topic: string, callback: (msg: Message) => void) => {
             dbg("store: Unsubscribing from topic: ", topic);
             store.subscribesTo.delete(callback);
-            return store.sync.unsubscribe(topic, callback);
+            if (store.sync) return store.sync.unsubscribe(topic, callback);
+            return undefined;
         },
 
         resubscribe: () => {
@@ -80,7 +81,6 @@ function createCollection<Data extends Model, ExtraController extends object = {
         }
 
     };
-
 
     // Set final values to the store
     store.baseController = createBaseController<Data>(store);
