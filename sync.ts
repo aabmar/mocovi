@@ -12,12 +12,30 @@ const createSync = (
     getStore: (storeId: string) => Store<any> | undefined,
     getStores: () => Map<string, Store<any>>
 ): Sync => {
-    dbg("createSync() endpoint: ", endpoint, "sessionId: ", sessionId);
+    (window as any).inscance_ = ((window as any).inscance_ || 0) + 1;
+    const instance = (window as any).inscance_;
+    dbg("createSync() endpoint: ", endpoint, "sessionId: ", sessionId, "instance: ", instance);
     const ws = new WebSocket(endpoint);
 
     let connected: boolean = false;
     let isReconnecting: boolean = false;
+    let pingCount = 0;
+    let doReconnect = true;
 
+    function ping() {
+        if (!connected) return;
+        ws.send("ping");
+        log("Ping sent: ", instance, pingCount++);
+
+
+        if ((window as any).inscance_ !== instance) {
+            log("We found duplicate instance, closing this one");
+            doReconnect = false;
+            ws.close();
+            return;
+        }
+        setTimeout(ping, 10000);
+    }
 
     // The store has given us callbacks we should call on events
 
@@ -28,6 +46,7 @@ const createSync = (
         for (let store of getStores().values()) {
             sync.attach(store);
         }
+        ping();
     };
 
     ws.onmessage = async (e) => {
@@ -81,7 +100,7 @@ const createSync = (
     };
 
     ws.onclose = (e) => {
-        dbg("WebSocket connection closed:", e.code, e.reason);
+        log("WebSocket connection closed:", e.code, e.reason);
         connected = false;
 
         for (let store of getStores().values()) {
@@ -92,7 +111,7 @@ const createSync = (
 
         if (sync__) {
             sync__ = undefined;
-            reconnect();
+            if (doReconnect) reconnect();
         }
     }
 
