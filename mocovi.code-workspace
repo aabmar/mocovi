@@ -5,15 +5,22 @@
 		}
 	],
 	"settings": {
+		"workbench.preferredDarkColorTheme": "Monokai Dimmed",
+		"workbench.preferredLightColorTheme": "Visual Studio Light",
 		"workbench.colorCustomizations": {
-			"[Solarized Light]": {
-				"titleBar.activeBackground": "#e68fe3",
-				"activityBar.background": "#e68fe3",
-			},
-			"[Monokai Dimmed]": {
-				"titleBar.activeBackground": "#530850",
-				"activityBar.background": "#530850",
-			},
+			"editor.selectionBackground": "#e68fe3",
+			"editor.selectionForeground": "#000",
+			"editor.selectionHighlightBorder": "#f00",
+			"titleBar.activeBackground": "#e68fe3",
+			"activityBar.background": "#bf78bd",
+		},
+		"[Solarized Light]": {
+			"titleBar.activeBackground": "#e68fe3",
+			"activityBar.background": "#bf78bd",
+		},
+		"[Monokai Dimmed]": {
+			"titleBar.activeBackground": "#530850",
+			"activityBar.background": "#530850",
 		},
 		"makefile.configureOnOpen": false,
 		"editor.formatOnSave": true,
@@ -29,8 +36,6 @@
 				}
 			]
 		},
-		"workbench.preferredLightColorTheme": "Solarized Light",
-		"workbench.preferredDarkColorTheme": "Monokai Dimmed",
 		"terminal.integrated.fontSize": 12,
 		"editor.minimap.enabled": false,
 		"github.copilot.chat.edits.codesearch.enabled": true,
@@ -40,5 +45,5 @@
 		"github.copilot.chat.generateTests.codeLens": true,
 		"github.copilot.chat.languageContext.typescript.enabled": true,
 		"github.copilot.chat.search.semanticTextResults": true
-	}
+	},
 }

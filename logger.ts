@@ -23,8 +23,13 @@ export default function logger(tag: string) {
     function err(...params: any) {
         console.error(`ERR[${tag}]`, ...params);
     }
-    return { log, err, dbg };
 
+    function level(level: number) {
+        console.log(`level() [${tag}] = ${level}.`);
+        tags.set(tag, level);
+    }
+
+    return { log, err, dbg, level };
 }
 
 function setLog(tag: string, level: number) {
@@ -32,4 +37,4 @@ function setLog(tag: string, level: number) {
     tags.set(tag, level);
 }
 
-export { setLog };
+export { setLog, LOG_LEVEL_DEBUG, LOG_LEVEL_INFO, LOG_LEVEL_WARN, LOG_LEVEL_ERROR };

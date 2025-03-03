@@ -11,11 +11,13 @@ import {
     CreateCollectionOptions, CreateController,
     UseController, UseCollection, UseModel, UseSelected,
     Message, Model, BaseController,
-    UseSelectedReturn, UseCollectionReturn, UseModelReturn
+    UseSelectedReturn, UseCollectionReturn, UseModelReturn,
+    SyncModes, MessageTypes
 } from "./types";
 
 export {
     createCollection as createStore, CreateController, BaseController, Model, Persist, clearAll, diff as printDiff, Store, Sync,
     CreateCollectionOptions, UseController, UseCollection, UseModel, UseSelected, Message,
-    UseSelectedReturn, UseCollectionReturn, UseModelReturn, StoreInspector, useHistory, logger, setLog
+    UseSelectedReturn, UseCollectionReturn, UseModelReturn, StoreInspector, useHistory, logger, setLog,
+    SyncModes, MessageTypes
 };

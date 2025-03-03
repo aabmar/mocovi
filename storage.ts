@@ -1,11 +1,11 @@
-import useLog, { setLog } from "./logger";
+import logger, { LOG_LEVEL_INFO, setLog } from "./logger";
 import { Model } from './types';
 import { isDifferent } from './util';
 
-// setLog("storage", 3);
+setLog("storage", LOG_LEVEL_INFO);
+const { err, log, dbg } = logger("storage");
 
 function createStorage<Data extends Model>(notify: () => void, storeId: string) {
-    const { err, log, dbg } = useLog("storage");
 
     const internalStorage = new Map<string, Data>();
     const deleted = new Map<string, Data>();
@@ -71,9 +71,9 @@ function createStorage<Data extends Model>(notify: () => void, storeId: string) 
 
     }
 
-    function setArray(newCollection: Data[], fromSync?: boolean): boolean {
+    function setArray(newCollection: Data[], skipChangeMarking?: boolean, deleteChanged?: boolean): boolean {
 
-        dbg("setArray() ", newCollection, fromSync);
+        dbg("setArray() ", newCollection, skipChangeMarking);
         const existingKeys = new Set(internalStorage.keys());
         const newStorage = new Map<string, Data>(newCollection.map(m => [m.id, m]));
         const newKeys = new Set(newStorage.keys());
@@ -94,14 +94,14 @@ function createStorage<Data extends Model>(notify: () => void, storeId: string) 
             for (let key of deletedKeys) {
                 const original = internalStorage.get(key);
 
-                if (!fromSync) {
+                if (!skipChangeMarking) {
                     internalStorage.delete(key);
                     deleted.set(key, original);
                     previous.set(key, JSON.parse(JSON.stringify(original)));
                 } else {
-                    if (!original.changed_at) {
+                    if (!original.changed_at || deleteChanged) {
                         internalStorage.delete(key);
-                        dbg(`Delete form server: Original model ${key} so it is not deleted.`);
+                        dbg(`Delete from server: Original model ${key} so it is not deleted.`);
                     }
                 }
             }
@@ -109,7 +109,7 @@ function createStorage<Data extends Model>(notify: () => void, storeId: string) 
             // Insert new data to storage
             for (let key of insertedKeys) {
                 internalStorage.set(key, newStorage.get(key));
-                if (!fromSync) {
+                if (!skipChangeMarking) {
                     inserted.set(key, newStorage.get(key));
                 }
             }
@@ -119,7 +119,7 @@ function createStorage<Data extends Model>(notify: () => void, storeId: string) 
                 const original = internalStorage.get(key);
                 const newModel = newStorage.get(key);
                 internalStorage.set(key, newModel);
-                if (!fromSync) {
+                if (!skipChangeMarking) {
                     previous.set(key, JSON.parse(JSON.stringify(original)));
                     updated.set(key, newModel);
                 }

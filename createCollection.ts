@@ -3,7 +3,7 @@ import createBaseController from "./createBaseController";
 import { createEventHandler } from "./EventHandler";
 import { addEntryToHistory, addStoreToHistory } from "./history";
 import { addStore, getStore, } from "./Store";
-import { BaseController, CreateCollectionOptions, Message, Model, Store } from "./types";
+import { BaseController, CreateCollectionOptions, Message, Model, Store, SyncModes } from "./types";
 import createUseCollection from "./useCollection";
 import createUseModel from "./useModel";
 import createUseSelected from "./useSelected";
@@ -37,7 +37,7 @@ function createCollection<Data extends Model, ExtraController extends object = {
     const originalInitialData = JSON.parse(JSON.stringify(initialData));
 
     // Set the sync mode
-    const syncMode = options?.sync ? options.sync : false;
+    const syncMode: SyncModes = options?.sync ? options.sync : false;
 
     const store: Store<Data, ExtraController> = {
         id,
@@ -114,7 +114,7 @@ function createCollection<Data extends Model, ExtraController extends object = {
                 const tmp = JSON.parse(json);
                 // If any of the date fields (ending in _at) are strings, convert them to timestamps
                 for (let model of tmp) {
-                    if (model.id === "0" || model.id === "1") {
+                    if (model.id === "0" || model.id === "1" || model.id === "tmp") {
                         continue;
                     }
                     for (let key in model) {
@@ -128,16 +128,15 @@ function createCollection<Data extends Model, ExtraController extends object = {
             } catch (e) {
                 err("createStore() Error parsing JSON: ", e);
             }
-        };
+        }
 
-    }
-
-    if (persistedData.length > 0) {
-        dbg("Setting persited data: ", id, persistedData);
-        store.baseController.setCollection(persistedData);
-    } else if (initialData.length > 0) {
-        dbg("Setting initial data: ", id, initialData);
-        store.baseController.setCollection(initialData);
+        if (persistedData.length > 0) {
+            log("Setting persisted data: ", id, persistedData.length);
+            store.baseController.setCollection(persistedData);
+        } else if (initialData.length > 0) {
+            log("No persisted data, setting initial data: ", id, initialData?.length);
+            store.baseController.setCollection(initialData);
+        }
     }
 
     // Subscription to changes in the store
@@ -145,6 +144,12 @@ function createCollection<Data extends Model, ExtraController extends object = {
 
         function cb() {
 
+            if (!store) {
+                log("No store");
+                return;
+            }
+
+            // TODO: If we dont get them sent, set them back to storage changes
             const changes = store.baseController.__getAndResetChanges();
 
             const isChanged = changes.deleted.length > 0 || changes.updated.length > 0 || changes.inserted.length > 0;
@@ -162,20 +167,18 @@ function createCollection<Data extends Model, ExtraController extends object = {
                 store.persist.set(id, JSON.stringify(store.baseController.getCollection()));
             }
 
-            if (!store) err("No store");
-            const sync = store.sync;
-            if (!sync) err("No sync");
-            const sendChanges = store.sync?.sendChanges
-            if (!sendChanges) err("no sendChanges")
+            const sendChanges = store.sync?.sendChanges;
+            if (!sendChanges) {
+                dbg("no sendChanges() function. Probably waiting to be connected...");
+                return;
+            }
+
+            const syncMode = store.syncMode;
 
             // If we have a sync object and mode is set to one supporting SET,
             // we send the data to the sync object
             if ((syncMode === "auto" || syncMode === "set")) {
-                log(syncMode);
-                if (!sendChanges) {
-                    err("No sendChanges on model ", id, sendChanges, typeof sendChanges);
-                    return;
-                }
+                dbg("SyncMode: ", store.id, syncMode);
                 sendChanges(changes);
             }
         }

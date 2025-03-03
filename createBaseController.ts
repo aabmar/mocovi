@@ -1,9 +1,9 @@
-import useLog, { setLog } from "./logger";
+import useLog, { LOG_LEVEL_INFO, setLog } from "./logger";
 const { log, dbg } = useLog("createBaseController");
 import { createStorage } from "./storage";
 import { BaseController, Message, Model, Store } from "./types";
 
-setLog("createBaseController", 3);
+setLog("createBaseController", LOG_LEVEL_INFO);
 
 function createBaseController<Data extends Model>(store: Store<Data>) {
 
@@ -25,8 +25,12 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
         },
 
         setCollection(newCollection: Data[], fromSync?: boolean) {
-            console.log("---------------------------------setCollection", store.id, newCollection.length)
-            if (storage.setArray(newCollection, fromSync)) {
+            log("--- setCollection: ", store.id, newCollection.length)
+            // If we have sync with "set", or "auto", we keep changed models
+            let deleteChanged = store.sync && (store.syncMode === "get");
+            dbg("setCollection() ", store.id, " - deleteChanged: ", deleteChanged, store.syncMode);
+
+            if (storage.setArray(newCollection, fromSync, deleteChanged)) {
 
                 // If the collection is empty, set selectedModelId to null
                 if (storage.size() === 0) {
@@ -36,7 +40,7 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
 
                 // If the selected is no longer in the collection, remove selection
                 if (!storage.has(store.selectedModelId)) {
-                    log(`BaseController: setCollection() ${store.id} selected model (${store.selectedModelId}) no longer in collection, deselecting`);
+                    dbg(`BaseController: setCollection() ${store.id} selected model (${store.selectedModelId}) no longer in collection, deselecting`);
                     store.selectedModelId = null;
                 }
 
@@ -73,7 +77,7 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
         // Todo: support array of models? Or maybe make a setModels or updateCollection instead? Goal: less calls to setCollection
         set(model: Data, select: "no" | "if_empty" | "yes" = "no", markChanged = true) {
 
-            dbg("BaseController: set() ", store.id, model, select, markChanged);
+            log("--- set: ", store.id, model, select, markChanged);
 
             // Normally we need to mark the the model as updated due to sync
             if (markChanged) {
@@ -92,6 +96,9 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
         },
 
         setField(modelId: string, key: keyof Data, value: any, markChanged = true) {
+
+            log("--- setField: ", store.id, modelId, key, value, markChanged);
+
             const oldModel = storage.get(modelId);
             if (!oldModel) return false;
 
@@ -99,10 +106,12 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
         },
 
         clear() {
+            log("--- clear: ", store.id);
             store.mergedController.setCollection(store.initialData ? [...store.initialData] : []);
         },
 
         delete(modelId: string) {
+            log("--- delete: ", store.id, modelId);
 
             // Delete
             storage.delete(modelId);
@@ -186,6 +195,14 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
         has(modelId: string) {
             return storage.has(modelId);
         },
+
+        subscribe(callback: (data: Data[]) => void) {
+            store.eventHandler.subscribe(callback);
+        },
+
+        unsubscribe(callback: (data: Data[]) => void) {
+            store.eventHandler.unsubscribe(callback);
+        }
 
     };
 

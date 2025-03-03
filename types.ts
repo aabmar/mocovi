@@ -21,7 +21,10 @@ type BaseController<Data> = {
     __getAndResetChanges: () => ChangeEntry;
     size: () => number;
     getFirst: () => Data | undefined;
-    has: (modelId: string) => boolean
+    has: (modelId: string) => boolean;
+    subscribe(callback: (data: Data[]) => void);
+    unsubscribe(callback: (data: Data[]) => void);
+
 };
 
 type Persist = {
@@ -49,10 +52,12 @@ type Model = {
 
 }
 
+type SyncModes = "auto" | "set" | "get" | "manual" | false;
+
 type CreateCollectionOptions<Data, ExtraController = {}> = {
     createController?: CreateController<Data, ExtraController>
     persist?: Persist,
-    sync?: "auto" | "set" | "get" | "manual",
+    sync?: SyncModes,
     autoSelect?: boolean,
     useHistory?: boolean,
 };
@@ -60,6 +65,7 @@ type CreateCollectionOptions<Data, ExtraController = {}> = {
 type Controller<Data, ExtraController> = BaseController<Data> & ExtraController;
 type UseController<Data, ExtraController> = () => Controller<Data, ExtraController>;
 type CreateController<Data, ExtraController = {}> = (baseController: BaseController<Data>) => ExtraController;
+
 
 type Store<Data extends Model, ExtraController = {}> = {
     id: string;
@@ -74,7 +80,7 @@ type Store<Data extends Model, ExtraController = {}> = {
     useCom: UseCom;
     selectedModelId: string | null;
     persist?: Persist;
-    syncMode: false | "auto" | "set" | "get" | "manual";
+    syncMode: SyncModes;
     sync?: Sync;
     syncCallback?: (changes: { inserted: Model[]; updated: Model[]; deleted: Model[]; previous: Model[]; }) => void;
     initialData?: Data[];
@@ -124,5 +130,5 @@ export type {
     Message, Model, BaseController,
     UseSelectedReturn, UseCollectionReturn, UseModelReturn,
     UseCom as UseCommand, ChangeEntry, ChangeLog,
-    MessageTypes
+    MessageTypes, SyncModes
 };

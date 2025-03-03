@@ -1,6 +1,7 @@
-import useLog, { setLog } from "./logger";
+import useLog, { LOG_LEVEL_INFO, setLog } from "./logger";
 const { log, err, dbg } = useLog("sync");
-// setLog("sync", 3);
+
+setLog("sync", LOG_LEVEL_INFO);
 
 import { ChangeEntry, Message, Store, Sync } from "./types";
 
@@ -58,7 +59,8 @@ const createSync = (
             err("Error parsing message:", e);
             return;
         }
-        log("====== ", msg.storeId, " ==== Message from server:", e.data);
+        log("====== ", msg.storeId, " ==== Message from server:", msg.operation, msg.cmd, "payload type: ", typeof msg.payload);
+        dbg("Message from server:", msg);
 
         // Check if the session id is the same as the current session
         if (msg.sessionId !== sessionId) {
