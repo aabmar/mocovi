@@ -59,7 +59,10 @@ const createSync = (
             err("Error parsing message:", e);
             return;
         }
-        log("====== ", msg.storeId, " ==== Message from server:", msg.operation, msg.cmd, "payload type: ", typeof msg.payload);
+        log("====== ", msg.storeId, " ==== Message from server:",
+            msg.operation, "cmd:", msg.cmd, "payload type: ", typeof msg.payload,
+            msg.payload?.length ? msg.payload.length : "", msg
+        );
         dbg("Message from server:", msg);
 
         // Check if the session id is the same as the current session

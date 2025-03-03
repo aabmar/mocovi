@@ -25,7 +25,7 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
         },
 
         setCollection(newCollection: Data[], fromSync?: boolean) {
-            log("--- setCollection: ", store.id, newCollection.length)
+            log("SET[]: ", store.id, newCollection.length)
             // If we have sync with "set", or "auto", we keep changed models
             let deleteChanged = store.sync && (store.syncMode === "get");
             dbg("setCollection() ", store.id, " - deleteChanged: ", deleteChanged, store.syncMode);
@@ -77,7 +77,7 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
         // Todo: support array of models? Or maybe make a setModels or updateCollection instead? Goal: less calls to setCollection
         set(model: Data, select: "no" | "if_empty" | "yes" = "no", markChanged = true) {
 
-            log("--- set: ", store.id, model, select, markChanged);
+            log("SET: ", store.id, model, select, markChanged);
 
             // Normally we need to mark the the model as updated due to sync
             if (markChanged) {
@@ -97,7 +97,7 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
 
         setField(modelId: string, key: keyof Data, value: any, markChanged = true) {
 
-            log("--- setField: ", store.id, modelId, key, value, markChanged);
+            log("SET FIELD: ", store.id, modelId, key, value, markChanged);
 
             const oldModel = storage.get(modelId);
             if (!oldModel) return false;
@@ -106,12 +106,12 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
         },
 
         clear() {
-            log("--- clear: ", store.id);
+            log("CLEAR: ", store.id);
             store.mergedController.setCollection(store.initialData ? [...store.initialData] : []);
         },
 
         delete(modelId: string) {
-            log("--- delete: ", store.id, modelId);
+            log("DELETE: ", store.id, modelId);
 
             // Delete
             storage.delete(modelId);

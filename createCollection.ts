@@ -32,8 +32,8 @@ function createCollection<Data extends Model, ExtraController extends object = {
         return existingStore;
     }
 
-    log("createCollection() creating collection: ", id, "create count: ", ++collectionCounter);
-
+    log("CREATE: ", id);
+    ++collectionCounter
     const originalInitialData = JSON.parse(JSON.stringify(initialData));
 
     // Set the sync mode
@@ -131,19 +131,20 @@ function createCollection<Data extends Model, ExtraController extends object = {
         }
 
         if (persistedData.length > 0) {
-            log("Setting persisted data: ", id, persistedData.length);
+            log("PERSISTED DATA: ", id, persistedData.length);
             store.baseController.setCollection(persistedData);
         } else if (initialData.length > 0) {
-            log("No persisted data, setting initial data: ", id, initialData?.length);
+            log("!!!!!!!!! NO PERSISTED DATA FOR: ", id);
+            log("INITIAL ", id, initialData?.length);
             store.baseController.setCollection(initialData);
         }
     }
 
     // Subscription to changes in the store
     if (store.persist || store.syncMode || store.history) {
+        log("Subscription: PERSIST | SYNC | HISTORY: ", id);
 
         function cb() {
-
             if (!store) {
                 log("No store");
                 return;
@@ -155,7 +156,7 @@ function createCollection<Data extends Model, ExtraController extends object = {
             const isChanged = changes.deleted.length > 0 || changes.updated.length > 0 || changes.inserted.length > 0;
 
             if (!isChanged) {
-                dbg("createCollection() event handler: No changes, skipping");
+                dbg("EVENT: No changes, skipping");
                 return;
             }
 
@@ -164,7 +165,9 @@ function createCollection<Data extends Model, ExtraController extends object = {
             }
 
             if (store.persist) {
-                store.persist.set(id, JSON.stringify(store.baseController.getCollection()));
+                const collectionData = store.baseController.getCollection();
+                log("PERSISTING: ", id, collectionData.length);
+                store.persist.set(id, JSON.stringify(collectionData));
             }
 
             const sendChanges = store.sync?.sendChanges;
@@ -173,12 +176,11 @@ function createCollection<Data extends Model, ExtraController extends object = {
                 return;
             }
 
-            const syncMode = store.syncMode;
-
             // If we have a sync object and mode is set to one supporting SET,
             // we send the data to the sync object
+            const syncMode = store.syncMode;
             if ((syncMode === "auto" || syncMode === "set")) {
-                dbg("SyncMode: ", store.id, syncMode);
+                log("SYNC: ", store.id, syncMode, changes.inserted.length, changes.updated.length, changes.deleted.length);
                 sendChanges(changes);
             }
         }
@@ -189,14 +191,15 @@ function createCollection<Data extends Model, ExtraController extends object = {
             if (timeOut) clearTimeout(timeOut);
             timeOut = setTimeout(cb, 1500);
         });
+    } else {
+        log("No subscription created for: PERSIST | SYNC | HISTORY: ",
+            !!store.persist || !!store.syncMode || !!store.history
+        );
     }
 
     // Set selected to the first model, if any
     if (store.baseController.size() > 0) {
-        dbg("createStore() ", store.id, " we have data, select first model");
-        const first = store.baseController.getFirst();
-        dbg("createStore() ", store.id, " selecting first model: ", first);
-        store.baseController.select(first.id);
+        store.baseController.select(true);
     }
 
     return store;
