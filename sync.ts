@@ -218,8 +218,7 @@ const createSync = (
 
                     if (store.syncMode === "auto" || store.syncMode === "get") {
                         dbg("sync ws.onopen: store.fetch()", store.id);
-                        // TODO: HACK: This should be here.
-                        // store.mergedController.fetch();
+                        store.mergedController.fetch();
                     }
                 }, 1000);
             }
