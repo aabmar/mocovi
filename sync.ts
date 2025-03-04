@@ -25,6 +25,7 @@ const createSync = (
 
     function ping() {
         if (!connected) return;
+        // ws.ping();
         ws.send("ping");
         log("Ping sent: ", instance, pingCount++);
 
@@ -87,6 +88,11 @@ const createSync = (
             return;
         }
 
+        if (msg.operation === "subscribed") {
+            log("sync: Subscription confirmed: ", msg.storeId);
+            return;
+        }
+
         // Update the store with the new data
         if (!msg.payload || !Array.isArray(msg.payload)) {
             log("sync: No payload found in message: ", msg);
@@ -95,7 +101,8 @@ const createSync = (
 
         dbg("!!!!!!!!!!!!!!!!! Setting collection: ", msg.storeId, msg.operation, msg.payload?.length);
         // If not handled, it is a data operation
-        store.baseController.setCollection(msg.payload, true);
+
+        store.baseController.setCollection(msg.payload, "sync");
 
     }
 
@@ -202,8 +209,8 @@ const createSync = (
 
         attach: (store: Store<any>) => {
             dbg("store.syncMode", store.id, store.syncMode);
-            if ((store.syncMode)) {
 
+            if ((store.syncMode)) {
                 store.sync = sync;
 
                 setTimeout(() => {
@@ -211,7 +218,8 @@ const createSync = (
 
                     if (store.syncMode === "auto" || store.syncMode === "get") {
                         dbg("sync ws.onopen: store.fetch()", store.id);
-                        store.mergedController.fetch();
+                        // TODO: HACK: This should be here.
+                        // store.mergedController.fetch();
                     }
                 }, 1000);
             }

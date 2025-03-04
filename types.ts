@@ -14,7 +14,7 @@ type BaseController<Data> = {
     getSelectedId(): string | null;
     select: (modelId: string | null | true) => null | Data;
     set: (model: Data, select?: "no" | "if_empty" | "yes", markChanged?: boolean) => void;
-    setCollection: (newCollection: Data[], fromSync?: boolean) => void;
+    setCollection: (newCollection: Data[], source?: "persist" | "sync" | false) => void;
     setField: (modelId: string, key: keyof Data, value: any, markChanged?: boolean) => void;
     fetch(id?: string | string[]): void;
     delete: (modelId: string) => void;
@@ -22,9 +22,8 @@ type BaseController<Data> = {
     size: () => number;
     getFirst: () => Data | undefined;
     has: (modelId: string) => boolean;
-    subscribe(callback: (data: Data[]) => void);
-    unsubscribe(callback: (data: Data[]) => void);
-
+    subscribe: (callback: (data: Data[]) => void) => (data: Data[]) => void;
+    unsubscribe: (callback: (data: Data[]) => void) => void;
 };
 
 type Persist = {

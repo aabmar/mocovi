@@ -78,6 +78,8 @@ function createStorage<Data extends Model>(notify: () => void, storeId: string) 
         const newStorage = new Map<string, Data>(newCollection.map(m => [m.id, m]));
         const newKeys = new Set(newStorage.keys());
 
+        const markChange = !skipChangeMarking;
+
         // Calculate changes
         const coexistingKeys = new Set([...newKeys].filter(x => existingKeys.has(x)));
         const deletedKeys = new Set([...existingKeys].filter(x => !newKeys.has(x)));
@@ -94,22 +96,23 @@ function createStorage<Data extends Model>(notify: () => void, storeId: string) 
             for (let key of deletedKeys) {
                 const original = internalStorage.get(key);
 
-                if (!skipChangeMarking) {
+                // If we should delete changed models, or if the model has not been changed
+                const modelHasChanged = original.changed_at ? true : false;
+
+                if (deleteChanged || !modelHasChanged) {
                     internalStorage.delete(key);
-                    deleted.set(key, original);
-                    previous.set(key, JSON.parse(JSON.stringify(original)));
-                } else {
-                    if (!original.changed_at || deleteChanged) {
-                        internalStorage.delete(key);
-                        dbg(`Delete from server: Original model ${key} so it is not deleted.`);
+                    if (markChange) {
+                        deleted.set(key, original);
+                        previous.set(key, JSON.parse(JSON.stringify(original)));
                     }
                 }
             }
 
+
             // Insert new data to storage
             for (let key of insertedKeys) {
                 internalStorage.set(key, newStorage.get(key));
-                if (!skipChangeMarking) {
+                if (markChange) {
                     inserted.set(key, newStorage.get(key));
                 }
             }
@@ -119,12 +122,14 @@ function createStorage<Data extends Model>(notify: () => void, storeId: string) 
                 const original = internalStorage.get(key);
                 const newModel = newStorage.get(key);
                 internalStorage.set(key, newModel);
-                if (!skipChangeMarking) {
+                if (markChange) {
                     previous.set(key, JSON.parse(JSON.stringify(original)));
                     updated.set(key, newModel);
                 }
             }
             notify();
+
+            dbg("After setArray() storage, we have logged changes:", storeId, inserted.size, updated.size, deleted.size);
             return true;
         }
 

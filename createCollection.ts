@@ -110,8 +110,10 @@ function createCollection<Data extends Model, ExtraController extends object = {
         const json = options.persist.get(id);
         if (json) {
 
+            // Trying to decode the text string
             try {
                 const tmp = JSON.parse(json);
+
                 // If any of the date fields (ending in _at) are strings, convert them to timestamps
                 for (let model of tmp) {
                     if (model.id === "0" || model.id === "1" || model.id === "tmp") {
@@ -132,9 +134,8 @@ function createCollection<Data extends Model, ExtraController extends object = {
 
         if (persistedData.length > 0) {
             log("PERSISTED DATA: ", id, persistedData.length);
-            store.baseController.setCollection(persistedData);
+            store.baseController.setCollection(persistedData, "persist");
         } else if (initialData.length > 0) {
-            log("!!!!!!!!! NO PERSISTED DATA FOR: ", id);
             log("INITIAL ", id, initialData?.length);
             store.baseController.setCollection(initialData);
         }

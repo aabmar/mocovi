@@ -6,6 +6,9 @@ import ModelList from "./ModelList";
 import ModelView from "./ModelView";
 import { cellStyle } from "./styles";
 
+
+// Show a list of collections in the Store
+
 export default function StorePanel() {
 
     const [selectedStore, setSelectedStore] = useState<Store<Model> | null>(null);

@@ -9,11 +9,6 @@ export default function ModelList({ store }: { store: Store<Model> }) {
     const [collection] = store.useCollection();
     const [selected] = store.useSelected();
 
-    // useEffect(() => {
-    //     store.baseController.fetch();
-    //     // controller.select(null);
-    // }, []);
-
     const handleFetch = () => {
         store.baseController.fetch();
     };
@@ -39,8 +34,9 @@ export default function ModelList({ store }: { store: Store<Model> }) {
                 collection.map((model) => {
                     const data = model as any;
                     const value = data.name || data.title || data.phone || data.email || data.id;
+                    const key = data.id;
                     return (
-                        <Pressable style={model.id === selected?.id ? { ...cellStyle, backgroundColor: 'lightblue' } : cellStyle} key={model.id} onPress={() => {
+                        <Pressable style={model.id === selected?.id ? { ...cellStyle, backgroundColor: 'lightblue' } : cellStyle} key={key} onPress={() => {
                             controller.select(model.id);
                         }}>
                             <Text> {value} </Text>

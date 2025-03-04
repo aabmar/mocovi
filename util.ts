@@ -96,8 +96,10 @@ function isDifferent(oldModel: { [key: string]: any } | undefined, newModel: { [
 
     for (let key of combinedKeys) {
         if (key === "id") continue;
-        if (key.endsWith("_at")) continue;
+        if (key === "changed_at") continue;
+        if (key === "synced_at") continue;
         if (oldModel[key] !== newModel[key]) {
+            console.log("isDifferent: ", key, oldModel[key], newModel[key]);
             return true;
         }
     }

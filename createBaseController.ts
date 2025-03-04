@@ -1,9 +1,9 @@
-import useLog, { LOG_LEVEL_INFO, setLog } from "./logger";
+import useLog, { LOG_LEVEL_DEBUG, LOG_LEVEL_INFO, setLog } from "./logger";
 const { log, dbg } = useLog("createBaseController");
 import { createStorage } from "./storage";
 import { BaseController, Message, Model, Store } from "./types";
 
-setLog("createBaseController", LOG_LEVEL_INFO);
+setLog("createBaseController", LOG_LEVEL_DEBUG);
 
 function createBaseController<Data extends Model>(store: Store<Data>) {
 
@@ -24,13 +24,21 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
             return [...storage.values()];
         },
 
-        setCollection(newCollection: Data[], fromSync?: boolean) {
-            log("SET[]: ", store.id, newCollection.length)
+        setCollection(newCollection_: Data[], source: "persist" | "sync" | false = false) {
+            log("SET[]: ", store.id, newCollection_.length, source)
             // If we have sync with "set", or "auto", we keep changed models
-            let deleteChanged = store.sync && (store.syncMode === "get");
+
+            const fromSync = source === "sync";
+            const fromPersist = source === "persist";
+
+            let newCollection = newCollection_;
+
+            let deleteChanged = fromSync && store.sync && (store.syncMode === "get");
             dbg("setCollection() ", store.id, " - deleteChanged: ", deleteChanged, store.syncMode);
 
-            if (storage.setArray(newCollection, fromSync, deleteChanged)) {
+            const skipMarking = fromPersist;
+
+            if (storage.setArray(newCollection_, skipMarking, deleteChanged)) {
 
                 // If the collection is empty, set selectedModelId to null
                 if (storage.size() === 0) {
@@ -198,6 +206,7 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
 
         subscribe(callback: (data: Data[]) => void) {
             store.eventHandler.subscribe(callback);
+            return callback;
         },
 
         unsubscribe(callback: (data: Data[]) => void) {
