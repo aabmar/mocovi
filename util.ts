@@ -92,12 +92,47 @@ function isDifferent(oldModel: { [key: string]: any } | undefined, newModel: { [
     if (!oldModel && !newModel) return false;
     if (!oldModel || !newModel) return true;
 
+    if (Object.keys(oldModel).length !== Object.keys(newModel).length) return true;
+
     const combinedKeys = [...new Set([...Object.keys(oldModel), ...Object.keys(newModel)])];
 
     for (let key of combinedKeys) {
+        const oldValue = oldModel[key];
+        const newValue = newModel[key];
+
         if (key === "id") continue;
         if (key === "changed_at") continue;
         if (key === "synced_at") continue;
+
+        if (typeof oldValue !== typeof newValue) return true;
+
+        if (oldValue === null && newValue === null) continue;
+        if (oldValue === undefined && newValue === undefined) continue;
+
+        // If it is a number, string or boolean, compare directly
+        if (typeof oldValue === "number" || typeof oldValue === "string" || typeof oldValue === "boolean") {
+            if (oldValue !== newValue) {
+                console.log("isDifferent: ", key, oldValue, newValue);
+                return true;
+            }
+            continue;
+        }
+        // If this is an array, iterate it
+        if (Array.isArray(oldValue) && Array.isArray(newValue)) {
+            if (oldValue.length !== newValue.length || oldValue.some((val, index) => val !== newValue[index])) {
+                console.log("isDifferent: array length or content mismatch in", key);
+                return true;
+            }
+            continue;
+        }
+        // If it this is an object, recurse
+        if (typeof oldModel[key] === "object" && typeof newModel[key] === "object") {
+            if (isDifferent(oldModel[key], newModel[key])) {
+                return true;
+            }
+            continue;
+        }
+
         if (oldModel[key] !== newModel[key]) {
             console.log("isDifferent: ", key, oldModel[key], newModel[key]);
             return true;
