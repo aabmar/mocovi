@@ -4,7 +4,7 @@ import { createStore, Message, Model, Store } from ".";
 import { cellStyle } from "./styles";
 import useLog from "./logger";
 
-const { log } = useLog("CommunicationPanel");
+const { log, dbg } = useLog("CommunicationPanel");
 
 let store: Store<Model> = createStore("system", [], { sync: "auto" });
 
@@ -12,7 +12,7 @@ export default function CommunicationPanel() {
 
     // The system will call this on new messages
     const callback = (message: Message) => {
-        log("CommunicationPanel CALLBACK::: ", message);
+        dbg("CommunicationPanel CALLBACK::: ", message);
         setLog(prevLog => [...prevLog, message]);
     };
 

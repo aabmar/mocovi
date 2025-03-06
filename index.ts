@@ -4,7 +4,7 @@ import createCollection from "./createCollection";
 import { clearAll } from "./Store";
 import { diff } from "./util";
 import StoreInspector from "./StoreInspector";
-import { useHistory } from "./history";
+import useHistory from "./useHistory";
 import logger, { setLog } from "./logger";
 import {
     Store, Sync, Persist,

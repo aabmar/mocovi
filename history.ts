@@ -4,10 +4,11 @@
 // History is a complete snapshot of the collectionData of all stores at a certain point in time.
 // TODO: Not in use now. Reimplement.
 
-import { useEffect, useState } from "react";
 import { createEventHandler } from "./EventHandler";
 import { ChangeEntry, ChangeLog, Model, Store } from "./types";
+import logger from "./logger";
 
+const { log, err, dbg } = logger("history");
 
 const stores = new Map<string, Store<any>>();
 const initialData = new Map<string, Model[]>();
@@ -15,6 +16,7 @@ const changeLog: ChangeLog = [];
 const eventHandler = createEventHandler<ChangeLog>();
 
 function addStoreToHistory(store: Store<any>) {
+    log("Adding store to history:", store.id);
     stores.set(store.id, store);
     const json = JSON.stringify(store.baseController.getCollection());
     const data = JSON.parse(json);
@@ -23,6 +25,7 @@ function addStoreToHistory(store: Store<any>) {
 }
 
 function addEntryToHistory(entry: ChangeEntry) {
+    dbg("Adding entry to history:", entry.storeId, entry);
     changeLog.push(entry);
     eventHandler.notify(changeLog);
 }
@@ -33,20 +36,6 @@ function undo() {
 
 }
 
-function useHistory() {
-    const [history, setHistory] = useState<ChangeLog>(changeLog);
 
-    useEffect(() => {
-        const handleChange = (d: ChangeLog) => {
-            if (history === d) return;
-            setHistory(d);
-        }
-        eventHandler.subscribe(handleChange);
-        return () => eventHandler.unsubscribe(handleChange);
-    }, []);
-
-    return history;
-}
-
-export { addEntryToHistory, addStoreToHistory, undo, useHistory };
+export { addEntryToHistory, addStoreToHistory, eventHandler, undo };
 

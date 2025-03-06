@@ -3,7 +3,7 @@ const { log, dbg } = useLog("createBaseController");
 import { createStorage } from "./storage";
 import { BaseController, Message, Model, Store } from "./types";
 
-setLog("createBaseController", LOG_LEVEL_DEBUG);
+// setLog("createBaseController", LOG_LEVEL_INFO);
 
 function createBaseController<Data extends Model>(store: Store<Data>) {
 
@@ -115,7 +115,10 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
 
         clear() {
             log("CLEAR: ", store.id);
-            store.mergedController.setCollection(store.initialData ? [...store.initialData] : []);
+            if (store.persist) {
+                store.persist.set(store.id, "[]");
+            }
+            storage.clear();
         },
 
         delete(modelId: string) {

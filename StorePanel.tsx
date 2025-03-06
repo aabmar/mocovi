@@ -1,15 +1,17 @@
 import React, { useState } from "react";
-import { Pressable, Text, View } from "react-native";
-import { getStores } from "./Store";
-import { Model, Store } from "./types";
+import { Pressable, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import ModelList from "./ModelList";
 import ModelView from "./ModelView";
+import { getStores } from "./Store";
 import { cellStyle } from "./styles";
+import { Model, Store } from "./types";
+import { Picker } from "@react-native-picker/picker";
 
 
 // Show a list of collections in the Store
 
 export default function StorePanel() {
+    const dim = useWindowDimensions();
 
     const [selectedStore, setSelectedStore] = useState<Store<Model> | null>(null);
     const stores = Array.from(getStores().values());
@@ -17,9 +19,19 @@ export default function StorePanel() {
     return (
 
 
-        <View style={{ flexBasis: "auto", flexDirection: "row", paddingTop: 5 }}>
+        <View style={dim.width > 800 ? styles.wide : styles.narrow}>
+            <Picker
+                selectedValue={selectedStore?.id}
+                onValueChange={(itemValue) => setSelectedStore(getStores().get(itemValue))}
+                style={{ margin: 5 }}
+            >
 
-            <View style={{ flex: 1, flexDirection: "column", backgroundColor: "lightgray", padding: 8 }}>
+                {stores.map((store) => (
+                    <Picker.Item key={store.id} label={store.id} value={store.id} />
+                ))}
+            </Picker>
+
+            {/* <View style={{ flexBasis: "auto", flexDirection: "column", backgroundColor: "lightgray", padding: 8 }}>
                 {
                     stores.map((store) => (
                         <Pressable
@@ -31,13 +43,13 @@ export default function StorePanel() {
                         </Pressable>
                     ))
                 }
-            </View>
+            </View> */}
 
-            <View style={{ flex: 3, backgroundColor: "lightgray", padding: 8 }}>
+            <View style={{ flexBasis: "auto", backgroundColor: "lightgray", padding: 8 }}>
                 {selectedStore ? <ModelList store={selectedStore} key={"ML_" + selectedStore.id} /> : <Text> Select a store </Text>}
             </View>
 
-            <View style={{ flex: 3, backgroundColor: "lightgray", padding: 8 }}>
+            <View style={{ flexBasis: "auto", backgroundColor: "lightgray", padding: 8 }}>
                 {selectedStore ? <ModelView store={selectedStore} key={"MV_" + selectedStore?.id} /> : <Text> Select a store </Text>}
             </View>
         </View>
@@ -47,3 +59,17 @@ export default function StorePanel() {
 }
 
 
+const styles = StyleSheet.create({
+    narrow: {
+        flex: 1,
+        flexDirection: "column",
+        justifyContent: "flex-start",
+    },
+    wide: {
+        flex: 1,
+        flexDirection: "row",
+        justifyContent: "flex-start",
+        alignContent: "center",
+        alignItems: "center"
+    }
+})

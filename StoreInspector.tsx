@@ -1,9 +1,10 @@
 import React from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import CommunicationPanel from "./CommunicationPanel";
 import HistoryPanel from "./HistoryPanel";
 import { buttonStyle } from "./styles";
 import StorePanel from "./StorePanel";
+
 
 export default function StoreInspector() {
 
@@ -14,8 +15,8 @@ export default function StoreInspector() {
     };
 
     return (
-        <>
-            <StorePanel />
+        <View>
+            <HistoryPanel />
 
             <View style={{
                 flexDirection: "row", justifyContent: "flex-start", alignContent: "center", alignItems: "center", padding: 5, backgroundColor: "#bbb"
@@ -27,11 +28,11 @@ export default function StoreInspector() {
 
             {showCommunicationPanel && <CommunicationPanel />}
 
+            <StorePanel />
 
 
-            <HistoryPanel />
 
-        </>
+        </View>
     );
 }
 

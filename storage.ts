@@ -2,7 +2,7 @@ import logger, { LOG_LEVEL_INFO, setLog } from "./logger";
 import { Model } from './types';
 import { isDifferent } from './util';
 
-setLog("storage", LOG_LEVEL_INFO);
+// setLog("storage", LOG_LEVEL_INFO);
 const { err, log, dbg } = logger("storage");
 
 function createStorage<Data extends Model>(notify: () => void, storeId: string) {
@@ -169,6 +169,11 @@ function createStorage<Data extends Model>(notify: () => void, storeId: string) 
         return internalStorage.size;
     }
 
+    function clear() {
+        internalStorage.clear();
+        getAndResetChange();
+        notify();
+    }
     const storage = {
         get,
         getFirst,
@@ -179,7 +184,8 @@ function createStorage<Data extends Model>(notify: () => void, storeId: string) 
         values,
         keys,
         setArray,
-        size
+        size,
+        clear
     }
 
     return storage;
