@@ -10,10 +10,7 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
     let notifyTimer: any;
 
     function notify() {
-        if (notifyTimer) clearTimeout(notifyTimer);
-        notifyTimer = setTimeout(() => {
-            store.eventHandler.notify(baseController.getCollection());
-        }, 5);
+        store.eventHandler.notify(baseController.getCollection());
     }
 
     const storage = createStorage<Data>(notify, store.id);
