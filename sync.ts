@@ -61,8 +61,8 @@ const createSync = (
             return;
         }
         log("====== ", msg.storeId, " ==== Message from server:",
-            msg.operation, "cmd:", msg.cmd, "payload type: ", typeof msg.payload,
-            msg.payload?.length ? msg.payload.length : "", msg
+            msg.operation, msg.cmd ? "cmd:" + msg.cmd : "", "payload type: ", typeof msg.payload,
+            msg.payload?.length ? "model#:" + msg.payload.length : ""
         );
         dbg("Message from server:", msg);
 
