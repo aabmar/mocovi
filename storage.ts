@@ -5,7 +5,7 @@ import { isDifferent } from './util';
 // setLog("storage", LOG_LEVEL_INFO);
 const { err, log, dbg } = logger("storage");
 
-function createStorage<Data extends Model>(notify: () => void, storeId: string) {
+function createStorage<Data extends Model>(storeId: string) {
 
     const internalStorage = new Map<string, Data>();
     const deleted = new Map<string, Data>();
@@ -21,10 +21,15 @@ function createStorage<Data extends Model>(notify: () => void, storeId: string) 
         return internalStorage.values().next().value || null
     }
 
+    function getLast(): Data | null {
+        const values = [...internalStorage.values()];
+        return values.length > 0 ? values[values.length - 1] : null;
+
+    }
+
     function set(model: Data): boolean {
 
         const original = internalStorage.get(model.id);
-
 
         let originalJ = null;
 
@@ -52,7 +57,6 @@ function createStorage<Data extends Model>(notify: () => void, storeId: string) 
         }
 
         internalStorage.set(model.id, { ...model });
-        notify();
         return true;
     }
 
@@ -66,7 +70,6 @@ function createStorage<Data extends Model>(notify: () => void, storeId: string) 
         internalStorage.delete(id);
         deleted.set(id, original);
         previous.set(id, JSON.parse(JSON.stringify(original)));
-        notify();
         return true;
 
     }
@@ -127,7 +130,6 @@ function createStorage<Data extends Model>(notify: () => void, storeId: string) 
                     updated.set(key, newModel);
                 }
             }
-            notify();
 
             dbg("After setArray() storage, we have logged changes:", storeId, inserted.size, updated.size, deleted.size);
             return true;
@@ -172,11 +174,11 @@ function createStorage<Data extends Model>(notify: () => void, storeId: string) 
     function clear() {
         internalStorage.clear();
         getAndResetChange();
-        notify();
     }
     const storage = {
         get,
         getFirst,
+        getLast,
         set,
         delete: delete_,
         has,

@@ -20,7 +20,8 @@ type BaseController<Data> = {
     delete: (modelId: string) => void;
     __getAndResetChanges: () => ChangeEntry;
     size: () => number;
-    getFirst: () => Data | undefined;
+    getFirst: () => Data | null;
+    getLast: () => Data | null;
     has: (modelId: string) => boolean;
     subscribe: (callback: (data: Data[]) => void) => (data: Data[]) => void;
     unsubscribe: (callback: (data: Data[]) => void) => void;
@@ -34,7 +35,7 @@ type Persist = {
 
 type Sync = {
     send: (msg: Message) => boolean;
-    sendChanges: (changes: ChangeEntry) => boolean;
+    sendChanges: (store: Store<any>, changes: ChangeEntry) => boolean;
     close: () => void;
     attach: (store: Store<any>) => void;
     subscribe: (topic: string, callback: (msg: Message) => void) => void;

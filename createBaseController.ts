@@ -1,9 +1,11 @@
 import useLog, { LOG_LEVEL_DEBUG, LOG_LEVEL_INFO, setLog } from "./logger";
-const { log, dbg } = useLog("createBaseController");
+const { log, dbg, err, level } = useLog("createBaseController");
 import { createStorage } from "./storage";
 import { BaseController, Message, Model, Store } from "./types";
 
-// setLog("createBaseController", LOG_LEVEL_INFO);
+
+level(LOG_LEVEL_DEBUG);
+
 
 function createBaseController<Data extends Model>(store: Store<Data>) {
 
@@ -13,7 +15,7 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
         store.eventHandler.notify(baseController.getCollection());
     }
 
-    const storage = createStorage<Data>(notify, store.id);
+    const storage = createStorage<Data>(store.id);
 
     const baseController: BaseController<Data> = {
 
@@ -22,15 +24,16 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
         },
 
         setCollection(newCollection_: Data[], source: "persist" | "sync" | false = false) {
-            log("SET[]: ", store.id, newCollection_.length, source)
-            // If we have sync with "set", or "auto", we keep changed models
 
+            log("SET[]: ", store.id, newCollection_.length, source)
+
+            // If we have sync with "set", or "auto", we keep changed models
             const fromSync = source === "sync";
             const fromPersist = source === "persist";
 
             let newCollection = newCollection_;
 
-            let deleteChanged = fromSync && store.sync && (store.syncMode === "get");
+            let deleteChanged = fromSync && store.syncMode === "get";
             dbg("setCollection() ", store.id, " - deleteChanged: ", deleteChanged, store.syncMode);
 
             const skipMarking = fromPersist;
@@ -44,19 +47,21 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
                 }
 
                 // If the selected is no longer in the collection, remove selection
-                if (!storage.has(store.selectedModelId)) {
+                if (store.selectedModelId && !storage.has(store.selectedModelId)) {
                     dbg(`BaseController: setCollection() ${store.id} selected model (${store.selectedModelId}) no longer in collection, deselecting`);
                     store.selectedModelId = null;
                 }
 
                 // If autoSelect is enabled, and no model is selected, select the first model
                 if (store.autoSelect && !store.selectedModelId && storage.size() > 0) {
-                    const firstModel = storage.getFirst();
+                    const firstModel = storage.getLast();
                     if (firstModel) {
                         store.selectedModelId = firstModel.id;
                         dbg(`BaseController: setCollection() ${store.id} auto-selected model (${store.selectedModelId})`);
                     }
                 }
+                notify();
+
             }
         },
 
@@ -65,13 +70,13 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
         },
 
         getField(modelId: string, key: keyof Data) {
-            const model = this.get(modelId);
+            const model = baseController.get(modelId);
             return model ? model[key] : null;
         },
 
         getSelected(): Data | null {
             if (!store.selectedModelId) return null;
-            return this.get(store.selectedModelId);
+            return baseController.get(store.selectedModelId);
         },
 
         getSelectedId(): string | null {
@@ -90,14 +95,16 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
             }
 
             // Store
-            storage.set(model);
+            const wasDifferent = storage.set(model);
 
             // Should we set this model as selected?
             if (select === "yes" || store.autoSelect) {
-                this.select(model.id);
+                baseController.select(model.id);
             } else if (select === "if_empty" && storage.size() === 0) {
-                this.select(model.id);
+                baseController.select(model.id);
             }
+            if (wasDifferent) notify();
+
         },
 
         setField(modelId: string, key: keyof Data, value: any, markChanged = true) {
@@ -116,6 +123,9 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
                 store.persist.set(store.id, "[]");
             }
             storage.clear();
+            notify();
+
+            baseController.select(null);
         },
 
         delete(modelId: string) {
@@ -132,9 +142,11 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
                     baseController.select(null);
                 }
             }
+            notify();
+
         },
 
-        // ID of the model to select. If null, deselect. If true, select the first model.
+        // ID of the model to select. If null, deselect. If true, select the last model.
         select(modelId: string | null | true): null | Data {
             dbg("BaseController: select() ", store.id, modelId);
             if (!modelId) {
@@ -142,12 +154,12 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
                 notify();
                 return null;
             } else if (modelId === true) {
-                // Return first model
-                const first = storage.getFirst();
-                if (first) {
-                    store.selectedModelId = first.id;
+                // Return last model
+                const last = storage.getLast();  // Assuming you have a method to get the last model
+                if (last) {
+                    store.selectedModelId = last.id;
                     notify();
-                    return first;
+                    return last;
                 } else {
                     return null;
                 }
@@ -198,8 +210,13 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
         },
 
         getFirst() {
-            return storage.getFirst();
+            return storage.getFirst() || null;
         },
+
+        getLast() {
+            return storage.getLast() || null;
+        },
+
         has(modelId: string) {
             return storage.has(modelId);
         },

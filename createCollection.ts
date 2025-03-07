@@ -9,10 +9,10 @@ import createUseModel from "./useModel";
 import createUseSelected from "./useSelected";
 import createUseCom from "./useCom";
 
-import useLog, { setLog } from "./logger";
-const { log, err, dbg } = useLog("createCollection");
+import useLog, { LOG_LEVEL_DEBUG, setLog } from "./logger";
+const { log, err, dbg, level } = useLog("createCollection");
 
-// setLog("createCollection", 3);
+level(LOG_LEVEL_DEBUG);
 
 // Global data store that updates components when data changes.
 // Data is mutable, and is updated by calling setState on components
@@ -182,7 +182,7 @@ function createCollection<Data extends Model, ExtraController extends object = {
             const syncMode = store.syncMode;
             if ((syncMode === "auto" || syncMode === "set")) {
                 log("SYNC: ", store.id, syncMode, changes.inserted.length, changes.updated.length, changes.deleted.length);
-                sendChanges(changes);
+                sendChanges(store, changes);
             }
         }
 
@@ -199,7 +199,7 @@ function createCollection<Data extends Model, ExtraController extends object = {
     }
 
     // Set selected to the first model, if any
-    if (store.baseController.size() > 0) {
+    if (store.autoSelect && store.baseController.size() > 0) {
         store.baseController.select(true);
     }
 

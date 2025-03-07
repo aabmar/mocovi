@@ -9,22 +9,20 @@ function createUseSelected<Data extends { id: string }>(store: Store<Data>): Use
 
     function useSelected() {
 
-        let first: Data | null = store.selectedModelId ? store.baseController.getSelected() : null;
-
         // The local state data
-        const [model, setModel] = useState<Data | null>(first);
+        const [model, setModel] = useState<Data | null>(null);
+
+        function handleChange(d: Data[]) {
+
+            const newModel = store.baseController.getSelected();
+            dbg("useSelected: handleChange: ", model?.id, newModel?.id, model === newModel);
+            // if (model === newModel) return;
+
+            setModel(newModel);
+            // first = newModel;s
+        }
 
         useEffect(() => {
-
-            function handleChange(d: Data[]) {
-
-                const newModel = store.baseController.getSelected();
-                dbg("useSelected: handleChange: ", model?.id, newModel?.id, model === newModel);
-                // if (model === newModel) return;
-
-                setModel(newModel);
-                // first = newModel;s
-            }
 
             store.eventHandler.subscribe(handleChange);
 
@@ -44,7 +42,10 @@ function createUseSelected<Data extends { id: string }>(store: Store<Data>): Use
             store.mergedController.set(newModel);
         };
 
-        return [model, setModelData] as UseSelectedReturn<Data>;
+        const selected = store.baseController.getSelected();
+
+
+        return [selected, setModelData] as UseSelectedReturn<Data>;
     }
 
     return useSelected;

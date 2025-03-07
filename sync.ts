@@ -1,7 +1,7 @@
-import useLog, { LOG_LEVEL_INFO, setLog } from "./logger";
-const { log, err, dbg } = useLog("sync");
+import useLog, { LOG_LEVEL_DEBUG, LOG_LEVEL_INFO, setLog } from "./logger";
+const { log, err, dbg, level } = useLog("sync");
 
-// setLog("sync", LOG_LEVEL_INFO);
+level(LOG_LEVEL_INFO);
 
 import { ChangeEntry, Message, Store, Sync } from "./types";
 
@@ -167,9 +167,14 @@ const createSync = (
                 return false;
             }
         },
-        sendChanges: (changes: ChangeEntry): boolean => {
+        sendChanges: (store: Store<any>, changes: ChangeEntry): boolean => {
 
-            const models = [...changes.inserted, ...changes.updated];
+            const combined = [...changes.inserted, ...changes.updated];
+
+            // filter out only models with changed_at set
+            const models = combined.filter((model) => model.changed_at);
+
+            console.log("changed", models);
             const storeId = changes.storeId;
 
             // Send over new and changed models
@@ -183,7 +188,13 @@ const createSync = (
                 }
 
                 // Todo: we are going to batch messages from different models here (?)
-                return sync.send(message);
+                const ret = sync.send(message);
+                if (ret) {
+                    for (let model of models) {
+                        delete model.changed_at;
+                        store.baseController.set(model, "no", false);
+                    }
+                }
             }
 
             const deleted = changes.deleted.map((model) => ({ id: model.id }));
