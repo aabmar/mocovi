@@ -92,7 +92,7 @@ type Store<Data extends Model, ExtraController = {}> = {
     resubscribe: () => void;
 };
 
-type MessageTypes = "get" | "set" | "cmd" | "response" | "update" | "subscribe" | "unsubscribe" | "direct" | "broadcast" | "list" | "delete";
+type MessageTypes = "get" | "set" | "cmd" | "response" | "update" | "subscribe" | "unsubscribe" | "direct" | "broadcast" | "list" | "delete" | "subscribed";
 
 type Message = {
     // Object with storename as key, and one array of models for each store
