@@ -12,7 +12,7 @@ import createUseCom from "./useCom";
 import useLog, { LOG_LEVEL_DEBUG, setLog } from "./logger";
 const { log, err, dbg, level } = useLog("createCollection");
 
-level(LOG_LEVEL_DEBUG);
+// level(LOG_LEVEL_DEBUG);
 
 // Global data store that updates components when data changes.
 // Data is mutable, and is updated by calling setState on components

@@ -1,7 +1,7 @@
 import useLog, { LOG_LEVEL_DEBUG, LOG_LEVEL_INFO, setLog } from "./logger";
 const { log, err, dbg, level } = useLog("sync");
 
-level(LOG_LEVEL_INFO);
+// level(LOG_LEVEL_INFO);
 
 import { ChangeEntry, Message, Store, Sync } from "./types";
 
