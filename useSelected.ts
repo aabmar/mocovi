@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
-import { findModelById, findModelIndexById } from "./findModelIndexById";
+import useLog from "./logger";
 import { nanoid } from "./nanoid";
-import { UseSelected, Store, UseSelectedReturn } from "./types";
-import useLog, { LOG_LEVEL_DEBUG } from "./logger";
+import { Store, UseSelected, UseSelectedReturn } from "./types";
 
 const { log, dbg, level } = useLog("createUseSelected");
 
-level(LOG_LEVEL_DEBUG);
+// level(LOG_LEVEL_DEBUG);
 
 function createUseSelected<Data extends { id: string }>(store: Store<Data>): UseSelected<Data> {
 
@@ -23,9 +22,11 @@ function createUseSelected<Data extends { id: string }>(store: Store<Data>): Use
         function handleChange(d: Data[]) {
 
             const newModel = store.baseController.getSelected();
-            log("&& USE SELECTED HANDLE CHANGE ", store.id, "Changed: ", newModel !== selected, (selected ? selected.id : "NONE"), (newModel ? newModel.id : "NONE"));
+            dbg("&& 1) HANDLE CHANGE USE SELECTED ", store.id, changed, "Changed: ", newModel !== selected, (selected ? selected.id : "NONE"), (newModel ? newModel.id : "NONE"));
             if (newModel !== selected) {
+                dbg("&& 2) HANDLE CHANGE USE SELECTED ", store.id, changed, "Changed: ", newModel !== selected, (selected ? selected.id : "NONE"), (newModel ? newModel.id : "NONE"), changed);
                 setChanged((prev: number) => {
+                    dbg("&& 3) HANDLE CHANGE USE SELECTED ", store.id, changed, "Changed: ", newModel !== selected, (selected ? selected.id : "NONE"), (newModel ? newModel.id : "NONE"), prev);
                     return prev + 1;
                 });
             }

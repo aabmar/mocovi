@@ -42,7 +42,7 @@ const createSync = (
     // The store has given us callbacks we should call on events
 
     ws.onopen = () => {
-        log("WebSocket connection opened");
+        log("WebSocket connection opened: ", endpoint);
         connected = true;
         isReconnecting = false;
         for (let store of getStores().values()) {
@@ -198,6 +198,7 @@ const createSync = (
             }
 
             const deleted = changes.deleted.map((model) => ({ id: model.id }));
+            const payload = deleted.map((model) => ({ id: model.id }));
 
             if (deleted.length > 0) {
                 dbg("createStore() ", storeId, " sending DELETE message: ", deleted.length);
@@ -205,7 +206,7 @@ const createSync = (
                     storeId,
                     operation: "delete",
                     sessionId: sessionId,
-                    payload: deleted
+                    payload: payload
                 };
 
                 return sync.send(message);

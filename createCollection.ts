@@ -166,7 +166,8 @@ function createCollection<Data extends Model, ExtraController extends object = {
             }
 
             if (store.persist) {
-                const collectionData = store.baseController.getCollection();
+                let collectionData = store.baseController.getCollection();
+                collectionData = collectionData.filter((model) => model.id !== "0" && model.id !== "1" && model.id !== "tmp");
                 log("PERSISTING: ", id, collectionData.length);
                 store.persist.set(id, JSON.stringify(collectionData));
             }
