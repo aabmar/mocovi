@@ -68,7 +68,7 @@ const createSync = (
 
         // Check if the session id is the same as the current session
         if (msg.sessionId !== sessionId) {
-            log("Session id mismatch, ignoring message");
+            log("Session id mismatch, ignoring message. Message: ", msg.sessionId, "Session: ", sessionId);
             return;
         }
 

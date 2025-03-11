@@ -40,7 +40,15 @@ function startSync(url: string, sessionId: string) {
 }
 
 
-export {
-    addStore, clearAll, getStore, getStores, startSync
-};
 
+function stopSync() {
+    if (sync_) {
+        sync_.close();
+        sync_ = undefined;
+    }
+}
+
+
+export {
+    addStore, clearAll, getStore, getStores, startSync, stopSync
+};
