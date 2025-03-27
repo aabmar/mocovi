@@ -133,17 +133,17 @@ function createCollection<Data extends Model, ExtraController extends object = {
         }
 
         if (persistedData.length > 0) {
-            log("PERSISTED DATA: ", id, persistedData.length);
+            dbg("PERSISTED DATA: ", id, persistedData.length);
             store.baseController.setCollection(persistedData, "persist");
         } else if (initialData.length > 0) {
-            log("INITIAL ", id, initialData?.length);
+            dbg("INITIAL ", id, initialData?.length);
             store.baseController.setCollection(initialData);
         }
     }
 
     // Subscription to changes in the store
     if (store.persist || store.syncMode || store.history) {
-        log("Subscription: PERSIST | SYNC | HISTORY: ", id);
+        dbg("Subscription: PERSIST | SYNC | HISTORY: ", id);
 
         function cb() {
             if (!store) {

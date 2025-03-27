@@ -25,7 +25,7 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
 
         setCollection(newCollection_: Data[], source: "persist" | "sync" | false = false) {
 
-            log("SET[]: ", store.id, newCollection_.length, source)
+            dbg("SET[]: ", store.id, newCollection_.length, source)
 
             // If we have sync with "set", or "auto", we keep changed models
             const fromSync = source === "sync";
@@ -87,7 +87,7 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
         // Todo: support array of models? Or maybe make a setModels or updateCollection instead? Goal: less calls to setCollection
         set(model: Data, select: "no" | "if_empty" | "yes" = "no", markChanged = true) {
 
-            log("SET: ", store.id, model, select, markChanged);
+            dbg("SET: ", store.id, model, select, markChanged);
 
             // Normally we need to mark the the model as updated due to sync
             if (markChanged) {
@@ -109,7 +109,7 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
 
         setField(modelId: string, key: keyof Data, value: any, markChanged = true) {
 
-            log("SET FIELD: ", store.id, modelId, key, value, markChanged);
+            dbg("SET FIELD: ", store.id, modelId, key, value, markChanged);
 
             const oldModel = storage.get(modelId);
             if (!oldModel) return false;

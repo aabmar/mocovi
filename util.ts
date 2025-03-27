@@ -112,7 +112,7 @@ function isDifferent(oldModel: { [key: string]: any } | undefined, newModel: { [
         // If it is a number, string or boolean, compare directly
         if (typeof oldValue === "number" || typeof oldValue === "string" || typeof oldValue === "boolean") {
             if (oldValue !== newValue) {
-                console.log("isDifferent: ", key, oldValue, newValue);
+                // console.log("isDifferent: ", key, oldValue, newValue);
                 return true;
             }
             continue;
@@ -120,7 +120,7 @@ function isDifferent(oldModel: { [key: string]: any } | undefined, newModel: { [
         // If this is an array, iterate it
         if (Array.isArray(oldValue) && Array.isArray(newValue)) {
             if (oldValue.length !== newValue.length || oldValue.some((val, index) => val !== newValue[index])) {
-                console.log("isDifferent: array length or content mismatch in", key);
+                // console.log("isDifferent: array length or content mismatch in", key);
                 return true;
             }
             continue;
@@ -134,7 +134,7 @@ function isDifferent(oldModel: { [key: string]: any } | undefined, newModel: { [
         }
 
         if (oldModel[key] !== newModel[key]) {
-            console.log("isDifferent: ", key, oldModel[key], newModel[key]);
+            // console.log("isDifferent: ", key, oldModel[key], newModel[key]);
             return true;
         }
     }
