@@ -54,29 +54,26 @@ type Model = {
 
 type SyncModes = "auto" | "set" | "get" | "manual" | false;
 
-type CreateCollectionOptions<Data, ExtraController = {}> = {
-    createController?: CreateController<Data, ExtraController>
+type CreateCollectionOptions<Data = {}> = {
     persist?: Persist,
     sync?: SyncModes,
     autoSelect?: boolean,
     useHistory?: boolean,
+    initialData?: Data[]
 };
 
-type Controller<Data, ExtraController> = BaseController<Data> & ExtraController;
-type UseController<Data, ExtraController> = () => Controller<Data, ExtraController>;
-type CreateController<Data, ExtraController = {}> = (baseController: BaseController<Data>) => ExtraController;
+type Controller<Data> = BaseController<Data>;
+type UseController<Data> = () => Controller<Data>;
 
 
-type Collection<Data extends Model, ExtraController = {}> = {
+type Collection<Data extends Model> = {
     id: string;
     eventHandler: EventHandler<Data[]>;
-    // collectionData2: Map<string, Data>;
     baseController: BaseController<Data>;
-    mergedController: BaseController<Data> & ExtraController;
     useCollection: UseCollection<Data>;
     useModel: UseModel<Data>;
     useSelected: UseSelected<Data>;
-    useController: UseController<Data, ExtraController>;
+    useController: UseController<Data>;
     useCom: UseCom;
     selectedModelId: string | null;
     persist?: Persist;
@@ -123,14 +120,19 @@ type ChangeEntry = {
     previous: Model[];
 }
 
+type Store = {
+    collections: Map<string, Collection<Model>>;
+    sync?: Sync;
+    sessionId?: string;
+};
 
 
 export type {
     Collection, Sync, Persist,
-    EventHandler, CreateCollectionOptions, CreateController,
+    EventHandler, CreateCollectionOptions,
     UseController, UseCollection, UseModel, UseSelected,
     Message, Model, BaseController,
     UseSelectedReturn, UseCollectionReturn, UseModelReturn,
     UseCom as UseCommand, ChangeEntry, ChangeLog,
-    MessageTypes, SyncModes
+    MessageTypes, SyncModes, Store
 };

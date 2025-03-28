@@ -20,31 +20,31 @@ const { log, err, dbg, level } = useLog("createCollection");
 
 let collectionCounter = 0;
 
-function createCollection<Data extends Model, ExtraController extends object = {}>(
+function createCollection<Data extends Model>(
     id: string,
     initialData: Data[] = [],
-    options?: CreateCollectionOptions<Data, ExtraController>
-): Collection<Data, ExtraController> {
+    options?: CreateCollectionOptions<Data>
+): Collection<Data> {
 
-    const existingStore = getStore(id) as Collection<Data, ExtraController>;
+    const existingStore = getStore(id) as Collection<Data>;
     if (existingStore) {
         dbg("Collection with id already exists: ", id);
         return existingStore;
     }
 
     log("CREATE: ", id);
-    ++collectionCounter
+    ++collectionCounter;
+
     const originalInitialData = JSON.parse(JSON.stringify(initialData));
 
     // Set the sync mode
     const syncMode: SyncModes = options?.sync ? options.sync : false;
 
-    const collection: Collection<Data, ExtraController> = {
+    const collection: Collection<Data> = {
         id,
         eventHandler: createEventHandler<Data[]>(),
         // collectionData2: new Map<string, Data>(),
         baseController: null as any, // will be assigned later
-        mergedController: null as any, // will be assigned later
         useCollection: null as any, // will be assigned later
         useModel: null as any, // will be assigned later
         useSelected: null as any, // will be assigned later
@@ -84,13 +84,11 @@ function createCollection<Data extends Model, ExtraController extends object = {
 
     // Set final values to the collection object
     collection.baseController = createBaseController<Data>(collection);
-    const customController = options?.createController?.(collection.baseController) || {} as ExtraController;
-    collection.mergedController = { ...collection.baseController, ...customController } as BaseController<Data> & ExtraController;
     collection.useCollection = createUseCollection<Data>(collection);
     collection.useModel = createUseModel<Data>(collection);
     collection.useSelected = createUseSelected<Data>(collection);
     collection.useCom = createUseCom<Data>(collection);
-    collection.useController = () => collection.mergedController;
+    collection.useController = () => collection.baseController;
 
     // Store it in our global map
     addStore(collection);

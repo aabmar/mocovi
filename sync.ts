@@ -230,7 +230,7 @@ const createSync = (
 
                     if (store.syncMode === "auto" || store.syncMode === "get") {
                         dbg("sync ws.onopen: store.fetch()", store.id);
-                        store.mergedController.fetch();
+                        store.baseController.fetch();
                     }
                 }, 1000);
             }

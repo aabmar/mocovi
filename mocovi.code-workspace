@@ -32,13 +32,12 @@
 				},
 				{
 					"match": "\\.(ts|json|tsx)$",
-					"cmd": "cp ${fileBasename} ../app/node_modules/mocovi/",
+					"cmd": "cp ${fileBasename} ../expo-testing/node_modules/mocovi/",
 				}
 			]
 		},
 		"terminal.integrated.fontSize": 12,
 		"editor.minimap.enabled": false,
-		"github.copilot.chat.edits.codesearch.enabled": true,
 		"github.copilot.nextEditSuggestions.enabled": true,
 		"github.copilot.chat.editor.temporalContext.enabled": true,
 		"github.copilot.chat.edits.temporalContext.enabled": true,

@@ -8,16 +8,17 @@ import useHistory from "./useHistory";
 import logger, { setLog } from "./logger";
 import {
     Collection, Sync, Persist,
-    CreateCollectionOptions, CreateController, UseController,
+    CreateCollectionOptions, UseController,
     UseCollection, UseModel, UseSelected,
     Message, Model, BaseController,
     UseSelectedReturn, UseCollectionReturn, UseModelReturn,
     SyncModes, MessageTypes
 } from "./types";
+import Mocovi from "./Mocovi";
 
 export {
-    createCollection, CreateController, BaseController, Model, Persist, clearAll, diff as printDiff, Collection, Sync,
+    createCollection, BaseController, Model, Persist, clearAll, diff as printDiff, Collection, Sync,
     CreateCollectionOptions, UseController, UseCollection, UseModel, UseSelected, Message,
     UseSelectedReturn, UseCollectionReturn, UseModelReturn, StoreInspector, useHistory, logger, setLog,
-    SyncModes, MessageTypes
+    SyncModes, MessageTypes, Mocovi
 };

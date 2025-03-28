@@ -32,6 +32,7 @@ let sync_: Sync | undefined;
 // Logged in session.
 let sessionId_: string;
 
+
 // Start a sync session. TODO: sessionId need to change if the user logs out and in again.
 function startSync(url: string, sessionId: string) {
     sessionId_ = sessionId;
