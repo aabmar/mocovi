@@ -1,21 +1,21 @@
 import useLog, { LOG_LEVEL_DEBUG, LOG_LEVEL_INFO, setLog } from "./logger";
 const { log, dbg, err, level } = useLog("createBaseController");
 import { createStorage } from "./storage";
-import { BaseController, Message, Model, Store } from "./types";
+import { BaseController, Message, Model, Collection } from "./types";
 
 
 // level(LOG_LEVEL_DEBUG);
 
 
-function createBaseController<Data extends Model>(store: Store<Data>) {
+function createBaseController<Data extends Model>(collection: Collection<Data>) {
 
     let notifyTimer: any;
 
     function notify() {
-        store.eventHandler.notify(baseController.getCollection());
+        collection.eventHandler.notify(baseController.getCollection());
     }
 
-    const storage = createStorage<Data>(store.id);
+    const storage = createStorage<Data>(collection.id);
 
     const baseController: BaseController<Data> = {
 
@@ -25,7 +25,7 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
 
         setCollection(newCollection_: Data[], source: "persist" | "sync" | false = false) {
 
-            dbg("SET[]: ", store.id, newCollection_.length, source)
+            dbg("SET[]: ", collection.id, newCollection_.length, source)
 
             // If we have sync with "set", or "auto", we keep changed models
             const fromSync = source === "sync";
@@ -33,8 +33,8 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
 
             let newCollection = newCollection_;
 
-            let deleteChanged = fromSync && store.syncMode === "get";
-            dbg("setCollection() ", store.id, " - deleteChanged: ", deleteChanged, store.syncMode);
+            let deleteChanged = fromSync && collection.syncMode === "get";
+            dbg("setCollection() ", collection.id, " - deleteChanged: ", deleteChanged, collection.syncMode);
 
             const skipMarking = fromPersist;
 
@@ -42,22 +42,22 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
 
                 // If the collection is empty, set selectedModelId to null
                 if (storage.size() === 0) {
-                    dbg("BaseController: setCollection() empty collection, deselecting", store.id);
-                    store.selectedModelId = null;
+                    dbg("BaseController: setCollection() empty collection, deselecting", collection.id);
+                    collection.selectedModelId = null;
                 }
 
                 // If the selected is no longer in the collection, remove selection
-                if (store.selectedModelId && !storage.has(store.selectedModelId)) {
-                    dbg(`BaseController: setCollection() ${store.id} selected model (${store.selectedModelId}) no longer in collection, deselecting`);
-                    store.selectedModelId = null;
+                if (collection.selectedModelId && !storage.has(collection.selectedModelId)) {
+                    dbg(`BaseController: setCollection() ${collection.id} selected model (${collection.selectedModelId}) no longer in collection, deselecting`);
+                    collection.selectedModelId = null;
                 }
 
                 // If autoSelect is enabled, and no model is selected, select the first model
-                if (store.autoSelect && !store.selectedModelId && storage.size() > 0) {
+                if (collection.autoSelect && !collection.selectedModelId && storage.size() > 0) {
                     const firstModel = storage.getLast();
                     if (firstModel) {
-                        store.selectedModelId = firstModel.id;
-                        dbg(`BaseController: setCollection() ${store.id} auto-selected model (${store.selectedModelId})`);
+                        collection.selectedModelId = firstModel.id;
+                        dbg(`BaseController: setCollection() ${collection.id} auto-selected model (${collection.selectedModelId})`);
                     }
                 }
                 notify();
@@ -75,19 +75,19 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
         },
 
         getSelected(): Data | null {
-            if (!store.selectedModelId) return null;
-            return baseController.get(store.selectedModelId);
+            if (!collection.selectedModelId) return null;
+            return baseController.get(collection.selectedModelId);
         },
 
         getSelectedId(): string | null {
-            return store.selectedModelId;
+            return collection.selectedModelId;
         },
 
         // Set one existing model to the collection. The model will be overwritten, not merged.
         // Todo: support array of models? Or maybe make a setModels or updateCollection instead? Goal: less calls to setCollection
         set(model: Data, select: "no" | "if_empty" | "yes" = "no", markChanged = true) {
 
-            dbg("SET: ", store.id, model, select, markChanged);
+            dbg("SET: ", collection.id, model, select, markChanged);
 
             // Normally we need to mark the the model as updated due to sync
             if (markChanged) {
@@ -98,7 +98,7 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
             const wasDifferent = storage.set(model);
 
             // Should we set this model as selected?
-            if (select === "yes" || store.autoSelect) {
+            if (select === "yes" || collection.autoSelect) {
                 baseController.select(model.id);
             } else if (select === "if_empty" && storage.size() === 0) {
                 baseController.select(model.id);
@@ -109,18 +109,18 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
 
         setField(modelId: string, key: keyof Data, value: any, markChanged = true) {
 
-            dbg("SET FIELD: ", store.id, modelId, key, value, markChanged);
+            dbg("SET FIELD: ", collection.id, modelId, key, value, markChanged);
 
             const oldModel = storage.get(modelId);
             if (!oldModel) return false;
 
-            store.baseController.set({ ...oldModel, [key]: value }, "no", markChanged);
+            collection.baseController.set({ ...oldModel, [key]: value }, "no", markChanged);
         },
 
         clear() {
-            log("CLEAR: ", store.id);
-            if (store.persist) {
-                store.persist.set(store.id, "[]");
+            log("CLEAR: ", collection.id);
+            if (collection.persist) {
+                collection.persist.set(collection.id, "[]");
             }
             storage.clear();
             notify();
@@ -129,14 +129,14 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
         },
 
         delete(modelId: string) {
-            log("DELETE: ", store.id, modelId);
+            log("DELETE: ", collection.id, modelId);
 
             // Delete
             storage.delete(modelId);
 
             // Handle selected
-            if (store.selectedModelId === modelId) {
-                if (store.autoSelect) {
+            if (collection.selectedModelId === modelId) {
+                if (collection.autoSelect) {
                     baseController.select(true);
                 } else {
                     baseController.select(null);
@@ -148,22 +148,22 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
 
         // ID of the model to select. If null, deselect. If true, select the last model.
         select(modelId: string | null | true): null | Data {
-            dbg("BaseController: select() ", store.id, modelId);
+            dbg("BaseController: select() ", collection.id, modelId);
             if (!modelId) {
-                store.selectedModelId = null;
+                collection.selectedModelId = null;
                 notify();
                 return null;
             } else if (modelId === true) {
                 // Return last model
                 const last = storage.getLast();  // Assuming you have a method to get the last model
                 if (last) {
-                    store.selectedModelId = last.id;
+                    collection.selectedModelId = last.id;
                     notify();
                     return last;
                 } else {
                     return null;
                 }
-            } else if (modelId === store.selectedModelId) {
+            } else if (modelId === collection.selectedModelId) {
                 return null;
             } else if (!storage.has(modelId)) {
                 return null;
@@ -171,7 +171,7 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
                 return null;
             }
 
-            store.selectedModelId = modelId;
+            collection.selectedModelId = modelId;
             notify();
             return storage.get(modelId);
         },
@@ -190,14 +190,14 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
                 models = (id as string[]).map((id: string) => ({ id }));
             }
 
-            if (store.sync) {
+            if (collection.sync) {
                 // Send a get data message
                 const message: Message = {
-                    storeId: store.id,
+                    storeId: collection.id,
                     operation: "get",
                     payload: models
                 }
-                store.sync.send(message);
+                collection.sync.send(message);
             }
         },
 
@@ -222,12 +222,12 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
         },
 
         subscribe(callback: (data: Data[]) => void) {
-            store.eventHandler.subscribe(callback);
+            collection.eventHandler.subscribe(callback);
             return callback;
         },
 
         unsubscribe(callback: (data: Data[]) => void) {
-            store.eventHandler.unsubscribe(callback);
+            collection.eventHandler.unsubscribe(callback);
         }
 
     };

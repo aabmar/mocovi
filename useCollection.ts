@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Store, UseCollection, UseCollectionReturn } from "./types";
+import { Collection, UseCollection, UseCollectionReturn } from "./types";
 import useLog from "./logger";
 
-function createUseCollection<Data extends { id: string }>(store: Store<Data>): UseCollection<Data> {
+function createUseCollection<Data extends { id: string }>(store: Collection<Data>): UseCollection<Data> {
     const { log, dbg } = useLog("useCollection");
 
     return function useCollection() {

@@ -4,7 +4,7 @@ import ModelList from "./ModelList";
 import ModelView from "./ModelView";
 import { getStores } from "./Store";
 import { cellStyle } from "./styles";
-import { Model, Store } from "./types";
+import { Model, Collection } from "./types";
 import { Picker } from "@react-native-picker/picker";
 
 
@@ -13,7 +13,7 @@ import { Picker } from "@react-native-picker/picker";
 export default function StorePanel() {
     const dim = useWindowDimensions();
 
-    const [selectedStore, setSelectedStore] = useState<Store<Model> | null>(null);
+    const [selectedStore, setSelectedStore] = useState<Collection<Model> | null>(null);
     const stores = Array.from(getStores().values());
 
     return (
@@ -46,7 +46,7 @@ export default function StorePanel() {
             </View> */}
 
             <View style={{ flexBasis: "auto", backgroundColor: "lightgray", padding: 8 }}>
-                {selectedStore ? <ModelList store={selectedStore} key={"ML_" + selectedStore.id} /> : <Text> Select a store </Text>}
+                {selectedStore ? <ModelList collection={selectedStore} key={"ML_" + selectedStore.id} /> : <Text> Select a store </Text>}
             </View>
 
             <View style={{ flexBasis: "auto", backgroundColor: "lightgray", padding: 8 }}>

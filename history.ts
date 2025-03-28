@@ -5,17 +5,17 @@
 // TODO: Not in use now. Reimplement.
 
 import { createEventHandler } from "./EventHandler";
-import { ChangeEntry, ChangeLog, Model, Store } from "./types";
+import { ChangeEntry, ChangeLog, Model, Collection } from "./types";
 import logger from "./logger";
 
 const { log, err, dbg } = logger("history");
 
-const stores = new Map<string, Store<any>>();
+const stores = new Map<string, Collection<any>>();
 const initialData = new Map<string, Model[]>();
 const changeLog: ChangeLog = [];
 const eventHandler = createEventHandler<ChangeLog>();
 
-function addStoreToHistory(store: Store<any>) {
+function addStoreToHistory(store: Collection<any>) {
     log("Adding store to history:", store.id);
     stores.set(store.id, store);
     const json = JSON.stringify(store.baseController.getCollection());

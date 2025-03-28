@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { findModelById } from "./findModelIndexById";
 import { nanoid } from "./nanoid";
-import { Store, UseModel, UseModelReturn } from "./types";
+import { Collection, UseModel, UseModelReturn } from "./types";
 
-function createUseModel<Data extends { id: string }>(store: Store<Data>): UseModel<Data> {
+function createUseModel<Data extends { id: string }>(store: Collection<Data>): UseModel<Data> {
 
 
     return function useModel(modelId): UseModelReturn<Data> {

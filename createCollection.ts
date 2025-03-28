@@ -3,7 +3,7 @@ import createBaseController from "./createBaseController";
 import { createEventHandler } from "./EventHandler";
 import { addEntryToHistory, addStoreToHistory } from "./history";
 import { addStore, getStore, } from "./Store";
-import { BaseController, CreateCollectionOptions, Message, Model, Store, SyncModes } from "./types";
+import { BaseController, CreateCollectionOptions, Message, Model, Collection, SyncModes } from "./types";
 import createUseCollection from "./useCollection";
 import createUseModel from "./useModel";
 import createUseSelected from "./useSelected";
@@ -24,9 +24,9 @@ function createCollection<Data extends Model, ExtraController extends object = {
     id: string,
     initialData: Data[] = [],
     options?: CreateCollectionOptions<Data, ExtraController>
-): Store<Data, ExtraController> {
+): Collection<Data, ExtraController> {
 
-    const existingStore = getStore(id) as Store<Data, ExtraController>;
+    const existingStore = getStore(id) as Collection<Data, ExtraController>;
     if (existingStore) {
         dbg("Collection with id already exists: ", id);
         return existingStore;
@@ -39,7 +39,7 @@ function createCollection<Data extends Model, ExtraController extends object = {
     // Set the sync mode
     const syncMode: SyncModes = options?.sync ? options.sync : false;
 
-    const store: Store<Data, ExtraController> = {
+    const collection: Collection<Data, ExtraController> = {
         id,
         eventHandler: createEventHandler<Data[]>(),
         // collectionData2: new Map<string, Data>(),
@@ -60,52 +60,52 @@ function createCollection<Data extends Model, ExtraController extends object = {
         subscribesTo: new Map<(msg: Message) => void, string>,
 
         subscribe: (topic: string, callback: (msg: Message) => void) => {
-            dbg("store: Subscribing to topic: ", topic);
-            store.subscribesTo.set(callback, topic);
-            return store.sync.subscribe(topic, callback);
+            dbg("collection: Subscribing to topic: ", topic);
+            collection.subscribesTo.set(callback, topic);
+            return collection.sync.subscribe(topic, callback);
         },
 
         unsubscribe: (topic: string, callback: (msg: Message) => void) => {
-            dbg("store: Unsubscribing from topic: ", topic);
-            store.subscribesTo.delete(callback);
-            if (store.sync) return store.sync.unsubscribe(topic, callback);
+            dbg("collection: Unsubscribing from topic: ", topic);
+            collection.subscribesTo.delete(callback);
+            if (collection.sync) return collection.sync.unsubscribe(topic, callback);
             return undefined;
         },
 
         resubscribe: () => {
-            dbg("store: resubscribe: ", store.id);
-            for (let [callback, topic] of store.subscribesTo) {
-                dbg("store: resubscribe: ", store.id, topic);
-                store.sync?.subscribe(topic, callback);
+            dbg("collection: resubscribe: ", collection.id);
+            for (let [callback, topic] of collection.subscribesTo) {
+                dbg("store: resubscribe: ", collection.id, topic);
+                collection.sync?.subscribe(topic, callback);
             }
         }
 
     };
 
-    // Set final values to the store
-    store.baseController = createBaseController<Data>(store);
-    const customController = options?.createController?.(store.baseController) || {} as ExtraController;
-    store.mergedController = { ...store.baseController, ...customController } as BaseController<Data> & ExtraController;
-    store.useCollection = createUseCollection<Data>(store);
-    store.useModel = createUseModel<Data>(store);
-    store.useSelected = createUseSelected<Data>(store);
-    store.useCom = createUseCom<Data>(store);
-    store.useController = () => store.mergedController;
+    // Set final values to the collection object
+    collection.baseController = createBaseController<Data>(collection);
+    const customController = options?.createController?.(collection.baseController) || {} as ExtraController;
+    collection.mergedController = { ...collection.baseController, ...customController } as BaseController<Data> & ExtraController;
+    collection.useCollection = createUseCollection<Data>(collection);
+    collection.useModel = createUseModel<Data>(collection);
+    collection.useSelected = createUseSelected<Data>(collection);
+    collection.useCom = createUseCom<Data>(collection);
+    collection.useController = () => collection.mergedController;
 
     // Store it in our global map
-    addStore(store);
+    addStore(collection);
 
 
     // If history is enabled, we run this hack to expose it to debugging.
     // We are going to make a dev attacment point to this later, and 
     // make dev tools enabling us to go back and forth in history.
-    if (store.history) {
-        addStoreToHistory(store);
+    if (collection.history) {
+        addStoreToHistory(collection);
     }
 
 
     let persistedData: Data[] = [];
-    // If we have a persist option, try to load the data from the persist store
+    // If we have a persist option, try to load the data from the persist collection
     if (options?.persist) {
         const json = options.persist.get(id);
         if (json) {
@@ -134,25 +134,25 @@ function createCollection<Data extends Model, ExtraController extends object = {
 
         if (persistedData.length > 0) {
             dbg("PERSISTED DATA: ", id, persistedData.length);
-            store.baseController.setCollection(persistedData, "persist");
+            collection.baseController.setCollection(persistedData, "persist");
         } else if (initialData.length > 0) {
             dbg("INITIAL ", id, initialData?.length);
-            store.baseController.setCollection(initialData);
+            collection.baseController.setCollection(initialData);
         }
     }
 
-    // Subscription to changes in the store
-    if (store.persist || store.syncMode || store.history) {
+    // Subscription to changes in the collection
+    if (collection.persist || collection.syncMode || collection.history) {
         dbg("Subscription: PERSIST | SYNC | HISTORY: ", id);
 
         function cb() {
-            if (!store) {
-                log("No store");
+            if (!collection) {
+                log("No collection, skipping");
                 return;
             }
 
             // TODO: If we dont get them sent, set them back to storage changes
-            const changes = store.baseController.__getAndResetChanges();
+            const changes = collection.baseController.__getAndResetChanges();
 
             const isChanged = changes.deleted.length > 0 || changes.updated.length > 0 || changes.inserted.length > 0;
 
@@ -161,18 +161,18 @@ function createCollection<Data extends Model, ExtraController extends object = {
                 return;
             }
 
-            if (store.history) {
+            if (collection.history) {
                 addEntryToHistory(changes);
             }
 
-            if (store.persist) {
-                let collectionData = store.baseController.getCollection();
+            if (collection.persist) {
+                let collectionData = collection.baseController.getCollection();
                 collectionData = collectionData.filter((model) => model.id !== "0" && model.id !== "1" && model.id !== "tmp");
                 log("PERSISTING: ", id, collectionData.length);
-                store.persist.set(id, JSON.stringify(collectionData));
+                collection.persist.set(id, JSON.stringify(collectionData));
             }
 
-            const sendChanges = store.sync?.sendChanges;
+            const sendChanges = collection.sync?.sendChanges;
             if (!sendChanges) {
                 dbg("no sendChanges() function. Probably waiting to be connected...");
                 return;
@@ -180,31 +180,31 @@ function createCollection<Data extends Model, ExtraController extends object = {
 
             // If we have a sync object and mode is set to one supporting SET,
             // we send the data to the sync object
-            const syncMode = store.syncMode;
+            const syncMode = collection.syncMode;
             if ((syncMode === "auto" || syncMode === "set")) {
-                log("SYNC: ", store.id, syncMode, changes.inserted.length, changes.updated.length, changes.deleted.length);
-                sendChanges(store, changes);
+                log("SYNC: ", collection.id, syncMode, changes.inserted.length, changes.updated.length, changes.deleted.length);
+                sendChanges(collection, changes);
             }
         }
 
         // Subscribe to changes
         let timeOut: any;
-        store.eventHandler.subscribe((data) => {
+        collection.eventHandler.subscribe((data) => {
             if (timeOut) clearTimeout(timeOut);
             timeOut = setTimeout(cb, 1500);
         });
     } else {
         log("No subscription created for: PERSIST | SYNC | HISTORY: ",
-            !!store.persist || !!store.syncMode || !!store.history
+            !!collection.persist || !!collection.syncMode || !!collection.history
         );
     }
 
     // Set selected to the first model, if any
-    if (store.autoSelect && store.baseController.size() > 0) {
-        store.baseController.select(true);
+    if (collection.autoSelect && collection.baseController.size() > 0) {
+        collection.baseController.select(true);
     }
 
-    return store;
+    return collection;
 }
 
 // Export as before for compatibility

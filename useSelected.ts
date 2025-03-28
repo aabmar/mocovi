@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import useLog from "./logger";
 import { nanoid } from "./nanoid";
-import { Store, UseSelected, UseSelectedReturn } from "./types";
+import { Collection, UseSelected, UseSelectedReturn } from "./types";
 
 const { log, dbg, level } = useLog("createUseSelected");
 
 // level(LOG_LEVEL_DEBUG);
 
-function createUseSelected<Data extends { id: string }>(store: Store<Data>): UseSelected<Data> {
+function createUseSelected<Data extends { id: string }>(store: Collection<Data>): UseSelected<Data> {
 
     function useSelected() {
 

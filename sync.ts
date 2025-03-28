@@ -3,15 +3,15 @@ const { log, err, dbg, level } = useLog("sync");
 
 // level(LOG_LEVEL_INFO);
 
-import { ChangeEntry, Message, Store, Sync } from "./types";
+import { ChangeEntry, Message, Collection, Sync } from "./types";
 
 let sync__: Sync | undefined;
 
 const createSync = (
     endpoint: string,
     sessionId: string,
-    getStore: (storeId: string) => Store<any> | undefined,
-    getStores: () => Map<string, Store<any>>
+    getStore: (storeId: string) => Collection<any> | undefined,
+    getStores: () => Map<string, Collection<any>>
 ): Sync => {
     (window as any).inscance_ = ((window as any).inscance_ || 0) + 1;
     const instance = (window as any).inscance_;
@@ -72,7 +72,7 @@ const createSync = (
             return;
         }
 
-        const store = getStore(msg.storeId) as Store<any>;
+        const store = getStore(msg.storeId) as Collection<any>;
         if (!store) {
             err("Store not found: ", msg.storeId);
             return;
@@ -167,7 +167,7 @@ const createSync = (
                 return false;
             }
         },
-        sendChanges: (store: Store<any>, changes: ChangeEntry): boolean => {
+        sendChanges: (store: Collection<any>, changes: ChangeEntry): boolean => {
 
             const combined = [...changes.inserted, ...changes.updated];
 
@@ -219,7 +219,7 @@ const createSync = (
             ws.close();
         },
 
-        attach: (store: Store<any>) => {
+        attach: (store: Collection<any>) => {
             dbg("store.syncMode", store.id, store.syncMode);
 
             if ((store.syncMode)) {
@@ -275,7 +275,7 @@ const createSync = (
  * @param getStores - Function to retrieve an iterable of all stores.
  * @returns The Sync instance.
  */
-function getSync(endpoint: string, sessionId: string, getStore: (id: string) => Store<any> | undefined, getStores: () => Map<string, Store<any>>): Sync {
+function getSync(endpoint: string, sessionId: string, getStore: (id: string) => Collection<any> | undefined, getStores: () => Map<string, Collection<any>>): Sync {
 
     if (sync__) {
         return sync__;

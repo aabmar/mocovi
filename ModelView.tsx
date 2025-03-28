@@ -1,7 +1,7 @@
 import { Text, View } from "react-native";
-import { Model, Store } from "./types";
+import { Model, Collection } from "./types";
 
-export default function ModelView({ store, }: { store: Store<Model> }) {
+export default function ModelView({ store, }: { store: Collection<Model> }) {
     const [model] = store.useSelected();
 
     if (!model) {

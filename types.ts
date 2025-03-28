@@ -35,9 +35,9 @@ type Persist = {
 
 type Sync = {
     send: (msg: Message) => boolean;
-    sendChanges: (store: Store<any>, changes: ChangeEntry) => boolean;
+    sendChanges: (store: Collection<any>, changes: ChangeEntry) => boolean;
     close: () => void;
-    attach: (store: Store<any>) => void;
+    attach: (store: Collection<any>) => void;
     subscribe: (topic: string, callback: (msg: Message) => void) => void;
     unsubscribe: (topic: string, callback: (msg: Message) => void) => void;
 }
@@ -67,7 +67,7 @@ type UseController<Data, ExtraController> = () => Controller<Data, ExtraControll
 type CreateController<Data, ExtraController = {}> = (baseController: BaseController<Data>) => ExtraController;
 
 
-type Store<Data extends Model, ExtraController = {}> = {
+type Collection<Data extends Model, ExtraController = {}> = {
     id: string;
     eventHandler: EventHandler<Data[]>;
     // collectionData2: Map<string, Data>;
@@ -123,8 +123,10 @@ type ChangeEntry = {
     previous: Model[];
 }
 
+
+
 export type {
-    Store, Sync, Persist,
+    Collection, Sync, Persist,
     EventHandler, CreateCollectionOptions, CreateController,
     UseController, UseCollection, UseModel, UseSelected,
     Message, Model, BaseController,

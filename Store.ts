@@ -1,11 +1,11 @@
 import { getSync } from "./sync";
-import { Store, Sync } from "./types";
+import { Collection, Sync } from "./types";
 
 // Global store map. This might be moved to a Context later.
-const stores = new Map<string, Store<any>>();
+const stores = new Map<string, Collection<any>>();
 
 // Add a store to the store map
-function addStore(store: Store<any>) {
+function addStore(store: Collection<any>) {
     stores.set(store.id, store);
     if (sync_) sync_.attach(store);
 }

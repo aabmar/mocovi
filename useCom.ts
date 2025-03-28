@@ -1,12 +1,12 @@
 import { useEffect } from "react";
-import { Message, MessageTypes, Store } from "./types";
+import { Message, MessageTypes, Collection } from "./types";
 import { nanoid } from "./nanoid";
 import logger from "./logger";
 
 const { log, err, dbg } = logger("useCom");
 
 
-export default function createUseCom<Data extends { id: string }>(store: Store<Data>) {
+export default function createUseCom<Data extends { id: string }>(store: Collection<Data>) {
 
     return function useCom(callback?: (message: Message) => void,) {
 

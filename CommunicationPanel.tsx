@@ -1,12 +1,12 @@
 import React, { useEffect } from "react";
 import { NativeSyntheticEvent, Text, TextInput, View } from "react-native";
-import { createStore, Message, Model, Store } from ".";
+import { createCollection, Message, Model, Collection } from ".";
 import { cellStyle } from "./styles";
 import useLog from "./logger";
 
 const { log, dbg } = useLog("CommunicationPanel");
 
-let store: Store<Model> = createStore("system", [], { sync: "auto" });
+let collection: Collection<Model> = createCollection("system", [], { sync: "auto" });
 
 export default function CommunicationPanel() {
 
@@ -16,7 +16,7 @@ export default function CommunicationPanel() {
         setLog(prevLog => [...prevLog, message]);
     };
 
-    const comm = store.useCom(callback);
+    const comm = collection.useCom(callback);
 
     // We store all the messages here
     const [logEntries, setLog] = React.useState<Message[]>([]);
