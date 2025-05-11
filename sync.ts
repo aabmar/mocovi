@@ -171,10 +171,11 @@ const createSync = (
 
             const combined = [...changes.inserted, ...changes.updated];
 
+        
             // filter out only models with changed_at set
             const models = combined.filter((model) => model.changed_at);
 
-            console.log("changed", models);
+            dbg("sendChanged: CHANGED: ", models);
             const storeId = changes.storeId;
 
             // Send over new and changed models

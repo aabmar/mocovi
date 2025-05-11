@@ -4,7 +4,7 @@ import { createStorage } from "./storage";
 import { BaseController, Message, Model, Store } from "./types";
 
 
-// level(LOG_LEVEL_DEBUG);
+level(LOG_LEVEL_DEBUG);
 
 
 function createBaseController<Data extends Model>(store: Store<Data>) {
@@ -98,7 +98,7 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
             const wasDifferent = storage.set(model);
 
             // Should we set this model as selected?
-            if (select === "yes" || store.autoSelect) {
+            if ((select !== "no") && (select === "yes" || store.autoSelect)) {
                 baseController.select(model.id);
             } else if (select === "if_empty" && storage.size() === 0) {
                 baseController.select(model.id);
