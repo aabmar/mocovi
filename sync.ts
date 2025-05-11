@@ -171,7 +171,7 @@ const createSync = (
 
             const combined = [...changes.inserted, ...changes.updated];
 
-        
+
             // filter out only models with changed_at set
             const models = combined.filter((model) => model.changed_at);
 
@@ -192,7 +192,7 @@ const createSync = (
                 const ret = sync.send(message);
                 if (ret) {
                     for (let model of models) {
-                        delete model.changed_at;
+                        model.changed_at = undefined;
                         store.baseController.set(model, "no", false);
                     }
                 }

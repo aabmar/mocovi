@@ -4,7 +4,7 @@ import { createStorage } from "./storage";
 import { BaseController, Message, Model, Store } from "./types";
 
 
-level(LOG_LEVEL_DEBUG);
+// level(LOG_LEVEL_DEBUG);
 
 
 function createBaseController<Data extends Model>(store: Store<Data>) {
@@ -91,6 +91,7 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
 
             // Normally we need to mark the the model as updated due to sync
             if (markChanged) {
+                dbg("set() Marking change.");
                 model.changed_at = Date.now();
             }
 
@@ -103,7 +104,10 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
             } else if (select === "if_empty" && storage.size() === 0) {
                 baseController.select(model.id);
             }
-            if (wasDifferent) notify();
+            if (wasDifferent) {
+                log("set() ", store.id, model.id, " - was different - NOTIFYING");
+                notify();
+            }
 
         },
 
