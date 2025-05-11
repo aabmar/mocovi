@@ -1,6 +1,6 @@
 {
     "name": "mocovi",
-    "version": "0.14.20",
+    "version": "2.0.1",
     "description": "Data Store for React Native, with no boilerplate",
     "main": "index.ts",
     "type": "module",

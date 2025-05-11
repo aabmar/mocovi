@@ -2,11 +2,8 @@ import "react";
 import createBaseController from "./createBaseController";
 import { createEventHandler } from "./EventHandler";
 import { addEntryToHistory, addStoreToHistory } from "./history";
-import { addStore, getStore, } from "./Store";
+import { getStore, } from "./Store";
 import { BaseController, CreateCollectionOptions, Message, Model, Collection, SyncModes } from "./types";
-import createUseCollection from "./useCollection";
-import createUseModel from "./useModel";
-import createUseSelected from "./useSelected";
 import createUseCom from "./useCom";
 
 import useLog, { LOG_LEVEL_DEBUG, setLog } from "./logger";
@@ -84,14 +81,8 @@ function createCollection<Data extends Model>(
 
     // Set final values to the collection object
     collection.baseController = createBaseController<Data>(collection);
-    collection.useCollection = createUseCollection<Data>(collection);
-    collection.useModel = createUseModel<Data>(collection);
-    collection.useSelected = createUseSelected<Data>(collection);
     collection.useCom = createUseCom<Data>(collection);
     collection.useController = () => collection.baseController;
-
-    // Store it in our global map
-    addStore(collection);
 
 
     // If history is enabled, we run this hack to expose it to debugging.

@@ -120,11 +120,7 @@ type ChangeEntry = {
     previous: Model[];
 }
 
-type Store = {
-    collections: Map<string, Collection<Model>>;
-    sync?: Sync;
-    sessionId?: string;
-};
+
 
 
 export type {
@@ -134,5 +130,5 @@ export type {
     Message, Model, BaseController,
     UseSelectedReturn, UseCollectionReturn, UseModelReturn,
     UseCom as UseCommand, ChangeEntry, ChangeLog,
-    MessageTypes, SyncModes, Store
+    MessageTypes, SyncModes
 };

@@ -8,15 +8,12 @@ import createCollection from "./createCollection";
 // You can also wrap local components in you want a local store
 export default function Mocovi({ children, setup, }: PropsWithChildren & { setup: { [key: string]: CreateCollectionOptions<Model> }, sessionId?: string }) {
 
-    const [store, setStore] = useState<Store | null>(null);
+    const store = useContext<Store>(StoreContext);
 
     useEffect(() => {
         // If storeConfig is provided, we create a new store
 
         if (setup) {
-            const store: Store = {
-                collections: new Map<string, Collection<Model>>(),
-            };
 
             // Create a collection for each key in the collectionOptions
             Object.keys(setup).forEach((key) => {
@@ -24,7 +21,7 @@ export default function Mocovi({ children, setup, }: PropsWithChildren & { setup
                 const collection = createCollection(key, options.initialData, options);
                 store[collection.id] = collection;
             });
-            setStore(store);
+            setContext(store);
         }
     }, []);
 

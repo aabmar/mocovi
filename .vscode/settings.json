@@ -1,3 +1,4 @@
 {
-    "workbench.colorTheme": "Quiet Light"
+    "workbench.colorTheme": "Default High Contrast Light",
+    "window.autoDetectColorScheme": false
 }

@@ -32,17 +32,12 @@
 				},
 				{
 					"match": "\\.(ts|json|tsx)$",
-					"cmd": "cp ${fileBasename} ../expo-testing/node_modules/mocovi/",
+					"cmd": "cp ${fileBasename} ../aisistant/koder/node_modules/mocovi/",
 				}
 			]
 		},
 		"terminal.integrated.fontSize": 12,
 		"editor.minimap.enabled": false,
-		"github.copilot.nextEditSuggestions.enabled": true,
-		"github.copilot.chat.editor.temporalContext.enabled": true,
-		"github.copilot.chat.edits.temporalContext.enabled": true,
-		"github.copilot.chat.generateTests.codeLens": true,
-		"github.copilot.chat.languageContext.typescript.enabled": true,
-		"github.copilot.chat.search.semanticTextResults": true
+		"chat.setupFromDialog": false,
 	},
 }
