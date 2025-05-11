@@ -99,7 +99,7 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
             const wasDifferent = storage.set(model);
 
             // Should we set this model as selected?
-            if ((select !== "no") && (select === "yes" || store.autoSelect)) {
+            if ( select === "yes" || store.autoSelect) {
                 baseController.select(model.id);
             } else if (select === "if_empty" && storage.size() === 0) {
                 baseController.select(model.id);
@@ -153,6 +153,11 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
         // ID of the model to select. If null, deselect. If true, select the last model.
         select(modelId: string | null | true): null | Data {
             dbg("BaseController: select() ", store.id, modelId);
+
+            if (store.selectedModelId === modelId) {
+                return null;
+            }
+
             if (!modelId) {
                 store.selectedModelId = null;
                 notify();
@@ -167,10 +172,6 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
                 } else {
                     return null;
                 }
-            } else if (modelId === store.selectedModelId) {
-                return null;
-            } else if (!storage.has(modelId)) {
-                return null;
             } else if (!storage.has(modelId)) {
                 return null;
             }
