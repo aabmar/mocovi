@@ -3,12 +3,15 @@ import { NativeSyntheticEvent, Text, TextInput, View } from "react-native";
 import { createStore, Message, Model, Store } from ".";
 import { cellStyle } from "./styles";
 import useLog from "./logger";
+import { getStore } from "./Store";
 
 const { log, dbg } = useLog("CommunicationPanel");
 
-let store: Store<Model> = createStore("system", [], { sync: "auto" });
+
+
 
 export default function CommunicationPanel() {
+    let store: Store<Model> = getStore("system");
 
     // The system will call this on new messages
     const callback = (message: Message) => {

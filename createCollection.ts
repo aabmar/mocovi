@@ -72,7 +72,7 @@ function createCollection<Data extends Model, ExtraController extends object = {
             return undefined;
         },
 
-    
+
         resubscribe: () => {
             dbg("store: resubscribe: ", store.id);
             for (let [callback, topic] of store.subscribesTo) {

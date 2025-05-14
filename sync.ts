@@ -1,7 +1,7 @@
-import useLog, { LOG_LEVEL_DEBUG, LOG_LEVEL_INFO, setLog } from "./logger";
+import useLog, { LOG_LEVEL_DEBUG } from "./logger";
 const { log, err, dbg, level } = useLog("sync");
 
-// level(LOG_LEVEL_INFO);
+level(LOG_LEVEL_DEBUG);
 
 import { ChangeEntry, Message, Store, Sync } from "./types";
 
@@ -62,7 +62,7 @@ const createSync = (
         }
         log("====== ", msg.storeId, " ==== Message from server:",
             msg.operation, msg.cmd ? "cmd:" + msg.cmd : "", "payload type: ", typeof msg.payload,
-            msg.payload?.length ? "model#:" + msg.payload.length : ""
+            " count: " + msg.payload?.length || 0
         );
         dbg("Message from server:", msg);
 
@@ -79,7 +79,8 @@ const createSync = (
         }
 
         // If this is a message, not data, we call listeners
-        if (msg.operation === "broadcast" || msg.operation === "direct") {
+        // if (msg.operation === "broadcast" || msg.operation === "direct") {
+        if (msg.operation) {
             dbg("sync: ===== Notifying listeners: ", msg.storeId, msg.operation, msg.cmd, msg.payload);
             for (let [callback, key] of store.subscribesTo) {
                 dbg("broadcast/direct Callback ", store.id, key);
