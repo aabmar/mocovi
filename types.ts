@@ -7,7 +7,7 @@ type EventHandler<Data> = {
 
 type BaseController<Data> = {
     clear: () => void;
-    get: (modelId: string) => Data | null;
+    get: (modelId: string | undefined) => Data | null;
     getCollection: () => Data[];
     getField: (modelId: string, key: keyof Data) => any;
     getSelected: () => Data | null;
