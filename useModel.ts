@@ -5,7 +5,6 @@ import { Store, UseModel, UseModelReturn } from "./types";
 
 function createUseModel<Data extends { id: string }>(store: Store<Data>): UseModel<Data> {
 
-
     return function useModel(modelId): UseModelReturn<Data> {
 
         let first: Data | null = store.baseController.get(modelId);
@@ -13,20 +12,25 @@ function createUseModel<Data extends { id: string }>(store: Store<Data>): UseMod
         // This state will be set to the component that uses this hook
         const [model, setModel] = useState<Data | null>(first);
 
+        // Make a subscription to changes in the data
+        function handleChange(d: Data[]) {
+
+            const newModel = modelId ? findModelById(d, modelId) : null;
+
+            console.log("useModel: handleChange: ", model?.id, newModel?.id, model === newModel);
+            if (first === newModel) return;
+            // TODO: optimize can be deep or level 1 compare
+
+            setModel(newModel);
+        }
+
         useEffect(() => {
 
-            // Make a subscription to changes in the data
-            function handleChange(d: Data[]) {
+            // if (modelId !== model?.id) {
+            //     const m = store.baseController.get(modelId);
+            //     setModel(m);
+            // }
 
-                const newModel = modelId ? findModelById(d, modelId) : null;
-
-                // console.log("useModel: handleChange: ", model?.id, newModel?.id, model === newModel);
-                if (model === newModel) return;
-                // TODO: optimize can be deep or level 1 compare
-
-                setModel(newModel);
-                first = newModel;
-            }
             store.eventHandler.subscribe(handleChange);
 
             // Unsubscribe when the component is unmounted
@@ -42,7 +46,7 @@ function createUseModel<Data extends { id: string }>(store: Store<Data>): UseMod
             store.baseController.set(newModel);
         };
 
-        return [model, setModelData] as UseModelReturn<Data>;
+        return [first, setModelData] as UseModelReturn<Data>;
     };
 }
 

@@ -25,6 +25,7 @@
 		"makefile.configureOnOpen": false,
 		"editor.formatOnSave": true,
 		"emeraldwalk.runonsave": {
+			"shell": "cmd.exe",
 			"commands": [
 				{
 					"match": "\\.(ts|json|tsx)$",
