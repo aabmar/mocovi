@@ -23,6 +23,10 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
             return [...storage.values()];
         },
 
+        getInternalStorage(): Map<string, Data> {
+            return storage.getInternalStorage();
+        },
+
         setCollection(newCollection_: Data[], source: "persist" | "sync" | false = false) {
 
             dbg("SET[]: ", store.id, newCollection_.length, source)
@@ -54,7 +58,7 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
 
                 // If autoSelect is enabled, and no model is selected, select the first model
                 if (store.autoSelect && !store.selectedModelId && storage.size() > 0) {
-                    const firstModel = storage.getLast();
+                    const firstModel = storage.getNewest();
                     if (firstModel) {
                         store.selectedModelId = firstModel.id;
                         dbg(`BaseController: setCollection() ${store.id} auto-selected model (${store.selectedModelId})`);

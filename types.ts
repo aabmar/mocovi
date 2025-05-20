@@ -9,6 +9,7 @@ type BaseController<Data> = {
     clear: () => void;
     get: (modelId: string | undefined) => Data | null;
     getCollection: () => Data[];
+    getInternalStorage(): Map<string, Data>;
     getField: (modelId: string, key: keyof Data) => any;
     getSelected: () => Data | null;
     getSelectedId(): string | null;
