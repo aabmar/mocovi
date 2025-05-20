@@ -4,7 +4,7 @@ import { createStorage } from "./storage";
 import { BaseController, Message, Model, Store } from "./types";
 
 
-// level(LOG_LEVEL_DEBUG);
+level(LOG_LEVEL_DEBUG);
 
 
 function createBaseController<Data extends Model>(store: Store<Data>) {
@@ -35,7 +35,7 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
             const fromSync = source === "sync";
             const fromPersist = source === "persist";
 
-            let newCollection = newCollection_;
+            let newCollection = newCollection_
 
             let deleteChanged = fromSync && store.syncMode === "get";
             dbg("setCollection() ", store.id, " - deleteChanged: ", deleteChanged, store.syncMode);
@@ -169,7 +169,7 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
                 return null;
             } else if (modelId === true) {
                 // Return last model
-                const last = storage.getLast();  // Assuming you have a method to get the last model
+                const last = storage.getNewest();  // Assuming you have a method to get the last model
                 if (last) {
                     store.selectedModelId = last.id;
                     notify();
@@ -225,6 +225,13 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
 
         getLast() {
             return storage.getLast() || null;
+        },
+
+        getNewest() {
+            return storage.getNewest() || null;
+        },
+        getOldest() {
+            return storage.getOldest() || null;
         },
 
         has(modelId: string) {

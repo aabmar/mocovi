@@ -42,6 +42,17 @@ function createStorage<Data extends Model>(storeId: string) {
         return sorted[0];
     }
 
+    function getOldest(): Data | null {
+        const values = [...internalStorage.values()];
+        if (values.length === 0) {
+            return null;
+        }
+        const sorted = values.sort((a, b) => {
+            return (a.changed_at || a.updated_at || 0) < (b.changed_at || b.updated_at || 0) ? -1 : 1;
+        });
+        return sorted[0];
+    }
+
     function set(model: Data): boolean {
 
         const original = internalStorage.get(model.id);
@@ -196,6 +207,7 @@ function createStorage<Data extends Model>(storeId: string) {
         getFirst,
         getLast,
         getNewest,
+        getOldest,
         set,
         delete: delete_,
         has,

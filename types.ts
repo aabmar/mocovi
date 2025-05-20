@@ -23,6 +23,8 @@ type BaseController<Data> = {
     size: () => number;
     getFirst: () => Data | null;
     getLast: () => Data | null;
+    getNewest: () => Data | null;
+    getOldest: () => Data | null;
     has: (modelId: string) => boolean;
     subscribe: (callback: (data: Data[]) => void) => (data: Data[]) => void;
     unsubscribe: (callback: (data: Data[]) => void) => void;

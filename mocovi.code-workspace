@@ -25,16 +25,20 @@
 		"makefile.configureOnOpen": false,
 		"editor.formatOnSave": true,
 		"emeraldwalk.runonsave": {
-			"shell": "cmd.exe",
+			// "shell": "cmd.exe",
 			"commands": [
 				{
 					"match": "\\.(ts|json|tsx)$",
-					"cmd": "cp ${fileBasename} ../ruter/node_modules/mocovi/",
+					"cmd": "echo ${fileBasename} > ..\\app\\node_modules\\mocovi\\ros.log",
 				},
 				{
 					"match": "\\.(ts|json|tsx)$",
-					"cmd": "cp ${fileBasename} ../app/node_modules/mocovi/",
-				}
+					"cmd": "copy  ${fileBasename} ..\\app\\node_modules\\mocovi\\${fileBasename}",
+				},
+				{
+					"match": "\\.(ts|json|tsx)$",
+					"cmd": "dir ..\\app\\node_modules\\mocovi\\",
+				},
 			]
 		},
 		"terminal.integrated.fontSize": 12,
