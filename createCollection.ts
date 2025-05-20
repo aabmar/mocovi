@@ -201,7 +201,7 @@ function createCollection<Data extends Model, ExtraController extends object = {
     }
 
     // Set selected to the first model, if any
-    if (store.autoSelect && store.baseController.size() > 0) {
+    if (store.autoSelect && store.baseController.size() > 0 && !store.selectedModelId) {
         store.baseController.select(true);
     }
 

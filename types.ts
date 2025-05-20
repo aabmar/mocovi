@@ -9,6 +9,7 @@ type BaseController<Data> = {
     clear: () => void;
     get: (modelId: string | undefined) => Data | null;
     getCollection: () => Data[];
+    getInternalStorage(): Map<string, Data>;
     getField: (modelId: string, key: keyof Data) => any;
     getSelected: () => Data | null;
     getSelectedId(): string | null;
@@ -22,6 +23,8 @@ type BaseController<Data> = {
     size: () => number;
     getFirst: () => Data | null;
     getLast: () => Data | null;
+    getNewest: () => Data | null;
+    getOldest: () => Data | null;
     has: (modelId: string) => boolean;
     subscribe: (callback: (data: Data[]) => void) => (data: Data[]) => void;
     unsubscribe: (callback: (data: Data[]) => void) => void;

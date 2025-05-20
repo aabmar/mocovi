@@ -17,6 +17,10 @@ function createStorage<Data extends Model>(storeId: string) {
         return internalStorage.get(modelId) || null;
     }
 
+    function getInternalStorage(): Map<string, Data> {
+        return internalStorage;
+    }
+
     function getFirst(): Data | null {
         return internalStorage.values().next().value || null
     }
@@ -25,6 +29,28 @@ function createStorage<Data extends Model>(storeId: string) {
         const values = [...internalStorage.values()];
         return values.length > 0 ? values[values.length - 1] : null;
 
+    }
+
+    function getNewest(): Data | null {
+        const values = [...internalStorage.values()];
+        if (values.length === 0) {
+            return null;
+        }
+        const sorted = values.sort((a, b) => {
+            return (a.changed_at || a.updated_at || 0) > (b.changed_at || b.updated_at || 0) ? -1 : 1;
+        });
+        return sorted[0];
+    }
+
+    function getOldest(): Data | null {
+        const values = [...internalStorage.values()];
+        if (values.length === 0) {
+            return null;
+        }
+        const sorted = values.sort((a, b) => {
+            return (a.changed_at || a.updated_at || 0) < (b.changed_at || b.updated_at || 0) ? -1 : 1;
+        });
+        return sorted[0];
     }
 
     function set(model: Data): boolean {
@@ -177,8 +203,11 @@ function createStorage<Data extends Model>(storeId: string) {
     }
     const storage = {
         get,
+        getInternalStorage,
         getFirst,
         getLast,
+        getNewest,
+        getOldest,
         set,
         delete: delete_,
         has,
