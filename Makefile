@@ -1,12 +1,15 @@
 .PHONY: clean build prepublish
 
+ts: 
+	npx tsc -p tsconfig.json
+
 clean:
 	# ...existing clean commands...
 	rm -rf dist
 
-build: clean
+build: clean ts
 	# Compile TypeScript files
-	npx tsc
+
 	# Prepare a trimmed package.json in dist/
 	node prepare-release.js
 
