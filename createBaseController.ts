@@ -4,7 +4,7 @@ import { createStorage } from "./storage";
 import { BaseController, Message, Model, Store } from "./types";
 
 
-level(LOG_LEVEL_DEBUG);
+// level(LOG_LEVEL_DEBUG);
 
 
 function createBaseController<Data extends Model>(store: Store<Data>) {
