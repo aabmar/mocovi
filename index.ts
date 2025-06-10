@@ -6,6 +6,7 @@ import { diff } from "./util";
 import StoreInspector from "./StoreInspector";
 import useHistory from "./useHistory";
 import logger, { setLog } from "./logger";
+import useStore from "./useStore";
 import {
     Store, Sync, Persist,
     CreateCollectionOptions, CreateController,
@@ -19,5 +20,5 @@ export {
     createCollection as createStore, CreateController, BaseController, Model, Persist, clearAll, diff as printDiff, Store, Sync,
     CreateCollectionOptions, UseController, UseCollection, UseModel, UseSelected, Message,
     UseSelectedReturn, UseCollectionReturn, UseModelReturn, StoreInspector, useHistory, logger, setLog,
-    SyncModes, MessageTypes
+    SyncModes, MessageTypes, useStore
 };
