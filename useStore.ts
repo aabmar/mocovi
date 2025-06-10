@@ -8,31 +8,43 @@ const { log, err, dbg } = logger("useStore");
 
 /**
  * Hook for accessing a collection of models
- * Returns an object with the collection
+ * Returns an object with the collection and functions to update the collection and models
  * Component will re-render on any change in the collection
  */
 function useStore<Data extends Model>(storeId: string): {
     collection: Data[],
-    setCollection: (collection: Data[]) => void
-};
-
-/**
- * Hook for accessing a specific model by ID
- * Returns an object with the model
- * Component will re-render on any change in the model
- */
-function useStore<Data extends Model>(storeId: string, modelId: string): {
-    model: Data | null,
+    setCollection: (collection: Data[]) => void,
     setModel: (model: Data) => void
 };
 
 /**
- * Hook for accessing a specific model by ID with field-specific updates
- * Returns an object with the model
- * Component will re-render only when specified fields change
+ * Hook for accessing models filtered by ID or criteria
+ * Returns an object with the filtered collection and functions to update the collection and models
+ * Component will re-render on any change in the matching models
+ * If modelIdOrFilter is a string, it's treated as an ID filter (returns an array of 1 or 0 items)
+ * If modelIdOrFilter is an object, it's used to filter by multiple properties
  */
-function useStore<Data extends Model>(storeId: string, modelId: string, fields: (keyof Data)[]): {
-    model: Data | null,
+function useStore<Data extends Model>(
+    storeId: string,
+    modelIdOrFilter: string | Partial<Record<keyof Data, string | RegExp>>
+): {
+    collection: Data[],
+    setCollection: (collection: Data[]) => void,
+    setModel: (model: Data) => void
+};
+
+/**
+ * Hook for accessing models filtered by ID or criteria and sorted by a key
+ * Returns an object with the filtered and sorted collection and functions to update the collection and models
+ * Component will re-render on any change in the matching models
+ */
+function useStore<Data extends Model>(
+    storeId: string,
+    modelIdOrFilter: string | Partial<Record<keyof Data, string | RegExp>>,
+    sortByKey: keyof Data
+): {
+    collection: Data[],
+    setCollection: (collection: Data[]) => void,
     setModel: (model: Data) => void
 };
 
@@ -41,11 +53,13 @@ function useStore<Data extends Model>(storeId: string, modelId: string, fields: 
  */
 function useStore<Data extends Model>(
     storeId: string,
-    modelId?: string,
-    fields?: (keyof Data)[]
-): { collection: Data[], setCollection: (collection: Data[]) => void } |
-    { model: Data | null, setModel: (model: Data) => void } {
-
+    modelIdOrFilter?: string | Partial<Record<keyof Data, string | RegExp>>,
+    sortByKey?: keyof Data
+): {
+    collection: Data[],
+    setCollection: (collection: Data[]) => void,
+    setModel: (model: Data) => void
+} {
     // Get the store
     const store = useMemo(() => getStore(storeId) as Store<Data> | undefined, [storeId]);
 
@@ -54,106 +68,96 @@ function useStore<Data extends Model>(
         throw new Error(`Store with ID '${storeId}' not found`);
     }
 
-    // COLLECTION MODE
-    if (!modelId) {
-        // State for the collection
-        const [collection, setCollectionState] = useState<Data[]>(
-            store.baseController.getCollection()
-        );
+    // Normalize filter - convert string ID to object filter
+    const filter = useMemo(() => {
+        if (typeof modelIdOrFilter === 'string') {
+            return { id: modelIdOrFilter } as Partial<Record<keyof Data, string | RegExp>>;
+        }
+        return modelIdOrFilter;
+    }, [modelIdOrFilter]);
 
-        // Handler for collection changes
-        const handleCollectionChange = useCallback((data: Data[]) => {
-            dbg(`Collection changed in store '${storeId}', length: ${data.length}`);
-            setCollectionState(data);
-        }, [storeId]);
+    // Create a function that applies filtering and sorting to data
+    const processData = useCallback((data: Data[]): Data[] => {
+        let result = [...data];
 
-        // Subscribe to collection changes
-        useEffect(() => {
-            dbg(`Subscribing to collection changes in store '${storeId}'`);
-            store.eventHandler.subscribe(handleCollectionChange);
-
-            return () => {
-                dbg(`Unsubscribing from collection changes in store '${storeId}'`);
-                store.eventHandler.unsubscribe(handleCollectionChange);
-            };
-        }, [store, handleCollectionChange, storeId]);
-
-        // Function to update the collection
-        const setCollection = useCallback((newCollection: Data[]) => {
-            dbg(`Setting collection in store '${storeId}', length: ${newCollection.length}`);
-            store.baseController.setCollection(newCollection);
-        }, [store, storeId]);
-
-        return { collection, setCollection };
-    }
-
-    // MODEL MODE or FIELD MODE
-    const initialModel = useMemo(() =>
-        store.baseController.get(modelId), [store, modelId]);
-
-    // State for the model
-    const [model, setModelState] = useState<Data | null>(initialModel);
-
-    // Handler for model changes
-    const handleModelChange = useCallback((data: Data[]) => {
-        const newModel = findModelById(data, modelId);
-
-        // For both modes: handle null cases consistently
-        if (model === null && newModel === null) return;
-
-        // If model became null or appeared from null, always update
-        if (model === null || newModel === null) {
-            dbg(`Model '${modelId}' ${newModel ? 'appeared' : 'disappeared'} in store '${storeId}'`);
-            setModelState(newModel);
-            return;
+        // Apply filtering if filter is defined
+        if (filter) {
+            result = result.filter(model => {
+                return Object.entries(filter).every(([key, value]) => {
+                    if (value instanceof RegExp) {
+                        return value.test(String(model[key as keyof Data]));
+                    }
+                    return model[key as keyof Data] === value;
+                });
+            });
         }
 
-        // MODEL MODE - No fields specified, update whenever the model changes
-        if (!fields) {
-            if (model !== newModel) {
-                dbg(`Model '${modelId}' changed in store '${storeId}'`);
-                setModelState(newModel);
-            }
-            return;
+        // Apply sorting if sortByKey is defined
+        if (sortByKey) {
+            result.sort((a, b) => {
+                const aValue = a[sortByKey];
+                const bValue = b[sortByKey];
+
+                if (typeof aValue === 'string' && typeof bValue === 'string') {
+                    return aValue.localeCompare(bValue);
+                }
+
+                if (aValue < bValue) return -1;
+                if (aValue > bValue) return 1;
+                return 0;
+            });
         }
 
-        // FIELD MODE - Check if any of the specified fields changed
-        const hasChanges = fields.some(field => {
-            const fieldName = field as string;
-            return model[fieldName] !== newModel[fieldName];
-        });
+        return result;
+    }, [filter, sortByKey]);
 
-        if (hasChanges) {
-            dbg(`Fields [${fields.join(", ")}] changed in model '${modelId}' in store '${storeId}'`);
-            setModelState(newModel);
-        }
-    }, [store, storeId, modelId, model, fields]);
+    // Get initial data with filtering and sorting applied
+    const initialData = useMemo(() => {
+        const fullCollection = store.baseController.getCollection();
+        return processData(fullCollection);
+    }, [store, processData]);
 
-    // Subscribe to model changes
+    // State for the filtered collection
+    const [collection, setCollectionState] = useState<Data[]>(initialData);
+
+    // Handler for collection changes
+    const handleCollectionChange = useCallback((data: Data[]) => {
+        dbg(`Collection changed in store '${storeId}', processing with filter and sort`);
+        const processedData = processData(data);
+        setCollectionState(processedData);
+    }, [storeId, processData]);
+
+    // Subscribe to collection changes
     useEffect(() => {
-        dbg(`Subscribing to model changes for '${modelId}' in store '${storeId}'`);
-        store.eventHandler.subscribe(handleModelChange);
+        dbg(`Subscribing to collection changes in store '${storeId}'`);
+        store.eventHandler.subscribe(handleCollectionChange);
 
         return () => {
-            dbg(`Unsubscribing from model changes for '${modelId}' in store '${storeId}'`);
-            store.eventHandler.unsubscribe(handleModelChange);
+            dbg(`Unsubscribing from collection changes in store '${storeId}'`);
+            store.eventHandler.unsubscribe(handleCollectionChange);
         };
-    }, [store, handleModelChange, storeId, modelId]);
+    }, [store, handleCollectionChange, storeId]);
 
-    // Function to update the model
-    const setModel = useCallback((newModel: Data) => {
-        dbg(`Setting model '${modelId}' in store '${storeId}'`);
+    // Function to update the collection
+    const setCollection = useCallback((newCollection: Data[]) => {
+        dbg(`Setting collection in store '${storeId}', length: ${newCollection.length}`);
+        store.baseController.setCollection(newCollection);
+    }, [store, storeId]);
+
+    // Function to update a single model
+    const setModel = useCallback((model: Data) => {
+        dbg(`Setting model in store '${storeId}'`);
 
         // Ensure the model has an ID
-        if (!newModel.id) {
-            newModel.id = nanoid();
-            dbg(`Generated new ID '${newModel.id}' for model`);
+        if (!model.id) {
+            model.id = nanoid();
+            dbg(`Generated new ID '${model.id}' for model`);
         }
 
-        store.baseController.set(newModel);
-    }, [store, storeId, modelId]);
+        store.baseController.set(model);
+    }, [store, storeId]);
 
-    return { model, setModel };
+    return { collection, setCollection, setModel };
 }
 
 export default useStore;

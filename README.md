@@ -31,19 +31,33 @@ You have to initiate every collection by running a createCollection(). This is n
 
 ## Hooks
 
-### useCollection
-`useCollection<Data>()` provides access to all models in a collection. It returns an array with three elements: the collection data array, a function to update the collection, and the currently selected model ID. Components using this hook will re-render when any model in the collection changes.
+### useStore
+`useStore<Data>(storeId, modelIdOrFilter?, sortByKey?)` provides a unified interface for accessing and manipulating state data. It returns an object with three properties:
+- `collection`: An array of models matching the filter criteria
+- `setCollection`: A function to update the entire collection
+- `setModel`: A function to update a single model
 
-### useModel
-`useModel<Data>(modelId)` provides access to a specific model by ID. It returns an array with two elements: the model and a function to update it. Components using this hook will only re-render when the specific model changes.
+Components using this hook will re-render when relevant data changes based on the filter criteria. See the "State Access with useStore" section for detailed usage examples.
 
-### useSelected
-`useSelected<Data>()` provides access to the currently selected model in a collection. It returns an array with two elements: the selected model and a function to update it. Components using this hook will re-render when the selected model changes or when a different model is selected.
+### Legacy Hooks (Deprecated)
 
-### useCom
+The following hooks are maintained for backward compatibility but are deprecated in favor of `useStore`:
+
+#### useCollection
+`useCollection<Data>()` provides access to all models in a collection. It returns an array with three elements: the collection data array, a function to update the collection, and the currently selected model ID.
+
+#### useModel
+`useModel<Data>(modelId)` provides access to a specific model by ID. It returns an array with two elements: the model and a function to update it.
+
+#### useSelected
+`useSelected<Data>()` provides access to the currently selected model in a collection. It returns an array with two elements: the selected model and a function to update it.
+
+### Other Hooks
+
+#### useCom
 `useCom(callback)` provides a way to send commands to the synchronization layer. It returns an object with a `send` function that can be used to send custom commands, which is useful for operations beyond simple CRUD.
 
-### useController
+#### useController
 `useController<Data, ExtraController>()` provides direct access to the store controller. Unlike the other hooks, components using this hook won't automatically re-render when data changes, making it suitable for programmatic data manipulation.
 
 ## Synchronization and Persistence
@@ -85,13 +99,47 @@ You have to initiate every collection by running a createCollection(). This is n
 ### ModelView
 `ModelView` displays the details of a selected model. It shows all fields of the model, organized by data fields and time fields.
 
+## State Access with useStore
+
+The `useStore` hook provides a unified interface for accessing and manipulating state data. It replaces the separate `useModel`, `useCollection`, and `useSelected` hooks with a more flexible and consistent API.
+
+### Collection Access
+```typescript
+const { collection, setCollection, setModel } = useStore<User>("users");
+```
+Returns a filtered collection of models and functions to update them. The component will re-render on any change in the collection.
+
+### Filtered Collection Access
+```typescript
+// Filter by ID (returns array of 1 or 0 items)
+const { collection, setCollection, setModel } = useStore<User>("users", "user123");
+
+// Filter by multiple criteria
+const { collection, setCollection, setModel } = useStore<User>("users", { 
+  role: "admin", 
+  active: true 
+});
+
+// Filter with regex
+const { collection, setCollection, setModel } = useStore<User>("users", { 
+  name: /^John/ 
+});
+```
+Returns a filtered collection based on the provided criteria. The component will re-render only when matching models change.
+
+### Sorted Collection Access
+```typescript
+// Sort by a field
+const { collection, setCollection, setModel } = useStore<User>("users", undefined, "lastName");
+
+// Filter and sort
+const { collection, setCollection, setModel } = useStore<User>("users", { role: "admin" }, "lastName");
+```
+Returns a filtered and sorted collection. The component will re-render when matching models change.
+
 ## Future Improvements
 
 - Move the data storage to a context with a `<Mocovi>` component wrapper
-- Replace `useModel` and `useCollection` with a unified `useStore` function
-  - useStore<User>("users") : returns a {users: User[]} - renders on any change in the collection
-  - useStore<User>("users", "id123") returns a {model: User} - renders on any change in the model
-  - useStore<User>("users, "id123", ["name", "address"]): returns {model: User} - renders only on change in the fields name or address
 - Improve undo/redo functionality
 - Support for async storage
 - Better handling of synchronization history
