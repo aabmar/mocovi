@@ -21,7 +21,6 @@ function addStoreToHistory(store: Store<any>) {
     const json = JSON.stringify(store.baseController.getCollection());
     const data = JSON.parse(json);
     initialData.set(store.id, data);
-
 }
 
 function addEntryToHistory(entry: ChangeEntry) {

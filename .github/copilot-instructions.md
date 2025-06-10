@@ -12,10 +12,10 @@
 - Write operations flow through controllers, propagating changes via event handler
 
 ## State Access Patterns
-- Collection access: `useStore<T>("storeId")` → `{collection, setCollection, setModel}`
-- Filtered collection access: `useStore<T>("storeId", "modelId")` → `{collection, setCollection, setModel}` where collection is an array of 1 or 0 items
-- Complex filtering: `useStore<T>("storeId", {key: value, ...})` → `{collection, setCollection, setModel}` where collection contains models matching all criteria
-- Sorting: `useStore<T>("storeId", filterObj?, "sortKey")` → `{collection, setCollection, setModel}` where collection is sorted by the specified key
+- Collection access: `useStore<T>("storeId")` → `{collection, setCollection, setModel, controller}`
+- Filtered collection access: `useStore<T>("storeId", "modelId")` → `{collection, setCollection, setModel, controller}` where collection is an array of 1 or 0 items
+- Complex filtering: `useStore<T>("storeId", {key: value, ...})` → `{collection, setCollection, setModel, controller}` where collection contains models matching all criteria
+- Sorting: `useStore<T>("storeId", filterObj?, "sortKey")` → `{collection, setCollection, setModel, controller}` where collection is sorted by the specified key
 
 ## Legacy State Access Patterns
 The legacy system will return separate hooks for each collection when calliong `createStore()`

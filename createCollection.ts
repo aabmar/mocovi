@@ -91,6 +91,12 @@ function createCollection<Data extends Model, ExtraController extends object = {
     store.useModel = createUseModel<Data>(store);
     store.useSelected = createUseSelected<Data>(store);
     store.useCom = createUseCom<Data>(store);
+
+    /**
+     * @deprecated This hook is deprecated and will be removed in a future version.
+     * Please use the new useStore hook instead for most cases.
+     * If you need direct controller access, consider refactoring your code.
+     */
     store.useController = () => store.mergedController;
 
     // Store it in our global map

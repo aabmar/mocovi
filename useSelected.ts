@@ -9,6 +9,10 @@ const { log, dbg, level } = useLog("createUseSelected");
 
 function createUseSelected<Data extends { id: string }>(store: Store<Data>): UseSelected<Data> {
 
+    /**
+     * @deprecated This hook is deprecated and will be removed in a future version.
+     * Please use the new useStore hook instead with the appropriate filter.
+     */
     function useSelected() {
 
         // The local state data

@@ -1,6 +1,10 @@
 # Mocovi State Management Library
 
-This library manages state data in React Native. It is built up of collections of data. Each collection has a name, for example "users". Each collection has several models. When you use a collection or model in your components, they will be rendered if data in the collection or model changes. Each collection has a currently selected global model. This makes it possible to use selected model, and get the same in all components without passing the id. But be sure that this is only used in an app where there can't be any doubt of who selects the model. In the future this functionality will be removed because it has shown to be problematic for reuse of components. So I reccommend using useCollection() or useModel("id"). You can also use contoller for a collection. This has direct access to functionality like "set(model: Model)" or "get(id: string): Model". When you use controller, your component will not get rendered on change. But the data you modify will make other components using the data you update being rendered. You can subscribe to changes via the controller. Primarelly useModel() and useCollection() in your code. They return set() functions to set back changed data.
+This library manages state data in React Native. It is built up of collections of data. Each collection has a name, for example "users". Each collection has several models. When you use a collection or model in your components, they will be rendered if data in the collection or model changes. 
+
+For accessing state data, you should use the `useStore` hook which provides a flexible and consistent API. Legacy hooks (`useCollection`, `useModel`, `useSelected`, and `useController`) are deprecated and will be removed in a future version.
+
+Each collection has a currently selected global model. This makes it possible to use selected model, and get the same in all components without passing the id. But be sure that this is only used in an app where there can't be any doubt of who selects the model. In the future this functionality will be removed because it has shown to be problematic for reuse of components.
 
 The library supports local storage both on web and native. You have to give it a handler for set and get using your preffered storage lib. Async storage is not supported for now.
 
@@ -10,7 +14,7 @@ Sync and storage is running async so that fast changed doesn't result in many ca
 
 The system used to support undo and redo, but this system is broken after other updated and will be fixed later when the TODO in the previous paragraph is fixed.
 
-You have to initiate every collection by running a createCollection(). This is not done in the render thread, but should be done in the component load phase. Create collection will return the useXXX hooks. My tip is to make one file for each collection which creates this on load, and exports the functions. A component can then just import the hooks it needs.
+You have to initiate every collection by running a createCollection(). This is not done in the render thread, but should be done in the component load phase. Create collection will return the store object. You can then use the `useStore` hook to access and manipulate data in the collection. A typical pattern is to create one file for each collection which creates this on load and exports any custom functionality. Components can then import and use the `useStore` hook with the appropriate store ID.
 
 ## Core Concepts and Types
 
@@ -32,33 +36,57 @@ You have to initiate every collection by running a createCollection(). This is n
 ## Hooks
 
 ### useStore
-`useStore<Data>(storeId, modelIdOrFilter?, sortByKey?)` provides a unified interface for accessing and manipulating state data. It returns an object with three properties:
+`useStore<Data>(storeId, modelIdOrFilter?, sortByKey?)` provides a unified interface for accessing and manipulating state data. It returns an object with four properties:
 - `collection`: An array of models matching the filter criteria
 - `setCollection`: A function to update the entire collection
 - `setModel`: A function to update a single model
+- `controller`: Direct access to the base controller for advanced operations
 
 Components using this hook will re-render when relevant data changes based on the filter criteria. See the "State Access with useStore" section for detailed usage examples.
 
 ### Legacy Hooks (Deprecated)
 
-The following hooks are maintained for backward compatibility but are deprecated in favor of `useStore`:
+The following hooks are maintained for backward compatibility but are deprecated in favor of `useStore`. They will be removed in a future version:
 
-#### useCollection
+#### useCollection (Deprecated)
 `useCollection<Data>()` provides access to all models in a collection. It returns an array with three elements: the collection data array, a function to update the collection, and the currently selected model ID.
 
-#### useModel
+**Migration:** Replace with `useStore`:
+```typescript
+// Old way
+const [collection, setCollection, selectedId] = useCollection();
+
+// New way
+const { collection, setCollection } = useStore<Data>("storeId");
+```
+
+#### useModel (Deprecated)
 `useModel<Data>(modelId)` provides access to a specific model by ID. It returns an array with two elements: the model and a function to update it.
 
-#### useSelected
+**Migration:** Replace with `useStore`:
+```typescript
+// Old way
+const [model, setModel] = useModel("modelId");
+
+// New way
+const { collection, setModel } = useStore<Data>("storeId", "modelId");
+const model = collection[0] || null;
+```
+
+#### useSelected (Deprecated)
 `useSelected<Data>()` provides access to the currently selected model in a collection. It returns an array with two elements: the selected model and a function to update it.
+
+**Migration:** Replace with custom filter logic using `useStore` that matches your selection criteria.
+
+#### useController (Deprecated)
+`useController<Data, ExtraController>()` provides direct access to the store controller. Unlike the other hooks, components using this hook won't automatically re-render when data changes.
+
+**Migration:** Most controller operations can be performed using the `setModel` and `setCollection` functions from `useStore`.
 
 ### Other Hooks
 
 #### useCom
 `useCom(callback)` provides a way to send commands to the synchronization layer. It returns an object with a `send` function that can be used to send custom commands, which is useful for operations beyond simple CRUD.
-
-#### useController
-`useController<Data, ExtraController>()` provides direct access to the store controller. Unlike the other hooks, components using this hook won't automatically re-render when data changes, making it suitable for programmatic data manipulation.
 
 ## Synchronization and Persistence
 
@@ -101,7 +129,16 @@ The following hooks are maintained for backward compatibility but are deprecated
 
 ## State Access with useStore
 
-The `useStore` hook provides a unified interface for accessing and manipulating state data. It replaces the separate `useModel`, `useCollection`, and `useSelected` hooks with a more flexible and consistent API.
+The `useStore` hook provides a unified interface for accessing and manipulating state data. It replaces the separate `useModel`, `useCollection`, `useSelected` and `useController` hooks with a more flexible and consistent API. 
+
+The new API offers several advantages:
+- Consistent return format: always returns `{ collection, setCollection, setModel, controller }`
+- Powerful filtering capabilities: filter by ID, multiple criteria, or regex patterns
+- Built-in sorting: sort collections by any property
+- Optimized re-rendering: components only re-render when relevant data changes
+- Advanced functionality: direct controller access for specialized operations
+
+All new code should use `useStore` instead of the legacy hooks.
 
 ### Collection Access
 ```typescript
@@ -114,7 +151,7 @@ Returns a filtered collection of models and functions to update them. The compon
 // Filter by ID (returns array of 1 or 0 items)
 const { collection, setCollection, setModel } = useStore<User>("users", "user123");
 
-// Filter by multiple criteria
+// Filter by multiple criteria or filter by another field than id:
 const { collection, setCollection, setModel } = useStore<User>("users", { 
   role: "admin", 
   active: true 
@@ -136,6 +173,19 @@ const { collection, setCollection, setModel } = useStore<User>("users", undefine
 const { collection, setCollection, setModel } = useStore<User>("users", { role: "admin" }, "lastName");
 ```
 Returns a filtered and sorted collection. The component will re-render when matching models change.
+
+### Advanced Controller Access
+```typescript
+// Access the controller for advanced operations
+const { controller } = useStore<User>("users");
+
+// Use controller methods directly
+const selectedUser = controller.getSelected();
+controller.select("user123");
+const userCount = controller.size();
+const firstUser = controller.getFirst();
+```
+Using the controller gives direct access to the full API of the base controller, allowing for more complex operations that go beyond the simplified `setModel` and `setCollection` functions.
 
 ## Future Improvements
 

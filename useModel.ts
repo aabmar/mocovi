@@ -5,6 +5,12 @@ import { Store, UseModel, UseModelReturn } from "./types";
 
 function createUseModel<Data extends { id: string }>(store: Store<Data>): UseModel<Data> {
 
+    /**
+     * @deprecated This hook is deprecated and will be removed in a future version.
+     * Please use the new useStore hook instead:
+     * const { collection } = useStore<Data>("storeId", "modelId");
+     * Where collection[0] contains the model (if found).
+     */
     return function useModel(modelId): UseModelReturn<Data> {
 
         let first: Data | null = store.baseController.get(modelId);

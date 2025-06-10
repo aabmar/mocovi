@@ -7,6 +7,11 @@ level(LOG_LEVEL_DEBUG);
 
 function createUseCollection<Data extends { id: string }>(store: Store<Data>): UseCollection<Data> {
 
+    /**
+     * @deprecated This hook is deprecated and will be removed in a future version.
+     * Please use the new useStore hook instead:
+     * const { collection, setCollection } = useStore<Data>("storeId");
+     */
     return function useCollection() {
 
         // This state will be set to the component that uses this hook

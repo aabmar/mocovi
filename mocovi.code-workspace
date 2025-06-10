@@ -29,7 +29,7 @@
 			"commands": [
 				{
 					"match": "\\.(ts|json|tsx)$",
-					"cmd": "echo ${fileBasename} > ..\\app\\node_modules\\mocovi\\ros.log",
+					"cmd": "copy ${fileBasename} ..\\app\\node_modules\\mocovi\\${fileBasename}",
 				},
 				{
 					"match": "\\.(ts|json|tsx)$",

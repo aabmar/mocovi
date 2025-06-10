@@ -1,25 +1,27 @@
-import { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import { findModelById } from "./findModelIndexById";
-import { nanoid } from "./nanoid";
-import { Model, Store } from "./types";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { getStore } from "./Store";
 import logger from "./logger";
+import { nanoid } from "./nanoid";
+import { BaseController, Model, Store } from "./types";
 const { log, err, dbg } = logger("useStore");
 
 /**
  * Hook for accessing a collection of models
- * Returns an object with the collection and functions to update the collection and models
+ * Returns an object with the collection, functions to update the collection and models,
+ * and the controller for advanced operations
  * Component will re-render on any change in the collection
  */
 function useStore<Data extends Model>(storeId: string): {
     collection: Data[],
     setCollection: (collection: Data[]) => void,
-    setModel: (model: Data) => void
+    setModel: (model: Data) => void,
+    controller: BaseController<Data>
 };
 
 /**
  * Hook for accessing models filtered by ID or criteria
- * Returns an object with the filtered collection and functions to update the collection and models
+ * Returns an object with the filtered collection, functions to update the collection and models,
+ * and the controller for advanced operations
  * Component will re-render on any change in the matching models
  * If modelIdOrFilter is a string, it's treated as an ID filter (returns an array of 1 or 0 items)
  * If modelIdOrFilter is an object, it's used to filter by multiple properties
@@ -30,12 +32,14 @@ function useStore<Data extends Model>(
 ): {
     collection: Data[],
     setCollection: (collection: Data[]) => void,
-    setModel: (model: Data) => void
+    setModel: (model: Data) => void,
+    controller: BaseController<Data>
 };
 
 /**
  * Hook for accessing models filtered by ID or criteria and sorted by a key
- * Returns an object with the filtered and sorted collection and functions to update the collection and models
+ * Returns an object with the filtered and sorted collection, functions to update the collection and models,
+ * and the controller for advanced operations
  * Component will re-render on any change in the matching models
  */
 function useStore<Data extends Model>(
@@ -45,7 +49,8 @@ function useStore<Data extends Model>(
 ): {
     collection: Data[],
     setCollection: (collection: Data[]) => void,
-    setModel: (model: Data) => void
+    setModel: (model: Data) => void,
+    controller: BaseController<Data>
 };
 
 /**
@@ -58,7 +63,8 @@ function useStore<Data extends Model>(
 ): {
     collection: Data[],
     setCollection: (collection: Data[]) => void,
-    setModel: (model: Data) => void
+    setModel: (model: Data) => void,
+    controller: BaseController<Data>
 } {
     // Get the store
     const store = useMemo(() => getStore(storeId) as Store<Data> | undefined, [storeId]);
@@ -157,7 +163,12 @@ function useStore<Data extends Model>(
         store.baseController.set(model);
     }, [store, storeId]);
 
-    return { collection, setCollection, setModel };
+    return {
+        collection,
+        setCollection,
+        setModel,
+        controller: store.baseController
+    };
 }
 
 export default useStore;
