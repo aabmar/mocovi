@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getStore } from "./Store";
-import logger from "./logger";
+import logger, { LOG_LEVEL_DEBUG } from "./logger";
 import { nanoid } from "./nanoid";
 import { BaseController, Model, Store } from "./types";
-const { log, err, dbg } = logger("useStore");
+const { log, err, dbg, level } = logger("useStore");
+
+level(LOG_LEVEL_DEBUG);
 
 /**
  * Hook for accessing a collection of models
@@ -74,8 +76,9 @@ function useStore<Data extends Model>(
         throw new Error(`Store with ID '${storeId}' not found`);
     }
 
-    // Normalize filter - convert string ID to object filter
+    // Normalize filter - convert string ID to object filter 
     const filter = useMemo(() => {
+        dbg("MEMO: filter: ", modelIdOrFilter);
         if (typeof modelIdOrFilter === 'string') {
             return { id: modelIdOrFilter } as Partial<Record<keyof Data, string | RegExp>>;
         }
@@ -121,7 +124,7 @@ function useStore<Data extends Model>(
     const initialData = useMemo(() => {
         const fullCollection = store.baseController.getCollection();
         return processData(fullCollection);
-    }, [store, processData]);
+    }, [store, processData, filter]);
 
     // State for the filtered collection
     const [collection, setCollectionState] = useState<Data[]>(initialData);
@@ -162,6 +165,8 @@ function useStore<Data extends Model>(
 
         store.baseController.set(model);
     }, [store, storeId]);
+
+    dbg("returning store data: ", collection);
 
     return {
         collection,

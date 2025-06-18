@@ -33,10 +33,6 @@
 				},
 				{
 					"match": "\\.(ts|json|tsx)$",
-					"cmd": "copy  ${fileBasename} ..\\app\\node_modules\\mocovi\\${fileBasename}",
-				},
-				{
-					"match": "\\.(ts|json|tsx)$",
 					"cmd": "dir ..\\app\\node_modules\\mocovi\\",
 				},
 			]
