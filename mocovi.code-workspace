@@ -14,7 +14,7 @@
 			"titleBar.activeBackground": "#e68fe3",
 			"activityBar.background": "#bf78bd",
 		},
-		"[Solarized Light]": {
+		"[Visual Studio Light]": {
 			"titleBar.activeBackground": "#e68fe3",
 			"activityBar.background": "#bf78bd",
 		},
@@ -22,7 +22,6 @@
 			"titleBar.activeBackground": "#530850",
 			"activityBar.background": "#530850",
 		},
-		"makefile.configureOnOpen": false,
 		"editor.formatOnSave": true,
 		"emeraldwalk.runonsave": {
 			// "shell": "cmd.exe",
@@ -45,6 +44,5 @@
 		"github.copilot.chat.edits.temporalContext.enabled": true,
 		"github.copilot.chat.generateTests.codeLens": true,
 		"github.copilot.chat.languageContext.typescript.enabled": true,
-		"github.copilot.chat.search.semanticTextResults": true
 	},
 }

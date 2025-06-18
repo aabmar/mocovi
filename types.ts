@@ -1,4 +1,3 @@
-
 type EventHandler<Data> = {
     subscribe: (callback: (data: Data) => void) => void,
     notify: (data: Data) => void,
@@ -126,6 +125,13 @@ type ChangeEntry = {
     previous: Model[];
 }
 
+type UseStoreReturn<Data extends Model> = {
+    collection: Data[],
+    setCollection: (collection: Data[]) => void,
+    setModel: (model: Data) => void,
+    controller: BaseController<Data>
+};
+
 export type {
     Store, Sync, Persist,
     EventHandler, CreateCollectionOptions, CreateController,
@@ -133,5 +139,5 @@ export type {
     Message, Model, BaseController,
     UseSelectedReturn, UseCollectionReturn, UseModelReturn,
     UseCom as UseCommand, ChangeEntry, ChangeLog,
-    MessageTypes, SyncModes
+    MessageTypes, SyncModes, UseStoreReturn
 };

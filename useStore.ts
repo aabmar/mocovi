@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { getStore } from "./Store";
 import logger, { LOG_LEVEL_DEBUG } from "./logger";
 import { nanoid } from "./nanoid";
-import { BaseController, Model, Store } from "./types";
+import { BaseController, Model, Store, UseStoreReturn } from "./types";
 const { log, err, dbg, level } = logger("useStore");
 
 level(LOG_LEVEL_DEBUG);
@@ -13,12 +13,7 @@ level(LOG_LEVEL_DEBUG);
  * and the controller for advanced operations
  * Component will re-render on any change in the collection
  */
-function useStore<Data extends Model>(storeId: string): {
-    collection: Data[],
-    setCollection: (collection: Data[]) => void,
-    setModel: (model: Data) => void,
-    controller: BaseController<Data>
-};
+function useStore<Data extends Model>(storeId: string): UseStoreReturn<Data>;
 
 /**
  * Hook for accessing models filtered by ID or criteria
@@ -31,12 +26,7 @@ function useStore<Data extends Model>(storeId: string): {
 function useStore<Data extends Model>(
     storeId: string,
     modelIdOrFilter: string | Partial<Record<keyof Data, string | RegExp>>
-): {
-    collection: Data[],
-    setCollection: (collection: Data[]) => void,
-    setModel: (model: Data) => void,
-    controller: BaseController<Data>
-};
+): UseStoreReturn<Data>;
 
 /**
  * Hook for accessing models filtered by ID or criteria and sorted by a key
@@ -48,12 +38,7 @@ function useStore<Data extends Model>(
     storeId: string,
     modelIdOrFilter: string | Partial<Record<keyof Data, string | RegExp>>,
     sortByKey: keyof Data
-): {
-    collection: Data[],
-    setCollection: (collection: Data[]) => void,
-    setModel: (model: Data) => void,
-    controller: BaseController<Data>
-};
+): UseStoreReturn<Data>;
 
 /**
  * Implementation of the useStore hook
@@ -62,12 +47,8 @@ function useStore<Data extends Model>(
     storeId: string,
     modelIdOrFilter?: string | Partial<Record<keyof Data, string | RegExp>>,
     sortByKey?: keyof Data
-): {
-    collection: Data[],
-    setCollection: (collection: Data[]) => void,
-    setModel: (model: Data) => void,
-    controller: BaseController<Data>
-} {
+): UseStoreReturn<Data> {
+
     // Get the store
     const store = useMemo(() => getStore(storeId) as Store<Data> | undefined, [storeId]);
 
@@ -76,14 +57,10 @@ function useStore<Data extends Model>(
         throw new Error(`Store with ID '${storeId}' not found`);
     }
 
-    // Normalize filter - convert string ID to object filter 
-    const filter = useMemo(() => {
-        dbg("MEMO: filter: ", modelIdOrFilter);
-        if (typeof modelIdOrFilter === 'string') {
-            return { id: modelIdOrFilter } as Partial<Record<keyof Data, string | RegExp>>;
-        }
-        return modelIdOrFilter;
-    }, [modelIdOrFilter]);
+    // Normalize filter - convert string ID to object filter
+    const filter = typeof modelIdOrFilter === 'string' ?
+        { id: modelIdOrFilter } as Partial<Record<keyof Data, string | RegExp>> :
+        modelIdOrFilter;
 
     // Create a function that applies filtering and sorting to data
     const processData = useCallback((data: Data[]): Data[] => {
@@ -129,7 +106,7 @@ function useStore<Data extends Model>(
     // State for the filtered collection
     const [collection, setCollectionState] = useState<Data[]>(initialData);
 
-    // Handler for collection changes
+    // Callback to call when the collection changes
     const handleCollectionChange = useCallback((data: Data[]) => {
         dbg(`Collection changed in store '${storeId}', processing with filter and sort`);
         const processedData = processData(data);
@@ -145,7 +122,7 @@ function useStore<Data extends Model>(
             dbg(`Unsubscribing from collection changes in store '${storeId}'`);
             store.eventHandler.unsubscribe(handleCollectionChange);
         };
-    }, [store, handleCollectionChange, storeId]);
+    }, []); // no dependencies, subscribe is done once
 
     // Function to update the collection
     const setCollection = useCallback((newCollection: Data[]) => {
@@ -166,10 +143,10 @@ function useStore<Data extends Model>(
         store.baseController.set(model);
     }, [store, storeId]);
 
-    dbg("returning store data: ", collection);
+    dbg("returning store data: ", initialData);
 
     return {
-        collection,
+        collection: initialData,
         setCollection,
         setModel,
         controller: store.baseController
