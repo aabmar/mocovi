@@ -4,6 +4,7 @@ import logger, { LOG_LEVEL_DEBUG } from "./logger";
 import { nanoid } from "./nanoid";
 import { BaseController, Model, Store, UseStoreReturn } from "./types";
 import createUseCom from "./useCom";
+import { isDifferent } from "./util";
 const { log, err, dbg, level } = logger("useStore");
 
 level(LOG_LEVEL_DEBUG);
@@ -59,11 +60,14 @@ function useStore<Data extends Model>(
     }
 
     // Normalize filter - convert string ID to object filter
-    const filter = useMemo(() => typeof modelIdOrFilter === 'string' ?
+    const filter = typeof modelIdOrFilter === 'string' ?
         { id: modelIdOrFilter } as Partial<Record<keyof Data, string | RegExp>> :
-        modelIdOrFilter, [modelIdOrFilter]);
+        modelIdOrFilter;
 
-    log("Using filter: ", filter, " and sortByKey: ", sortByKey);
+    const filterJson = JSON.stringify(filter);
+
+
+    log("Using filter: ", filterJson, " and sortByKey: ", sortByKey, " in store: ", storeId);
 
     // Create a function that applies filtering and sorting to data
     const processData = useCallback((data: Data[]): Data[] => {
@@ -80,7 +84,7 @@ function useStore<Data extends Model>(
                 });
             });
 
-            log("Search Result: ", result)
+            dbg("Search Result on store: ", storeId, ":", result);
 
         }
 
@@ -116,7 +120,10 @@ function useStore<Data extends Model>(
     const handleCollectionChange = useCallback((data: Data[]) => {
         dbg(`Collection changed in store '${storeId}', processing with filter and sort`);
         const processedData = processData(data);
-        setCollectionState(processedData);
+        if (isDifferent(collection, processedData)) {
+            dbg(`Collection changed after reprocessing, updating state`);
+            setCollectionState(processedData);
+        }
     }, [storeId, processData]);
 
     // Subscribe to collection changes
@@ -135,8 +142,11 @@ function useStore<Data extends Model>(
         dbg(`Reprocessing collection in store '${storeId}' due to filter change`);
         const fullCollection = store.baseController.getCollection();
         const processedData = processData(fullCollection);
-        setCollectionState(processedData);
-    }, [filter, sortByKey, store]);
+        if (isDifferent(collection, processedData)) {
+            dbg(`Collection changed after reprocessing, updating state`);
+            setCollectionState(processedData);
+        }
+    }, [filterJson, sortByKey, store]);
 
     // Function to update the collection
     const setCollection = useCallback((newCollection: Data[]) => {

@@ -119,13 +119,12 @@ const createSync = (
             // We are not going to replace the collection, just update the models
             // If not handled, it is a data operation
 
-            // TODO: Due to a bug in useStore, not setting state when models in search results change, we need to wait witht this.
-            // for (let i = 0; i < msg.payload.length; i++) {
-            //     const model = msg.payload[i];
-            //     store.baseController.set([model], "no", false);
-            // }
+            for (let i = 0; i < msg.payload.length; i++) {
+                const model = msg.payload[i];
+                store.baseController.set(model, "no", false);
+            }
 
-            store.baseController.setCollection(msg.payload, "sync");
+            // store.baseController.setCollection(msg.payload, "sync");
         }
 
 

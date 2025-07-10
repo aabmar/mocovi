@@ -2,7 +2,7 @@
 import logger, { LOG_LEVEL_DEBUG } from "./logger";
 const { log, err, dbg, level } = logger("util");
 
-// level(LOG_LEVEL_DEBUG);
+level(LOG_LEVEL_DEBUG);
 
 
 // Print the differences between two objects with deep path
@@ -105,7 +105,10 @@ function isDifferent(oldModel: { [key: string]: any } | undefined, newModel: { [
         return true;
     }
 
-    if (Object.keys(oldModel).length !== Object.keys(newModel).length) return true;
+    if (Object.keys(oldModel).length !== Object.keys(newModel).length) {
+        console.warn("isDifferent: different number of keys", Object.keys(oldModel).length, Object.keys(newModel).length);
+        return true
+    }
 
     const combinedKeys = [...new Set([...Object.keys(oldModel), ...Object.keys(newModel)])];
 
@@ -140,6 +143,28 @@ function isDifferent(oldModel: { [key: string]: any } | undefined, newModel: { [
             if (oldValue.length !== newValue.length || oldValue.some((val, index) => val !== newValue[index])) {
                 dbg("isDifferent: array length or content mismatch in", key);
                 return true;
+
+            }
+            // Iterate through the array and compare each element
+            for (let i = 0; i < oldValue.length; i++) {
+                const o = oldValue[i];
+                const n = newValue[i];
+                if (typeof o !== typeof n) {
+                    dbg("isDifferent: array element type mismatch in", key, "at index", i, typeof o, typeof n);
+                    return true;
+                }
+                // If type is object, recurse
+                if (typeof o === "object" && typeof n === "object") {
+                    if (isDifferent(o, n)) {
+                        dbg("isDifferent: array element mismatch in", key, "at index", i);
+                        return true;
+                    }
+                }
+                // If type is number, string or boolean, compare directly
+                else if (o !== n) {
+                    dbg("isDifferent: array element mismatch in", key, "at index", i, o, n);
+                    return true;
+                }
             }
             continue;
         }
@@ -151,11 +176,9 @@ function isDifferent(oldModel: { [key: string]: any } | undefined, newModel: { [
             continue;
         }
 
-        // if (oldModel[key] !== newModel[key]) {
-        //     // dbg("isDifferent: ", key, oldModel[key], newModel[key]);
-        //     return true;
-        // }
+
     }
+    dbg("isDifferent: no differences found");
     return false;
 }
 
