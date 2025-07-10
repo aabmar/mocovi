@@ -3,6 +3,7 @@ import { getStore } from "./Store";
 import logger, { LOG_LEVEL_DEBUG } from "./logger";
 import { nanoid } from "./nanoid";
 import { BaseController, Model, Store, UseStoreReturn } from "./types";
+import createUseCom from "./useCom";
 const { log, err, dbg, level } = logger("useStore");
 
 level(LOG_LEVEL_DEBUG);
@@ -47,7 +48,7 @@ function useStore<Data extends Model>(
     storeId: string,
     modelIdOrFilter?: string | Partial<Record<keyof Data, string | RegExp>>,
     sortByKey?: keyof Data
-): UseStoreReturn<Data> {
+): UseStoreReturn<Data> & { useCom: ReturnType<typeof createUseCom<Data>> } {
 
     // Get the store
     const store = useMemo(() => getStore(storeId) as Store<Data> | undefined, [storeId]);
@@ -58,9 +59,11 @@ function useStore<Data extends Model>(
     }
 
     // Normalize filter - convert string ID to object filter
-    const filter = typeof modelIdOrFilter === 'string' ?
+    const filter = useMemo(() => typeof modelIdOrFilter === 'string' ?
         { id: modelIdOrFilter } as Partial<Record<keyof Data, string | RegExp>> :
-        modelIdOrFilter;
+        modelIdOrFilter, [modelIdOrFilter]);
+
+    log("Using filter: ", filter, " and sortByKey: ", sortByKey);
 
     // Create a function that applies filtering and sorting to data
     const processData = useCallback((data: Data[]): Data[] => {
@@ -76,6 +79,9 @@ function useStore<Data extends Model>(
                     return model[key as keyof Data] === value;
                 });
             });
+
+            log("Search Result: ", result)
+
         }
 
         // Apply sorting if sortByKey is defined
@@ -97,21 +103,26 @@ function useStore<Data extends Model>(
         return result;
     }, [filter, sortByKey]);
 
-    // Get initial data with filtering and sorting applied
-    const initialData = useMemo(() => {
-        const fullCollection = store.baseController.getCollection();
-        return processData(fullCollection);
-    }, [store, processData, filter]);
+    // // Get initial data with filtering and sorting applied
+    // const initialData = useMemo(() => {
+    //     const fullCollection = store.baseController.getCollection();
+    //     const processedData = processData(fullCollection);
+    //     return processedData;
+    // }, [store, filter]);
 
     // State for the filtered collection
-    const [collection, setCollectionState] = useState<Data[]>(initialData);
+    const [collection, setCollectionState] = useState<Data[]>(() => {
+        const fullCollection = store.baseController.getCollection();
+        const processedData = processData(fullCollection);
+        return processedData;
+    });
 
     // Callback to call when the collection changes
     const handleCollectionChange = useCallback((data: Data[]) => {
         dbg(`Collection changed in store '${storeId}', processing with filter and sort`);
         const processedData = processData(data);
         setCollectionState(processedData);
-    }, [storeId, processData]);
+    }, [storeId]);
 
     // Subscribe to collection changes
     useEffect(() => {
@@ -123,6 +134,14 @@ function useStore<Data extends Model>(
             store.eventHandler.unsubscribe(handleCollectionChange);
         };
     }, []); // no dependencies, subscribe is done once
+
+    // Do filter again if it changes
+    useEffect(() => {
+        dbg(`Reprocessing collection in store '${storeId}' due to filter change`);
+        const fullCollection = store.baseController.getCollection();
+        const processedData = processData(fullCollection);
+        setCollectionState(processedData);
+    }, [filter, sortByKey, store]);
 
     // Function to update the collection
     const setCollection = useCallback((newCollection: Data[]) => {
@@ -143,13 +162,17 @@ function useStore<Data extends Model>(
         store.baseController.set(model);
     }, [store, storeId]);
 
-    dbg("returning store data: ", initialData);
+    // Add useCom to the return type
+    const useCom = useMemo(() => createUseCom<Data>(store), [store]);
+
+    dbg("returning store data: ", collection);
 
     return {
-        collection: initialData,
+        collection,
         setCollection,
         setModel,
-        controller: store.baseController
+        controller: store.baseController,
+        useCom
     };
 }
 
