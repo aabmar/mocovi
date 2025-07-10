@@ -37,6 +37,7 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
 
             let newCollection = newCollection_
 
+            // Should we overwrite models that are in the collection and have changed?
             let deleteChanged = fromSync && store.syncMode === "get";
             dbg("setCollection() ", store.id, " - deleteChanged: ", deleteChanged, store.syncMode);
 
@@ -170,6 +171,7 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
             } else if (modelId === true) {
                 // Return last model
                 const last = storage.getNewest();  // Assuming you have a method to get the last model
+                dbg("BaseController: select() - selecting last model:", last);
                 if (last) {
                     store.selectedModelId = last.id;
                     notify();

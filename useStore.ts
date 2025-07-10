@@ -103,12 +103,7 @@ function useStore<Data extends Model>(
         return result;
     }, [filter, sortByKey]);
 
-    // // Get initial data with filtering and sorting applied
-    // const initialData = useMemo(() => {
-    //     const fullCollection = store.baseController.getCollection();
-    //     const processedData = processData(fullCollection);
-    //     return processedData;
-    // }, [store, filter]);
+
 
     // State for the filtered collection
     const [collection, setCollectionState] = useState<Data[]>(() => {
@@ -122,7 +117,7 @@ function useStore<Data extends Model>(
         dbg(`Collection changed in store '${storeId}', processing with filter and sort`);
         const processedData = processData(data);
         setCollectionState(processedData);
-    }, [storeId]);
+    }, [storeId, processData]);
 
     // Subscribe to collection changes
     useEffect(() => {

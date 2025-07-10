@@ -86,7 +86,7 @@ const createSync = (
                 dbg("broadcast/direct Callback ", store.id, key);
                 callback(msg);
             }
-            if (msg.operation === "broadcast" || msg.operation === "direct") {
+            if (msg.operation === "broadcast" || msg.operation === "direct" || msg.operation === "cmd") {
                 return;
             }
         }
@@ -96,16 +96,38 @@ const createSync = (
             return;
         }
 
-        // Update the store with the new data
+        // Update the store with the new data if operation is "response" or "update"
+
         if (!msg.payload || !Array.isArray(msg.payload)) {
             log("sync: No payload found in message: ", msg);
             return;
         }
 
-        dbg("!!!!!!!!!!!!!!!!! Setting collection: ", msg.storeId, msg.operation, msg.payload?.length);
-        // If not handled, it is a data operation
+        // Response. Replace the collection with the new data
+        if (msg.operation === "response") {
 
-        store.baseController.setCollection(msg.payload, "sync");
+            dbg("!!!!!!!!!!!!!!!!! Setting collection RESPONSE: ", msg.storeId, msg.operation, msg.payload?.length);
+            // If not handled, it is a data operation
+
+            store.baseController.setCollection(msg.payload, "sync");
+        }
+
+        if (msg.operation === "update") {
+
+            dbg("!!!!!!!!!!!!!!!!! Setting collection UPDATE: ", msg.storeId, msg.operation, msg.payload?.length);
+
+            // We are not going to replace the collection, just update the models
+            // If not handled, it is a data operation
+
+            // TODO: Due to a bug in useStore, not setting state when models in search results change, we need to wait witht this.
+            // for (let i = 0; i < msg.payload.length; i++) {
+            //     const model = msg.payload[i];
+            //     store.baseController.set([model], "no", false);
+            // }
+
+            store.baseController.setCollection(msg.payload, "sync");
+        }
+
 
     }
 

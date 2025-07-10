@@ -125,7 +125,7 @@ function createStorage<Data extends Model>(storeId: string) {
             for (let key of deletedKeys) {
                 const original = internalStorage.get(key);
 
-                // If we should delete changed models, or if the model has not been changed
+                // If we should delete changed models locally, or keep them
                 const modelHasChanged = original.changed_at ? true : false;
 
                 if (deleteChanged || !modelHasChanged) {
