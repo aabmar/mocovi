@@ -64,7 +64,20 @@ function useStore<Data extends Model>(
         { id: modelIdOrFilter } as Partial<Record<keyof Data, string | RegExp>> :
         modelIdOrFilter;
 
-    const filterJson = JSON.stringify(filter);
+
+    // This do not identify the filer correctly if regex is used, so make a clone of the filter 
+    // and if a value is regex, convert it to its string representation before stringifying
+    const filterClone: Partial<Record<keyof Data, string | RegExp>> = {};
+    for (const key in filter) {
+        const value = filter[key];
+        if (value instanceof RegExp) {
+            filterClone[key] = value.toString(); // Convert RegExp to string representation
+        } else {
+            filterClone[key] = value; // Keep other values as is
+        }
+    }
+    // Use the clone for JSON.stringify
+    const filterJson = JSON.stringify(filterClone);
 
 
     log("Using filter: ", filterJson, " and sortByKey: ", sortByKey, " in store: ", storeId);
