@@ -7,7 +7,7 @@ import createUseCom from "./useCom";
 import { isDifferent } from "./util";
 const { log, err, dbg, level } = logger("useStore");
 
-level(LOG_LEVEL_DEBUG);
+// level(LOG_LEVEL_DEBUG);
 
 /**
  * Hook for accessing a collection of models

@@ -2,10 +2,17 @@
 import logger, { LOG_LEVEL_DEBUG } from "./logger";
 const { log, err, dbg, level } = logger("util");
 
-level(LOG_LEVEL_DEBUG);
+// level(LOG_LEVEL_DEBUG);
 
+/**
+ * Compare two objects and return the differences
+ * @param name The name of the object being compared
+ * @param oldObject The old version of the object
+ * @param newObject The new version of the object
+ * @param changes An array to collect the changes
+ * @returns The array of changes
+ */
 
-// Print the differences between two objects with deep path
 function diff(name: string, oldObject: any, newObject: any, changes: string[]) {
 
     // A set with all keys of a and b
@@ -41,38 +48,12 @@ function diff(name: string, oldObject: any, newObject: any, changes: string[]) {
     return changes;
 }
 
-// This function takes an array of previous models and of current model and retruns
-// an array of HistoryDiff objects. Each HistoryDiff contains the original model,
-// the type of change (insert, update, delete), a change object with the changes, and the new model.
-// function modelArrayDiff(previousModels: Model[], currentModels: Model[]): ChangeEntry[] {
-//     const changes: ChangeEntry[] = [];
-
-//     const combinedIds = new Set([...previousModels.map(m => m.id), ...currentModels.map(m => m.id)]);
-
-//     combinedIds.forEach(id => {
-//         const previousModel = previousModels.find(m => m.id === id);
-//         const currentModel = currentModels.find(m => m.id === id);
-
-//         let entry: ChangeEntry | undefined;
-
-//         // Find deleted model
-//         if (previousModel && !currentModel) {
-//             entry = {
-//                 id: previousModel.id,
-//                 type: "delete",
-//                 from: previousModel,
-//                 change: modelDiff(previousModel, {}),
-//                 to: null
-//             };
-//             changes[id] = entry;
-//         } else if (currentModel && isDifferent(previousModel, currentModel)) {
-//             changes[id] = currentModel;
-//         }
-//     });
-
-//     return changes;
-// }
-
+/**
+ * Compare two models and return the differences
+ * @param previousModel The previous model
+ * @param currentModel The current model
+ * @returns An object with the differences
+ */
 function modelDiff(previousModel: { [key: string]: any }, currentModel: { [key: string]: any }): { [key: string]: any } {
     const changes: { [key: string]: any } = {};
     const combinedKeys = [...new Set([...Object.keys(previousModel), ...Object.keys(currentModel)])];
@@ -94,6 +75,12 @@ function modelDiff(previousModel: { [key: string]: any }, currentModel: { [key: 
 
 }
 
+/**
+ * Check if two models are different
+ * @param oldModel The old model
+ * @param newModel The new model
+ * @returns true if the models are different, false otherwise
+ */
 function isDifferent(oldModel: { [key: string]: any } | undefined, newModel: { [key: string]: any }): boolean {
     dbg("isDifferent: oldModel", oldModel);
     dbg("isDifferent: newModel", newModel);
