@@ -42,6 +42,7 @@ You have to initiate every collection by running a createCollection(). This is n
 - `setCollection`: A function to update the entire collection
 - `setModel`: A function to update a single model
 - `controller`: Direct access to the base controller for advanced operations
+- `useCom`: A function to send commands to the synchronization layer
 
 Components using this hook will re-render when relevant data changes based on the filter criteria. See the "State Access with useStore" section for detailed usage examples.
 

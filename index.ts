@@ -7,18 +7,20 @@ import StoreInspector from "./StoreInspector";
 import useHistory from "./useHistory";
 import logger, { setLog } from "./logger";
 import useStore from "./useStore";
+import useController from "./useController";
+
 import {
     Store, Sync, Persist,
     CreateCollectionOptions, CreateController,
     UseController, UseCollection, UseModel, UseSelected,
     Message, Model, BaseController,
     UseSelectedReturn, UseCollectionReturn, UseModelReturn,
-    SyncModes, MessageTypes
+    SyncModes, MessageTypes,
 } from "./types";
 
 export {
     createCollection as createStore, CreateController, BaseController, Model, Persist, clearAll, diff as printDiff, Store, Sync,
     CreateCollectionOptions, UseController, UseCollection, UseModel, UseSelected, Message,
     UseSelectedReturn, UseCollectionReturn, UseModelReturn, StoreInspector, useHistory, logger, setLog,
-    SyncModes, MessageTypes, useStore
+    SyncModes, MessageTypes, useStore, useController
 };

@@ -12,12 +12,28 @@
 - Write operations flow through controllers, propagating changes via event handler
 
 ## State Access Patterns
-- Collection access: `useStore<T>("storeId")` → `{collection, setCollection, setModel, controller}`
-- Filtered collection access: `useStore<T>("storeId", "modelId")` → `{model, setCollection, setModel, controller}` where model the first model in the collection or null
-- Complex filtering: `useStore<T>("storeId", {key: value, ...})` → `{collection, setCollection, setModel, controller}` where collection contains models matching all criteria
-- Sorting: `useStore<T>("storeId", filterObj?, "sortKey")` → `{collection, setCollection, setModel, controller}` where collection is sorted by the specified key
+- Collection access: `useStore<T>("storeId")` → `{collection, setCollection, setModel, controller, model, useCom}`
+- Filtered collection access: `useStore<T>("storeId", "modelId")` → `{collection, setCollection, setModel, controller, model, useCom}` where model the first model in the collection or null
+- Complex filtering: `useStore<T>("storeId", {key: value, ...})` → `{collection, setCollection, setModel, controller, model, useCom}` where collection contains models matching all criteria
+- Sorting: `useStore<T>("storeId", filterObj?, "sortKey")` → `{collection, setCollection, setModel, controller, model, useCom}` where collection is sorted by the specified key
 
 Note that both model and collection are always returned. If collection.length > 0, model is collection[0]. If collection is empty, model is null. This is a good shortcut when using "useStore("storeId", "modelId").
+
+useCom() hook is returned to enable direct communication with server, and provides a callback.
+
+# Re Render on change
+useStore will update a local useState on every change, triggering re render. If you need access to data, but not want this, use {controller, useCom} = useController("storeId") instead. Base controller supplies:
+
+- get("id) - returns a model
+- getCollection() - returns array of all models
+- set(Model) - updates a model
+- setCollection([]) - replaces the whole collection
+- setField("id", "field", "value") - set a specific field.
+- subscribe: (callback: (data: Data[]) => void) => (data: Data[]) => void;
+- unsubscribe: (callback: (data: Data[]) => void) => void;
+- Many more, check the source.
+
+subscribe and unsubscribe are perfect to use in a useEffect(() =>{}, []) to start on mount, and stop on unmount.
 
 
 ## Legacy State Access Patterns
