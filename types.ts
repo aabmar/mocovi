@@ -130,7 +130,8 @@ type UseStoreReturn<Data extends Model> = {
     setCollection: (collection: Data[]) => void,
     setModel: (model: Data) => void,
     controller: BaseController<Data>,
-    useCom: UseCom
+    useCom: UseCom,
+    model: Data | null
 };
 
 export type {

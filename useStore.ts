@@ -24,10 +24,11 @@ function useStore<Data extends Model>(storeId: string): UseStoreReturn<Data>;
  * Component will re-render on any change in the matching models
  * If modelIdOrFilter is a string, it's treated as an ID filter (returns an array of 1 or 0 items)
  * If modelIdOrFilter is an object, it's used to filter by multiple properties
+ * If modelOrFilter is null, it returns an empty array. In React, hooks need to be constant, so if the component doesn't have the ID of the model yet, it will not fail.
  */
 function useStore<Data extends Model>(
     storeId: string,
-    modelIdOrFilter: string | Partial<Record<keyof Data, string | RegExp>>
+    modelIdOrFilter: string | Partial<Record<keyof Data, string | RegExp>> | null
 ): UseStoreReturn<Data>;
 
 /**
@@ -38,7 +39,7 @@ function useStore<Data extends Model>(
  */
 function useStore<Data extends Model>(
     storeId: string,
-    modelIdOrFilter: string | Partial<Record<keyof Data, string | RegExp>>,
+    modelIdOrFilter: string | Partial<Record<keyof Data, string | RegExp>> | null,
     sortByKey: keyof Data
 ): UseStoreReturn<Data>;
 
@@ -51,6 +52,7 @@ function useStore<Data extends Model>(
     sortByKey?: keyof Data
 ): UseStoreReturn<Data> & { useCom: ReturnType<typeof createUseCom<Data>> } {
 
+
     // Get the store
     const store = useMemo(() => getStore(storeId) as Store<Data> | undefined, [storeId]);
 
@@ -60,9 +62,14 @@ function useStore<Data extends Model>(
     }
 
     // Normalize filter - convert string ID to object filter
-    const filter = typeof modelIdOrFilter === 'string' ?
-        { id: modelIdOrFilter } as Partial<Record<keyof Data, string | RegExp>> :
-        modelIdOrFilter;
+    let filter: Partial<Record<keyof Data, string | RegExp>> | null = null;
+    if (typeof modelIdOrFilter === 'string') {
+        filter = { id: modelIdOrFilter } as Partial<Record<keyof Data, string | RegExp>>;
+    } else if (modelIdOrFilter === null) {
+        filter = null;
+    } else {
+        filter = modelIdOrFilter;
+    }
 
 
     // This do not identify the filer correctly if regex is used, so make a clone of the filter 
@@ -77,13 +84,15 @@ function useStore<Data extends Model>(
         }
     }
     // Use the clone for JSON.stringify
-    const filterJson = JSON.stringify(filterClone);
+    const filterString = (filter === null ? "null" : JSON.stringify(filterClone));
 
 
-    log("Using filter: ", filterJson, " and sortByKey: ", sortByKey, " in store: ", storeId);
+    log("Using filter: ", filterString, " and sortByKey: ", sortByKey, " in store: ", storeId);
 
     // Create a function that applies filtering and sorting to data
     const processData = useCallback((data: Data[]): Data[] => {
+        if (filter === null) return [];
+
         let result = [...data];
 
         // Apply filtering if filter is defined
@@ -159,7 +168,7 @@ function useStore<Data extends Model>(
             dbg(`Collection changed after reprocessing, updating state`);
             setCollectionState(processedData);
         }
-    }, [filterJson, sortByKey, store]);
+    }, [filterString, sortByKey, store]);
 
     // Function to update the collection
     const setCollection = useCallback((newCollection: Data[]) => {
@@ -185,12 +194,15 @@ function useStore<Data extends Model>(
 
     dbg("returning store data: ", collection);
 
+    const model = collection.length > 0 ? collection[0] : null;
+
     return {
         collection,
         setCollection,
         setModel,
         controller: store.baseController,
-        useCom
+        useCom,
+        model
     };
 }
 

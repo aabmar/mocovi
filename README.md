@@ -38,6 +38,7 @@ You have to initiate every collection by running a createCollection(). This is n
 ### useStore
 `useStore<Data>(storeId, modelIdOrFilter?, sortByKey?)` provides a unified interface for accessing and manipulating state data. It returns an object with four properties:
 - `collection`: An array of models matching the filter criteria
+- `model`: The first model in the collection or null if the collection is empty. Use this when you use `useStore("storeId", "modelId")` to get the first model in the collection.
 - `setCollection`: A function to update the entire collection
 - `setModel`: A function to update a single model
 - `controller`: Direct access to the base controller for advanced operations

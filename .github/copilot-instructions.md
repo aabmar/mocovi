@@ -13,9 +13,12 @@
 
 ## State Access Patterns
 - Collection access: `useStore<T>("storeId")` → `{collection, setCollection, setModel, controller}`
-- Filtered collection access: `useStore<T>("storeId", "modelId")` → `{collection, setCollection, setModel, controller}` where collection is an array of 1 or 0 items
+- Filtered collection access: `useStore<T>("storeId", "modelId")` → `{model, setCollection, setModel, controller}` where model the first model in the collection or null
 - Complex filtering: `useStore<T>("storeId", {key: value, ...})` → `{collection, setCollection, setModel, controller}` where collection contains models matching all criteria
 - Sorting: `useStore<T>("storeId", filterObj?, "sortKey")` → `{collection, setCollection, setModel, controller}` where collection is sorted by the specified key
+
+Note that both model and collection are always returned. If collection.length > 0, model is collection[0]. If collection is empty, model is null. This is a good shortcut when using "useStore("storeId", "modelId").
+
 
 ## Legacy State Access Patterns
 The legacy system will return separate hooks for each collection when calliong `createStore()`

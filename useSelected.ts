@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
-import useLog from "./logger";
+import useLog, { LOG_LEVEL_DEBUG } from "./logger";
 import { nanoid } from "./nanoid";
 import { Store, UseSelected, UseSelectedReturn } from "./types";
+import { isDifferent } from "./util";
 
 const { log, dbg, level } = useLog("createUseSelected");
 
-// level(LOG_LEVEL_DEBUG);
+level(LOG_LEVEL_DEBUG);
 
 function createUseSelected<Data extends { id: string }>(store: Store<Data>): UseSelected<Data> {
 
@@ -16,26 +17,17 @@ function createUseSelected<Data extends { id: string }>(store: Store<Data>): Use
     function useSelected() {
 
         // The local state data
-        const [changed, setChanged] = useState(0);
-
-
-        let selected = store.baseController.getSelected();
-
-        dbg("& USE SELECTED ", changed, " STORE: ", store.id, " SELECTED: ", (selected ? selected.id : "NONE"));
+        const [selected, setSelected] = useState(store.baseController.getSelected());
 
         const handleChange = useCallback((d: Data[]) => {
             const newModel = store.baseController.getSelected();
 
             // Compare new model with the previously rendered selected model
-            dbg("&& 1) HANDLE CHANGE USE SELECTED ", store.id, changed, "Changed: ", newModel !== selected, (selected ? selected.id : "NONE"), (newModel ? newModel.id : "NONE"));
-            if (newModel !== selected) {
-                dbg("&& 2) HANDLE CHANGE USE SELECTED ", store.id, changed, "Changed: ", newModel !== selected, (selected ? selected.id : "NONE"), (newModel ? newModel.id : "NONE"), changed);
-                setChanged((prev: number) => {
-                    dbg("&& 3) HANDLE CHANGE USE SELECTED ", store.id, changed, "Changed: ", newModel !== selected, (selected ? selected.id : "NONE"), (newModel ? newModel.id : "NONE"), prev);
-                    return prev + 1;
-                });
+            if (isDifferent(newModel, selected)) {
+                dbg("Model in state is different from the current selected model, updating state");
+                setSelected(newModel);
             }
-        }, [store.id, selected]); // Depend on selected to capture the last rendered value
+        }, [store.id, selected, setSelected]); // Depend on selected to capture the last rendered value
 
         // On mount, we subscribe to the event handler
         // and we unsubscribe on unmount

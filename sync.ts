@@ -64,7 +64,7 @@ const createSync = (
             msg.operation, msg.cmd ? "cmd:" + msg.cmd : "", "payload type: ", typeof msg.payload,
             " count: " + msg.payload?.length || 0
         );
-        dbg("Message from server:", msg);
+        log("Message from server:", msg); // HACK: TODO: Remember to switch this back to dbg
 
         // Check if the session id is the same as the current session
         if (msg.sessionId !== sessionId) {
