@@ -24,7 +24,21 @@ The `model` property is always `collection[0] || null` for convenience. `useCom(
 - Use when you need data access/manipulation but don't want component re-renders
 - Perfect for event handlers, background operations, or manual data fetching
 
-BaseController methods: `get(id)`, `getCollection()`, `set(model)`, `setCollection([])`, `setField(id, field, value)`, `select(id)`, `getSelected()`, `subscribe(callback)`, `unsubscribe(callback)`, etc.
+BaseController methods:
+- `get(id)` - retrieve single model by ID, returns model or null
+- `getCollection()` - get all models as array
+- `set(model, select?, markChanged?)` - insert/update model, optionally select it
+- `setCollection(models, source?)` - replace entire collection 
+- `setField(id, field, value, markChanged?)` - update single field on model
+- `select(id | null | true)` - set selected model (null=deselect, true=select newest)
+- `getSelected()` - get currently selected model or null
+- `delete(id)` - remove model from collection
+- `clear()` - remove all models and persist changes
+- `size()` - get count of models in collection
+- `getFirst/getLast/getNewest/getOldest()` - get specific models
+- `has(id)` - check if model exists
+- `fetch(id?)` - trigger sync to fetch data from server
+- `subscribe/unsubscribe(callback)` - manage event subscriptions
 
 ## Legacy Hooks (Deprecated)
 - `useModel("modelId")`, `useCollection()`, `useSelected()`, `useController()` from legacy stores
