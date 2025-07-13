@@ -40,7 +40,7 @@ function useStore<Data extends Model>(
 function useStore<Data extends Model>(
     storeId: string,
     modelIdOrFilter: string | Partial<Record<keyof Data, string | RegExp>> | null,
-    sortByKey: keyof Data
+    sortByKey: keyof Data | ((a: Data, b: Data) => number)
 ): UseStoreReturn<Data>;
 
 /**
@@ -49,7 +49,7 @@ function useStore<Data extends Model>(
 function useStore<Data extends Model>(
     storeId: string,
     modelIdOrFilter?: string | Partial<Record<keyof Data, string | RegExp>>,
-    sortByKey?: keyof Data
+    sortByKey?: keyof Data | ((a: Data, b: Data) => number)
 ): UseStoreReturn<Data> & { useCom: ReturnType<typeof createUseCom<Data>> } {
 
 
@@ -112,18 +112,22 @@ function useStore<Data extends Model>(
 
         // Apply sorting if sortByKey is defined
         if (sortByKey) {
-            result.sort((a, b) => {
-                const aValue = a[sortByKey];
-                const bValue = b[sortByKey];
+            if (typeof sortByKey === 'function') {
+                result.sort(sortByKey);
+            } else {
+                result.sort((a, b) => {
+                    const aValue = a[sortByKey];
+                    const bValue = b[sortByKey];
 
-                if (typeof aValue === 'string' && typeof bValue === 'string') {
-                    return aValue.localeCompare(bValue);
-                }
+                    if (typeof aValue === 'string' && typeof bValue === 'string') {
+                        return aValue.localeCompare(bValue);
+                    }
 
-                if (aValue < bValue) return -1;
-                if (aValue > bValue) return 1;
-                return 0;
-            });
+                    if (aValue < bValue) return -1;
+                    if (aValue > bValue) return 1;
+                    return 0;
+                });
+            }
         }
 
         return result;

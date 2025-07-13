@@ -156,7 +156,10 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
 
         },
 
-        // ID of the model to select. If null, deselect. If true, select the last model.
+        /**
+         * @deprecated Use set(model) or setCollection([]) instead.
+         * ID of the model to select. If null, deselect. If true, select the last model.
+         */
         select(modelId: string | null | true): null | Data {
             dbg("BaseController: select() ", store.id, modelId);
 
