@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getStore } from "./Store";
-import logger, { LOG_LEVEL_DEBUG } from "./logger";
+import logger from "./logger";
 import { nanoid } from "./nanoid";
-import { BaseController, Model, Store, UseStoreReturn } from "./types";
+import { Model, Store, UseStoreReturn } from "./types";
 import createUseCom from "./useCom";
 import { isDifferent } from "./util";
 const { log, err, dbg, level } = logger("useStore");
@@ -39,7 +39,7 @@ function useStore<Data extends Model>(
 function useStore<Data extends Model>(
     storeId: string,
     modelIdOrFilter: string | Partial<Record<keyof Data, string | RegExp>>,
-    sortByKey: keyof Data
+    sortByKey: keyof Data | ((a: Data, b: Data) => number)
 ): UseStoreReturn<Data>;
 
 /**
@@ -48,7 +48,7 @@ function useStore<Data extends Model>(
 function useStore<Data extends Model>(
     storeId: string,
     modelIdOrFilter?: string | Partial<Record<keyof Data, string | RegExp>>,
-    sortByKey?: keyof Data
+    sortByKey?: keyof Data | ((a: Data, b: Data) => number)
 ): UseStoreReturn<Data> & { useCom: ReturnType<typeof createUseCom<Data>> } {
 
     // Get the store
@@ -82,6 +82,7 @@ function useStore<Data extends Model>(
 
     log("Using filter: ", filterJson, " and sortByKey: ", sortByKey, " in store: ", storeId);
 
+
     // Create a function that applies filtering and sorting to data
     const processData = useCallback((data: Data[]): Data[] => {
         let result = [...data];
@@ -98,23 +99,26 @@ function useStore<Data extends Model>(
             });
 
             dbg("Search Result on store: ", storeId, ":", result);
-
         }
 
         // Apply sorting if sortByKey is defined
         if (sortByKey) {
-            result.sort((a, b) => {
-                const aValue = a[sortByKey];
-                const bValue = b[sortByKey];
+            if (typeof sortByKey === 'function') {
+                result.sort(sortByKey);
+            } else {
+                result.sort((a, b) => {
+                    const aValue = a[sortByKey];
+                    const bValue = b[sortByKey];
 
-                if (typeof aValue === 'string' && typeof bValue === 'string') {
-                    return aValue.localeCompare(bValue);
-                }
+                    if (typeof aValue === 'string' && typeof bValue === 'string') {
+                        return aValue.localeCompare(bValue);
+                    }
 
-                if (aValue < bValue) return -1;
-                if (aValue > bValue) return 1;
-                return 0;
-            });
+                    if (aValue < bValue) return -1;
+                    if (aValue > bValue) return 1;
+                    return 0;
+                });
+            }
         }
 
         return result;
