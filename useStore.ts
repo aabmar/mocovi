@@ -22,25 +22,26 @@ function useStore<Data extends Model>(storeId: string): UseStoreReturn<Data>;
  * Returns an object with the filtered collection, functions to update the collection and models,
  * and the controller for advanced operations
  * Component will re-render on any change in the matching models
- * If modelIdOrFilter is a string, it's treated as an ID filter (returns an array of 1 or 0 items)
- * If modelIdOrFilter is an object, it's used to filter by multiple properties
- * If modelOrFilter is null, it returns an empty array. In React, hooks need to be constant, so if the component doesn't have the ID of the model yet, it will not fail.
+ * If filter is a string, it's treated as an ID filter (returns an array of 1 or 0 items)
+ * If filter is an object, it's used to filter by multiple properties
+ * If filter is null, it returns an empty array. In React, hooks need to be constant, so if the component doesn't have the ID of the model yet, it will not fail.
  */
 function useStore<Data extends Model>(
     storeId: string,
-    modelIdOrFilter: string | Partial<Record<keyof Data, string | RegExp>> | null
+    filter: string | Partial<Record<keyof Data, string | RegExp>> | null
 ): UseStoreReturn<Data>;
 
 /**
  * Hook for accessing models filtered by ID or criteria and sorted by a key
  * Returns an object with the filtered and sorted collection, functions to update the collection and models,
  * and the controller for advanced operations
- * Component will re-render on any change in the matching models
+ * Component will re-render on any change in the matching models.
+ * filter can be a string (then checking the field named "id"), an object ("key" : "search value" | Regex), or null (empty collection).
  */
 function useStore<Data extends Model>(
     storeId: string,
-    modelIdOrFilter: string | Partial<Record<keyof Data, string | RegExp>> | null,
-    sortByKey: keyof Data | ((a: Data, b: Data) => number)
+    filter: string | Partial<Record<keyof Data, string | RegExp>> | null,
+    sort: keyof Data | ((a: Data, b: Data) => number)
 ): UseStoreReturn<Data>;
 
 /**
@@ -48,8 +49,8 @@ function useStore<Data extends Model>(
  */
 function useStore<Data extends Model>(
     storeId: string,
-    modelIdOrFilter?: string | Partial<Record<keyof Data, string | RegExp>>,
-    sortByKey?: keyof Data | ((a: Data, b: Data) => number)
+    filter?: string | Partial<Record<keyof Data, string | RegExp>>,
+    sort?: keyof Data | ((a: Data, b: Data) => number)
 ): UseStoreReturn<Data> & { useCom: ReturnType<typeof createUseCom<Data>> } {
 
 
@@ -62,21 +63,21 @@ function useStore<Data extends Model>(
     }
 
     // Normalize filter - convert string ID to object filter
-    let filter: Partial<Record<keyof Data, string | RegExp>> | null = null;
-    if (typeof modelIdOrFilter === 'string') {
-        filter = { id: modelIdOrFilter } as Partial<Record<keyof Data, string | RegExp>>;
-    } else if (modelIdOrFilter === null) {
-        filter = null;
+    let parsedFilter: Partial<Record<keyof Data, string | RegExp>> | null = null;
+    if (typeof filter === 'string') {
+        parsedFilter = { id: filter } as Partial<Record<keyof Data, string | RegExp>>;
+    } else if (filter === null) {
+        parsedFilter = null;
     } else {
-        filter = modelIdOrFilter;
+        parsedFilter = filter;
     }
 
 
     // This do not identify the filer correctly if regex is used, so make a clone of the filter 
     // and if a value is regex, convert it to its string representation before stringifying
     const filterClone: Partial<Record<keyof Data, string | RegExp>> = {};
-    for (const key in filter) {
-        const value = filter[key];
+    for (const key in parsedFilter) {
+        const value = parsedFilter[key];
         if (value instanceof RegExp) {
             filterClone[key] = value.toString(); // Convert RegExp to string representation
         } else {
@@ -84,21 +85,21 @@ function useStore<Data extends Model>(
         }
     }
     // Use the clone for JSON.stringify
-    const filterString = (filter === null ? "null" : JSON.stringify(filterClone));
+    const filterString = (parsedFilter === null ? "null" : JSON.stringify(filterClone));
 
 
-    log("Using filter: ", filterString, " and sortByKey: ", sortByKey, " in store: ", storeId);
+    log("Using filter: ", filterString, " and sortByKey: ", sort, " in store: ", storeId);
 
     // Create a function that applies filtering and sorting to data
     const processData = useCallback((data: Data[]): Data[] => {
-        if (filter === null) return [];
+        if (parsedFilter === null) return [];
 
         let result = [...data];
 
         // Apply filtering if filter is defined
-        if (filter) {
+        if (parsedFilter) {
             result = result.filter(model => {
-                return Object.entries(filter).every(([key, value]) => {
+                return Object.entries(parsedFilter).every(([key, value]) => {
                     if (value instanceof RegExp) {
                         return value.test(String(model[key as keyof Data]));
                     }
@@ -111,13 +112,13 @@ function useStore<Data extends Model>(
         }
 
         // Apply sorting if sortByKey is defined
-        if (sortByKey) {
-            if (typeof sortByKey === 'function') {
-                result.sort(sortByKey);
+        if (sort) {
+            if (typeof sort === 'function') {
+                result.sort(sort);
             } else {
                 result.sort((a, b) => {
-                    const aValue = a[sortByKey];
-                    const bValue = b[sortByKey];
+                    const aValue = a[sort];
+                    const bValue = b[sort];
 
                     if (typeof aValue === 'string' && typeof bValue === 'string') {
                         return aValue.localeCompare(bValue);
@@ -131,7 +132,7 @@ function useStore<Data extends Model>(
         }
 
         return result;
-    }, [filter, sortByKey]);
+    }, [parsedFilter, sort]);
 
 
 
@@ -172,7 +173,7 @@ function useStore<Data extends Model>(
             dbg(`Collection changed after reprocessing, updating state`);
             setCollectionState(processedData);
         }
-    }, [filterString, sortByKey, store]);
+    }, [filterString, sort, store]);
 
     // Function to update the collection
     const setCollection = useCallback((newCollection: Data[]) => {

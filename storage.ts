@@ -150,6 +150,9 @@ function createStorage<Data extends Model>(storeId: string) {
             for (let key of updatedKeys) {
                 const original = internalStorage.get(key);
                 const newModel = newStorage.get(key);
+
+                if (!newModel) continue;
+
                 internalStorage.set(key, newModel);
                 if (markChange) {
                     previous.set(key, JSON.parse(JSON.stringify(original)));
