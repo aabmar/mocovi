@@ -135,6 +135,7 @@ function createCollection<Data extends Model, ExtraController extends object = {
                     persistedData.push(model);
                 }
             } catch (e) {
+                log("json: ", json);
                 err("createStore() Error parsing JSON: ", e);
             }
         }

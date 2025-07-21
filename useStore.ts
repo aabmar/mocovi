@@ -148,7 +148,7 @@ function useStore<Data extends Model>(
         dbg(`Collection changed in store '${storeId}', processing with filter and sort`);
         const processedData = processData(data);
         if (isDifferent(collection, processedData)) {
-            dbg(`Collection changed after reprocessing, updating state`);
+            log(`Collection changed after reprocessing, updating state: `, storeId, processedData.length);
             setCollectionState(processedData);
         }
     }, [storeId, processData]);
