@@ -20,7 +20,7 @@ const { log, err, dbg, level } = useLog("createCollection");
 
 let collectionCounter = 0;
 
-function createCollection<Data extends Model, ExtraController extends object = {}>(
+function createStore<Data extends Model, ExtraController extends object = {}>(
     id: string,
     initialData: Data[] = [],
     options?: CreateCollectionOptions<Data, ExtraController>
@@ -216,4 +216,4 @@ function createCollection<Data extends Model, ExtraController extends object = {
 }
 
 // Export as before for compatibility
-export default createCollection;
+export default createStore;

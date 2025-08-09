@@ -204,7 +204,7 @@ const createSync = (
 
             // Send over new and changed models
             if (models.length > 0) {
-                dbg("createStore() ", storeId, " sending SET message: ", models.length);
+                dbg(storeId, " sending SET message: ", models.length);
                 const message: Message = {
                     storeId,
                     operation: "set",
@@ -226,7 +226,7 @@ const createSync = (
             const payload = deleted.map((model) => ({ id: model.id }));
 
             if (deleted.length > 0) {
-                dbg("createStore() ", storeId, " sending DELETE message: ", deleted.length);
+                dbg(storeId, " sending DELETE message: ", deleted.length);
                 const message: Message = {
                     storeId,
                     operation: "delete",

@@ -242,10 +242,7 @@ com.send("updateUser", { id: "123", name: "Updated Name" });
 Mocovi provides debugging components for development:
 
 ```typescript
-import { StoreInspector } from 'mocovi';
-
-// Display all stores and their data
-<StoreInspector />
+// Debug UI components have been removed from the core package. See separate debug library for store inspection.
 ```
 
 ## Utility Functions
