@@ -1,7 +1,7 @@
 {
     "name": "mocovi",
     "version": "0.14.33",
-    "description": "Data Store for React Native, with no boilerplate",
+    "description": "Data Store core, with no boilerplate",
     "main": "index.ts",
     "type": "module",
     "scripts": {
@@ -10,10 +10,7 @@
     "author": "Marius Aabel",
     "license": "Copyright 2024 Marius Aabel. Can be used as is, at your own responsibility.",
     "dependencies": {
-        "nanoid": "^5.0.9",
-        "react": "^18",
-        "react-native": "^0.76",
-        "@react-native-picker/picker": "^2.9.0"
+        "nanoid": "^5.0.9"
     },
     "devDependencies": {
         "@babel/core": "^7.20.0",
