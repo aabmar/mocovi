@@ -75,9 +75,6 @@ type Store<Data extends Model, ExtraController = {}> = {
     // collectionData2: Map<string, Data>;
     baseController: BaseController<Data>;
     mergedController: BaseController<Data> & ExtraController;
-    useCollection: UseCollection<Data>;
-    useModel: UseModel<Data>;
-    useSelected: UseSelected<Data>;
     useController: UseController<Data, ExtraController>;
     useCom: UseCom;
     selectedModelId: string | null;
@@ -105,12 +102,6 @@ type Message = {
     sessionId?: string; // set this to null, and the system will assign it on sync.send()
 }
 
-type UseSelectedReturn<Data> = [Data | null, (model: Data) => void];
-type UseSelected<Data> = () => UseSelectedReturn<Data>;
-type UseCollectionReturn<Data extends { id: string }> = [Data[], (newCollection: Data[]) => void, string | null];
-type UseCollection<Data extends { id: string }> = () => UseCollectionReturn<Data>;
-type UseModelReturn<Data extends { id: string }> = [Data | null, (newModel: Data) => void];
-type UseModel<Data extends { id: string }> = (modelId: string | undefined) => UseModelReturn<Data>;
 type UseCom = (callback?: (message: Message) => void) => { send: (cmd: string, payload?: any, operation?: MessageTypes) => void };
 
 
@@ -137,9 +128,8 @@ type UseStoreReturn<Data extends Model> = {
 export type {
     Store, Sync, Persist,
     EventHandler, CreateCollectionOptions, CreateController,
-    UseController, UseCollection, UseModel, UseSelected,
+    UseController,
     Message, Model, BaseController,
-    UseSelectedReturn, UseCollectionReturn, UseModelReturn,
     UseCom as UseCommand, ChangeEntry, ChangeLog,
     MessageTypes, SyncModes, UseStoreReturn
 };

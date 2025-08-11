@@ -11,15 +11,15 @@ import useController from "./useController";
 import {
     Store, Sync, Persist,
     CreateCollectionOptions, CreateController,
-    UseController, UseCollection, UseModel, UseSelected,
+    UseController,
     Message, Model, BaseController,
-    UseSelectedReturn, UseCollectionReturn, UseModelReturn,
+
     SyncModes, MessageTypes,
 } from "./types";
 
 export {
     createStore, CreateController, BaseController, Model, Persist, clearAll, diff, Store, Sync,
-    CreateCollectionOptions, UseController, UseCollection, UseModel, UseSelected, Message,
-    UseSelectedReturn, UseCollectionReturn, UseModelReturn, useHistory, logger, setLog,
+    CreateCollectionOptions, UseController, Message,
+    useHistory, logger, setLog,
     SyncModes, MessageTypes, useStore, useController
 };

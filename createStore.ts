@@ -4,9 +4,6 @@ import { createEventHandler } from "./EventHandler";
 import { addEntryToHistory, addStoreToHistory } from "./history";
 import { addStore, getStore, } from "./Store";
 import { BaseController, CreateCollectionOptions, Message, Model, Store, SyncModes } from "./types";
-import createUseCollection from "./useCollection";
-import createUseModel from "./useModel";
-import createUseSelected from "./useSelected";
 import createUseCom from "./useCom";
 
 import useLog, { LOG_LEVEL_DEBUG, setLog } from "./logger";
@@ -45,9 +42,6 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
         // collectionData2: new Map<string, Data>(),
         baseController: null as any, // will be assigned later
         mergedController: null as any, // will be assigned later
-        useCollection: null as any, // will be assigned later
-        useModel: null as any, // will be assigned later
-        useSelected: null as any, // will be assigned later
         useController: null as any, // will be assigned later
         useCom: null as any, // will be assigned later
         selectedModelId: null,
@@ -87,9 +81,6 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
     store.baseController = createBaseController<Data>(store);
     const customController = options?.createController?.(store.baseController) || {} as ExtraController;
     store.mergedController = { ...store.baseController, ...customController } as BaseController<Data> & ExtraController;
-    store.useCollection = createUseCollection<Data>(store);
-    store.useModel = createUseModel<Data>(store);
-    store.useSelected = createUseSelected<Data>(store);
     store.useCom = createUseCom<Data>(store);
 
     /**
