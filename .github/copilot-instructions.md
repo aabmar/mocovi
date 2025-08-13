@@ -23,6 +23,7 @@ The `model` property is always `collection[0] || null` for convenience, if using
 - `useController<T>("storeId")` → `{controller, useCom}` - direct controller access without re-rendering
 - Use when you need data access/manipulation but don't want component re-renders
 - Perfect for event handlers, background operations, or manual data fetching
+- If needed, add a subscribe/unsubscribe from the Controller, and look at the data you get in the callback. If data that should trigger a render has changed use a local state setter.
 
 ### BaseController methods:
 
@@ -41,16 +42,21 @@ The `model` property is always `collection[0] || null` for convenience, if using
 - `fetch(id?)` - trigger sync to fetch data from server
 - `subscribe/unsubscribe(callback)` - manage event subscriptions
 
-## Legacy Hooks (Deprecated)
+## Legacy Hooks (Was deprecated, now removed )
 - `useModel("modelId")`, `useCollection()`, `useSelected()`, `useController()` from legacy stores
 - Legacy `useController()` returns the merged controller directly, new `useController("storeId")` returns `{controller, useCom}`
-- All marked deprecated - migrate to `useStore` or the new `useController`
+- All calls to the old has to be changed to the new  `useStore` or the new `useController`
 
 ## Refactor from legacy to new
-- Replace `useTypeModel("modelId")` with `useStore<Type>("storeId", "modelId")`
-- Replace `useTypeCollection()` with `useStore<Type>("storeId")`
-- Replace `useTypeController()` with `useController<Type>("storeId")`. Note that useStore() returns a controller, so you can use it directly in the component, so no need to use useController() if useStore is alterad in use for that store.
-- Replace `useTypeSelected()` with `useStore<Type>("storeId", "modelId") : Note that state remembering a single global selected item is no longer supported. So when replacing useSelected() you will need to get the ID from somewhere. Store it in a local state, add it as a prop to the component, etc. Common pattern: use the parameters from Expo Router on the main page, passing the current id as a prop to the components. On a deep component tree, a Context can be used to pass the selected ID down. Never automatically just replace a useSelected() to a useStore() without a model id. It will return the complete collection.
+- Replace `use[Type]Model("modelId")` with `useStore<Type>("storeId", "modelId")`
+- Replace `use[Type]Collection()` with `useStore<Type>("storeId")`
+- Replace `use[Type]Controller()` with `useController<Type>("storeId")`. Note that useStore() returns a controller, so you can use it directly in the component, so no need to use useController() if useStore is alterad in use for that store.
+- Replace `use[Type]Selected()` with `useStore<Type>("storeId", "modelId") : Important: useSelected() has no equivalent in the new system. There is no single state for the currently selected model. When I made it, I knew there might be issues with the global state, and yes, they apperaed more often than I thought. So to make solid, testable, beautiful code, it had to go. Now the state of the current model has to be stored in the components. Common patterns: getting it from the Expo Router parametrized URL: /admin/tempate/[id].tsx : gives the id of the template edited. Then give it as props to the children. This is more typing, but it is very important to get right. Another way: get it from session like thus: const s = useSession(); const id = s.userId. This is done in a session context for a few cases where it is neccessary. The recommended pattern is that the outermost component fetches it and passes it down the chain to children as pros. This way, components don't need this implementation specific thing and component resuse or later refactoring will be easy. So how do you refactor "const [sign] = useSignSelected()" ? like this:
+
+```
+const userId = // Get the user id from somewhere. From URL, from session, or locally stored in a useState<string>(null); 
+```
+ Some times this refactoring is obvious. Other times, you have to ask the user how to best perform the refactoring.
 
 ## Persistence/Sync
 - Pluggable storage backends (synchronous only)
