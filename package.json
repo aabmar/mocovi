@@ -1,6 +1,6 @@
 {
     "name": "mocovi",
-    "version": "0.15.0",
+    "version": "0.15.1",
     "description": "Data Store core, with no boilerplate",
     "main": "index.ts",
     "type": "module",

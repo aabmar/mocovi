@@ -72,11 +72,8 @@ type CreateController<Data, ExtraController = {}> = (baseController: BaseControl
 type Store<Data extends Model, ExtraController = {}> = {
     id: string;
     eventHandler: EventHandler<Data[]>;
-    // collectionData2: Map<string, Data>;
     baseController: BaseController<Data>;
     mergedController: BaseController<Data> & ExtraController;
-    useController: UseController<Data, ExtraController>;
-    useCom: UseCom;
     selectedModelId: string | null;
     persist?: Persist;
     syncMode: SyncModes;

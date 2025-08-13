@@ -51,7 +51,7 @@ function useStore<Data extends Model>(
     storeId: string,
     filter?: string | Partial<Record<keyof Data, string | RegExp>>,
     sort?: keyof Data | ((a: Data, b: Data) => number)
-): UseStoreReturn<Data> & { useCom: ReturnType<typeof createUseCom<Data>> } {
+): UseStoreReturn<Data> {
 
 
     // Get the store

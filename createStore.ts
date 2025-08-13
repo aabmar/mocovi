@@ -42,8 +42,6 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
         // collectionData2: new Map<string, Data>(),
         baseController: null as any, // will be assigned later
         mergedController: null as any, // will be assigned later
-        useController: null as any, // will be assigned later
-        useCom: null as any, // will be assigned later
         selectedModelId: null,
         persist: options?.persist,
         syncMode,
@@ -81,14 +79,6 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
     store.baseController = createBaseController<Data>(store);
     const customController = options?.createController?.(store.baseController) || {} as ExtraController;
     store.mergedController = { ...store.baseController, ...customController } as BaseController<Data> & ExtraController;
-    store.useCom = createUseCom<Data>(store);
-
-    /**
-     * @deprecated This hook is deprecated and will be removed in a future version.
-     * Please use the new useStore hook instead for most cases.
-     * If you need direct controller access, consider refactoring your code.
-     */
-    store.useController = () => store.mergedController;
 
     // Store it in our global map
     addStore(store);
