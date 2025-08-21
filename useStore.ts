@@ -9,6 +9,7 @@ const { log, err, dbg, level } = logger("useStore");
 
 // level(LOG_LEVEL_DEBUG);
 
+
 /**
  * Hook for accessing a collection of models
  * Returns an object with the collection, functions to update the collection and models,
@@ -45,14 +46,37 @@ function useStore<Data extends Model>(
 ): UseStoreReturn<Data>;
 
 /**
+ * Hook for accessing models by ID and with re-render filter.
+ * It will return the model identified by ID as {model}.
+ * The eventFilter, if given, will only do a re-render (local state update) when
+ * the specified fields in Model is/are changed. Has to be an array.
+ */
+function useStore<Data extends Model>(
+    storeId: string,
+    id: string | null,
+    eventFilter: (keyof Data)[]
+): UseStoreReturn<Data>;
+
+
+/**
  * Implementation of the useStore hook
  */
 function useStore<Data extends Model>(
     storeId: string,
     filter?: string | Partial<Record<keyof Data, string | RegExp>>,
-    sort?: keyof Data | ((a: Data, b: Data) => number)
+    extra?: keyof Data | ((a: Data, b: Data) => number) | (keyof Data)[]
+
 ): UseStoreReturn<Data> {
 
+    // Set the last parameter to the correct variable based on type.
+    let sort: keyof Data | ((a: Data, b: Data) => number) | undefined;
+    let eventFilter: (keyof Data)[] | undefined;
+
+    if (Array.isArray(extra)) {
+        eventFilter = extra;
+    } else {
+        sort = extra;
+    }
 
     // Get the store
     const store = useMemo(() => getStore(storeId) as Store<Data> | undefined, [storeId]);
@@ -117,8 +141,8 @@ function useStore<Data extends Model>(
                 result.sort(sort);
             } else {
                 result.sort((a, b) => {
-                    const aValue = a[sort];
-                    const bValue = b[sort];
+                    const aValue = a[sort as keyof Data];
+                    const bValue = b[sort as keyof Data];
 
                     if (typeof aValue === 'string' && typeof bValue === 'string') {
                         return aValue.localeCompare(bValue);
@@ -147,11 +171,32 @@ function useStore<Data extends Model>(
     const handleCollectionChange = useCallback((data: Data[]) => {
         dbg(`Collection changed in store '${storeId}', processing with filter and sort`);
         const processedData = processData(data);
-        if (isDifferent(collection, processedData)) {
+        let a: {}[] = collection;
+        let b: {}[] = processedData;
+
+        // If we have a eventFilter, we will map out only the specified fields to a and b
+        // because only if those fields change we want to trigger an update
+        if (eventFilter) {
+            const f: string[] = eventFilter as string[];
+            a = a.map(item => f.reduce((acc, key) => {
+                if (item.hasOwnProperty(key)) { // Optional: Check if the key exists
+                    acc[key] = item[key];
+                }
+                return acc;
+            }, {}));
+            b = b.map(item => f.reduce((acc, key) => {
+                if (item.hasOwnProperty(key)) { // Optional: Check if the key exists
+                    acc[key] = item[key];
+                }
+                return acc;
+            }, {}));
+        }
+
+        if (isDifferent(a, b)) {
             log(`Collection changed after reprocessing, updating state: `, storeId, processedData.length);
             setCollectionState(processedData);
         }
-    }, [storeId, processData]);
+    }, [storeId, processData, setCollectionState, collection, eventFilter]);
 
     // Subscribe to collection changes
     useEffect(() => {

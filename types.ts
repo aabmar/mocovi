@@ -10,10 +10,8 @@ type BaseController<Data> = {
     getCollection: () => Data[];
     getInternalStorage(): Map<string, Data>;
     getField: (modelId: string, key: keyof Data) => any;
-    getSelected: () => Data | null;
-    getSelectedId(): string | null;
-    select: (modelId: string | null | true) => null | Data;
-    set: (model: Data, select?: "no" | "if_empty" | "yes", markChanged?: boolean) => void;
+
+    set: (model: Data, markChanged?: boolean) => void;
     setCollection: (newCollection: Data[], source?: "persist" | "sync" | false) => void;
     setField: (modelId: string, key: keyof Data, value: any, markChanged?: boolean) => void;
     fetch(id?: string | string[]): void;
@@ -60,7 +58,6 @@ type CreateCollectionOptions<Data, ExtraController = {}> = {
     createController?: CreateController<Data, ExtraController>
     persist?: Persist,
     sync?: SyncModes,
-    autoSelect?: boolean,
     useHistory?: boolean,
 };
 
@@ -74,13 +71,11 @@ type Store<Data extends Model, ExtraController = {}> = {
     eventHandler: EventHandler<Data[]>;
     baseController: BaseController<Data>;
     mergedController: BaseController<Data> & ExtraController;
-    selectedModelId: string | null;
     persist?: Persist;
     syncMode: SyncModes;
     sync?: Sync;
     syncCallback?: (changes: { inserted: Model[]; updated: Model[]; deleted: Model[]; previous: Model[]; }) => void;
     initialData?: Data[];
-    autoSelect?: boolean;
     history?: boolean;
     subscribesTo: Map<(msg: Message) => void, string>;
     subscribe: (topic: string, callback: (msg: Message) => void) => void;

@@ -45,26 +45,6 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
 
             if (storage.setArray(newCollection_, skipMarking, deleteChanged)) {
 
-                // If the collection is empty, set selectedModelId to null
-                if (storage.size() === 0) {
-                    dbg("BaseController: setCollection() empty collection, deselecting", store.id);
-                    store.selectedModelId = null;
-                }
-
-                // If the selected is no longer in the collection, remove selection
-                if (store.selectedModelId && !storage.has(store.selectedModelId)) {
-                    dbg(`BaseController: setCollection() ${store.id} selected model (${store.selectedModelId}) no longer in collection, deselecting`);
-                    store.selectedModelId = null;
-                }
-
-                // If autoSelect is enabled, and no model is selected, select the first model
-                if (store.autoSelect && !store.selectedModelId && storage.size() > 0) {
-                    const firstModel = storage.getNewest();
-                    if (firstModel) {
-                        store.selectedModelId = firstModel.id;
-                        dbg(`BaseController: setCollection() ${store.id} auto-selected model (${store.selectedModelId})`);
-                    }
-                }
                 notify();
 
             }
@@ -80,20 +60,12 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
             return model ? model[key] : null;
         },
 
-        getSelected(): Data | null {
-            if (!store.selectedModelId) return null;
-            return baseController.get(store.selectedModelId);
-        },
-
-        getSelectedId(): string | null {
-            return store.selectedModelId;
-        },
 
         // Set one existing model to the collection. The model will be overwritten, not merged.
         // Todo: support array of models? Or maybe make a setModels or updateCollection instead? Goal: less calls to setCollection
-        set(model: Data, select: "no" | "if_empty" | "yes" = "no", markChanged = true) {
+        set(model: Data, markChanged = true) {
 
-            dbg("SET: ", store.id, model, select, markChanged);
+            dbg("SET: ", store.id, model, markChanged);
 
             // Normally we need to mark the the model as updated due to sync
             if (markChanged) {
@@ -104,12 +76,6 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
             // Store
             const wasDifferent = storage.set(model);
 
-            // Should we set this model as selected?
-            if (select === "yes" || store.autoSelect) {
-                baseController.select(model.id);
-            } else if (select === "if_empty" && storage.size() === 0) {
-                baseController.select(model.id);
-            }
             if (wasDifferent) {
                 log("set() ", store.id, model.id, " - was different - NOTIFYING");
                 notify();
@@ -124,7 +90,7 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
             const oldModel = storage.get(modelId);
             if (!oldModel) return false;
 
-            store.baseController.set({ ...oldModel, [key]: value }, "no", markChanged);
+            store.baseController.set({ ...oldModel, [key]: value }, markChanged);
         },
 
         clear() {
@@ -135,7 +101,6 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
             storage.clear();
             notify();
 
-            baseController.select(null);
         },
 
         delete(modelId: string) {
@@ -144,52 +109,10 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
             // Delete
             storage.delete(modelId);
 
-            // Handle selected
-            if (store.selectedModelId === modelId) {
-                if (store.autoSelect) {
-                    baseController.select(true);
-                } else {
-                    baseController.select(null);
-                }
-            }
             notify();
 
         },
 
-        /**
-         * @deprecated Use set(model) or setCollection([]) instead.
-         * ID of the model to select. If null, deselect. If true, select the last model.
-         */
-        select(modelId: string | null | true): null | Data {
-            dbg("BaseController: select() ", store.id, modelId);
-
-            if (store.selectedModelId === modelId) {
-                return null;
-            }
-
-            if (!modelId) {
-                store.selectedModelId = null;
-                notify();
-                return null;
-            } else if (modelId === true) {
-                // Return last model
-                const last = storage.getNewest();  // Assuming you have a method to get the last model
-                dbg("BaseController: select() - selecting last model:", last);
-                if (last) {
-                    store.selectedModelId = last.id;
-                    notify();
-                    return last;
-                } else {
-                    return null;
-                }
-            } else if (!storage.has(modelId)) {
-                return null;
-            }
-
-            store.selectedModelId = modelId;
-            notify();
-            return storage.get(modelId);
-        },
 
         fetch(id?: string | string[] | [{ id: string }]) {
 

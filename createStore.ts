@@ -42,12 +42,10 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
         // collectionData2: new Map<string, Data>(),
         baseController: null as any, // will be assigned later
         mergedController: null as any, // will be assigned later
-        selectedModelId: null,
         persist: options?.persist,
         syncMode,
         sync: undefined,
         initialData: originalInitialData, // should we do this? might be a lot of data
-        autoSelect: options?.autoSelect === false ? false : true,
         history: true,
         subscribesTo: new Map<(msg: Message) => void, string>,
 
@@ -188,10 +186,6 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
         );
     }
 
-    // Set selected to the first model, if any
-    if (store.autoSelect && store.baseController.size() > 0 && !store.selectedModelId) {
-        store.baseController.select(true);
-    }
 
     return store;
 }

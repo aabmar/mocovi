@@ -29,11 +29,9 @@ The `model` property is always `collection[0] || null` for convenience, if using
 
 - `get(id)` - retrieve single model by ID, returns model or null
 - `getCollection()` - get all models as array
-- `set(model, select?, markChanged?)` - insert/update model, optionally select it
+- `set(model, markChanged?)` - insert/update model
 - `setCollection(models, source?)` - replace entire collection
 - `setField(id, field, value, markChanged?)` - update single field on model
-- `select(id | null | true)` - set selected model (null=deselect, true=select newest)
-- `getSelected()` - get currently selected model or null
 - `delete(id)` - remove model from collection
 - `clear()` - remove all models and persist changes
 - `size()` - get count of models in collection

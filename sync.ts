@@ -121,7 +121,7 @@ const createSync = (
 
             for (let i = 0; i < msg.payload.length; i++) {
                 const model = msg.payload[i];
-                store.baseController.set(model, "no", false);
+                store.baseController.set(model, false);
             }
 
             // store.baseController.setCollection(msg.payload, "sync");
@@ -217,7 +217,7 @@ const createSync = (
                 if (ret) {
                     for (let model of models) {
                         model.changed_at = undefined;
-                        store.baseController.set(model, "no", false);
+                        store.baseController.set(model, false);
                     }
                 }
             }
@@ -309,5 +309,19 @@ function getSync(endpoint: string, sessionId: string, getStore: (id: string) => 
     return sync__;
 }
 
+function stopSync() {
+    if (sync__) {
+        sync__.close();
+        sync__ = undefined;
+    }
+}
 
-export { getSync };
+function attach(store: Store<any>) {
+    if (sync__) {
+        sync__.attach(store);
+    } else {
+        log("No sync instance available to attach store: ", store.id);
+    }
+}
+
+export { getSync, stopSync, attach };

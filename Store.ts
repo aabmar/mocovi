@@ -1,4 +1,4 @@
-import { getSync } from "./sync";
+import { attach, getSync } from "./sync";
 import { Store, Sync } from "./types";
 
 // Global store map. This might be moved to a Context later.
@@ -7,7 +7,7 @@ const stores = new Map<string, Store<any>>();
 // Add a store to the store map
 function addStore(store: Store<any>) {
     stores.set(store.id, store);
-    if (sync_) sync_.attach(store);
+    attach(store);
 }
 
 // Get a store from the store map
@@ -22,12 +22,10 @@ function getStores() {
 // Clear all stores
 function clearAll() {
     for (let store of stores.values()) {
-        store.useController().clear();
+        store.baseController.clear();
     }
 }
 
-// Global sync object
-let sync_: Sync | undefined;
 
 // Logged in session.
 let sessionId_: string;
@@ -36,19 +34,12 @@ let sessionId_: string;
 function startSync(url: string, sessionId: string) {
     sessionId_ = sessionId;
     console.log("Store: startSync() url: ", url, "sessionId: ", sessionId);
-    sync_ = getSync(url, sessionId, getStore, getStores);
+    getSync(url, sessionId, getStore, getStores);
 }
 
 
-
-function stopSync() {
-    if (sync_) {
-        sync_.close();
-        sync_ = undefined;
-    }
-}
 
 
 export {
-    addStore, clearAll, getStore, getStores, startSync, stopSync
+    addStore, clearAll, getStore, getStores, startSync
 };

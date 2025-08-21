@@ -7,6 +7,7 @@ import useHistory from "./useHistory";
 import logger, { setLog } from "./logger";
 import useStore from "./useStore";
 import useController from "./useController";
+import { stopSync } from "./sync";
 
 import {
     Store, Sync, Persist,
@@ -20,6 +21,6 @@ import {
 export {
     createStore, CreateController, BaseController, Model, Persist, clearAll, diff, Store, Sync,
     CreateCollectionOptions, UseController, Message,
-    useHistory, logger, setLog,
+    useHistory, logger, setLog, stopSync,
     SyncModes, MessageTypes, useStore, useController
 };

@@ -10,7 +10,6 @@ Mocovi is a React state management library designed for managing collections of 
 - **Non-reactive access** for background operations without triggering re-renders
 - **Pluggable persistence** with synchronous storage backends
 - **Configurable synchronization** with backend servers
-- **Global selection state** for shared model selection across components
 
 ## Quick Start
 
@@ -71,8 +70,6 @@ The `BaseController<Data>` provides core methods for data manipulation:
 - `set(model)` - update or insert a model
 - `setCollection(models)` - replace entire collection
 - `setField(id, field, value)` - update specific field
-- `select(id)` - set globally selected model
-- `getSelected()` - get currently selected model
 
 ## Primary Hook: useStore
 
@@ -175,7 +172,6 @@ createCollection<User>("users", initialData, {
 ```typescript
 createCollection<User>("users", initialData, {
   sync: "auto", // "auto" | "get" | "set" | "manual" | false
-  autoSelect: true // Automatically select first model
 });
 ```
 
@@ -197,7 +193,7 @@ createCollection<User, UserController>("users", initialData, {
 });
 ```
 
-## Legacy Hooks (Deprecated)
+## Legacy Hooks (now removed from the library)
 
 The following hooks are maintained for backward compatibility but should be migrated to `useStore`:
 
