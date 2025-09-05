@@ -7,7 +7,7 @@ import createUseCom from "./useCom";
 import { isDifferent } from "./util";
 const { log, err, dbg, level } = logger("useStore");
 
-// level(LOG_LEVEL_DEBUG);
+level(LOG_LEVEL_DEBUG);
 
 
 /**
@@ -161,18 +161,30 @@ function useStore<Data extends Model>(
 
 
     // State for the filtered collection
-    const [collection, setCollectionState] = useState<Data[]>(() => {
+    const [collection, setCollectionState_] = useState<Data[]>(() => {
         const fullCollection = store.baseController.getCollection();
         const processedData = processData(fullCollection);
         return processedData;
     });
 
+    const setCollectionState = useCallback((newCollection: Data[]) => {
+        setCollectionState_(prevCollection => {
+            if (isDifferent(prevCollection, newCollection)) {
+                dbg(`Collection state UPDATED in store '${storeId}', old length: ${prevCollection.length}, new length: ${newCollection.length}`);
+                return newCollection;
+            }
+            dbg(`Collection state NOT updated in store '${storeId}', old length: ${prevCollection.length}, new length: ${newCollection.length}`);
+            return prevCollection; // No change
+        });
+    }, [setCollectionState_]);
+
     // Callback to call when the collection changes
     const handleCollectionChange = useCallback((data: Data[]) => {
-        dbg(`Collection changed in store '${storeId}', processing with filter and sort`);
         const processedData = processData(data);
         let a: {}[] = collection;
         let b: {}[] = processedData;
+
+        dbg(`Collection changed in store '${storeId}', processing with filter and sort. Old length: ${collection.length}, new length: ${processedData.length}`);
 
         // If we have a eventFilter, we will map out only the specified fields to a and b
         // because only if those fields change we want to trigger an update
@@ -192,10 +204,7 @@ function useStore<Data extends Model>(
             }, {}));
         }
 
-        if (isDifferent(a, b)) {
-            log(`Collection changed after reprocessing, updating state: `, storeId, processedData.length);
-            setCollectionState(processedData);
-        }
+        setCollectionState(processedData);
     }, [storeId, processData, setCollectionState, collection, eventFilter]);
 
     // Subscribe to collection changes
@@ -214,10 +223,8 @@ function useStore<Data extends Model>(
         dbg(`Reprocessing collection in store '${storeId}' due to filter change`);
         const fullCollection = store.baseController.getCollection();
         const processedData = processData(fullCollection);
-        if (isDifferent(collection, processedData)) {
-            dbg(`Collection changed after reprocessing, updating state`);
-            setCollectionState(processedData);
-        }
+        setCollectionState(processedData);
+
     }, [filterString, sort, store]);
 
     // Function to update the collection
