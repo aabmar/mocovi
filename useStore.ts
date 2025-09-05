@@ -2,12 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { getStore } from "./Store";
 import logger, { LOG_LEVEL_DEBUG } from "./logger";
 import { nanoid } from "./nanoid";
-import { BaseController, Model, Store, UseStoreReturn } from "./types";
+import { Model, Store, UseStoreReturn } from "./types";
 import createUseCom from "./useCom";
 import { isDifferent } from "./util";
 const { log, err, dbg, level } = logger("useStore");
 
-level(LOG_LEVEL_DEBUG);
+// level(LOG_LEVEL_DEBUG);
 
 
 /**
