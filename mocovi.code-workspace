@@ -28,11 +28,11 @@
 			"commands": [
 				{
 					"match": "\\.(ts|json|tsx)$",
-					"cmd": "copy ${fileBasename} ..\\app\\node_modules\\mocovi\\${fileBasename}",
+					"cmd": "cp ${fileBasename} ../app/node_modules/mocovi/${fileBasename}",
 				},
 				{
 					"match": "\\.(ts|json|tsx)$",
-					"cmd": "dir ..\\app\\node_modules\\mocovi\\",
+					"cmd": "ls ../app/node_modules/mocovi/",
 				},
 			]
 		},
