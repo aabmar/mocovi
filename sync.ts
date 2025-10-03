@@ -11,10 +11,17 @@ const createSync = (
     endpoint: string,
     sessionId: string,
     getStore: (storeId: string) => Store<any> | undefined,
-    getStores: () => Map<string, Store<any>>
+    getStores: () => Map<string, Store<any>>,
+    notAuthorizedCallback?: () => void
 ): Sync => {
+
+    if (sync__) {
+        return sync__;
+    }
+
     (window as any).inscance_ = ((window as any).inscance_ || 0) + 1;
     const instance = (window as any).inscance_;
+
     dbg("createSync() endpoint: ", endpoint, "sessionId: ", sessionId, "instance: ", instance);
     const ws = new WebSocket(endpoint);
 
@@ -62,13 +69,17 @@ const createSync = (
         }
         log("====== ", msg.storeId, " ==== Message from server:",
             msg.operation, msg.cmd ? "cmd:" + msg.cmd : "", "payload type: ", typeof msg.payload,
-            " count: " + msg.payload?.length || 0
+            " count: " + msg.payload?.length || 0, " error: " + msg.error_code || ""
         );
-        log("Message from server:", msg); // HACK: TODO: Remember to switch this back to dbg
+        dbg("Message from server:", msg); // HACK: TODO: Remember to switch this back to dbg
 
         // Check if the session id is the same as the current session
         if (msg.sessionId !== sessionId) {
             log("Session id mismatch, ignoring message. Message: ", msg.sessionId, "Session: ", sessionId);
+
+            if (msg.error_code === 401 && notAuthorizedCallback) {
+                notAuthorizedCallback();
+            }
             return;
         }
 
@@ -300,12 +311,12 @@ const createSync = (
  * @param getStores - Function to retrieve an iterable of all stores.
  * @returns The Sync instance.
  */
-function getSync(endpoint: string, sessionId: string, getStore: (id: string) => Store<any> | undefined, getStores: () => Map<string, Store<any>>): Sync {
+function getSync(endpoint: string, sessionId: string, getStore: (id: string) => Store<any> | undefined, getStores: () => Map<string, Store<any>>, notAuthorizedCallback?: () => void): Sync {
 
     if (sync__) {
         return sync__;
     }
-    sync__ = createSync(endpoint, sessionId, getStore, getStores);
+    sync__ = createSync(endpoint, sessionId, getStore, getStores, notAuthorizedCallback);
     return sync__;
 }
 

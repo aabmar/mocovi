@@ -31,10 +31,10 @@ function clearAll() {
 let sessionId_: string;
 
 // Start a sync session. TODO: sessionId need to change if the user logs out and in again.
-function startSync(url: string, sessionId: string) {
+function startSync(url: string, sessionId: string, notAuthorizedCallback?: () => void) {
     sessionId_ = sessionId;
     console.log("Store: startSync() url: ", url, "sessionId: ", sessionId);
-    getSync(url, sessionId, getStore, getStores);
+    getSync(url, sessionId, getStore, getStores, notAuthorizedCallback);
 }
 
 
