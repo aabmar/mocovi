@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { getStore } from "./Store";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import logger, { LOG_LEVEL_DEBUG } from "./logger";
 import { nanoid } from "./nanoid";
 import { Model, Store, UseStoreReturn } from "./types";
 import createUseCom from "./useCom";
 import { isDifferent } from "./util";
+import MocoviContext from "./MocoviContext";
 const { log, err, dbg, level } = logger("useStore");
 
 // level(LOG_LEVEL_DEBUG);
@@ -68,6 +68,7 @@ function useStore<Data extends Model>(
 
 ): UseStoreReturn<Data> {
 
+    const mocovi = useContext(MocoviContext);
     // Set the last parameter to the correct variable based on type.
     let sort: keyof Data | ((a: Data, b: Data) => number) | undefined;
     let eventFilter: (keyof Data)[] | undefined;
@@ -79,7 +80,7 @@ function useStore<Data extends Model>(
     }
 
     // Get the store
-    const store = useMemo(() => getStore(storeId) as Store<Data> | undefined, [storeId]);
+    const store = useMemo(() => mocovi.getStore(storeId) as Store<Data> | undefined, [storeId]);
 
     if (!store) {
         err(`Store with ID '${storeId}' not found`);

@@ -5,57 +5,45 @@ const { log, err, dbg, level } = useLog("sync");
 
 import { ChangeEntry, Message, Store, Sync } from "./types";
 
-let sync__: Sync | undefined;
-
-const createSync = (
+const sync = (
     endpoint: string,
     sessionId: string,
     getStore: (storeId: string) => Store<any> | undefined,
     getStores: () => Map<string, Store<any>>,
-    notAuthorizedCallback?: () => void
+    notAuthorizedCallback?: () => void,
+    onClose?: () => void // Use this to reconnect. It will not be called if you call sync.close()
 ): Sync => {
 
-    if (sync__) {
-        return sync__;
-    }
 
     (window as any).inscance_ = ((window as any).inscance_ || 0) + 1;
     const instance = (window as any).inscance_;
 
-    dbg("createSync() endpoint: ", endpoint, "sessionId: ", sessionId, "instance: ", instance);
+    dbg("startSync() endpoint: ", endpoint, "sessionId: ", sessionId, "instance: ", instance);
     const ws = new WebSocket(endpoint);
 
-    let connected: boolean = false;
-    let isReconnecting: boolean = false;
     let pingCount = 0;
-    let doReconnect = true;
+    let doPing = true;
+    let pingTimer: any;
+    let attachTimer: any;
 
     function ping() {
-        if (!connected) return;
-        // ws.ping();
         ws.send("ping");
         log("Ping sent: ", instance, pingCount++);
-
-
-        if ((window as any).inscance_ !== instance) {
-            log("We found duplicate instance, closing this one");
-            doReconnect = false;
-            ws.close();
-            return;
+        if (doPing) {
+            pingTimer = setTimeout(ping, 10000);
         }
-        setTimeout(ping, 10000);
     }
 
     // The store has given us callbacks we should call on events
 
     ws.onopen = () => {
         log("WebSocket connection opened: ", endpoint);
-        connected = true;
-        isReconnecting = false;
+
         for (let store of getStores().values()) {
             sync.attach(store);
         }
         ping();
+
     };
 
     ws.onmessage = async (e) => {
@@ -123,6 +111,7 @@ const createSync = (
             store.baseController.setCollection(msg.payload, "sync");
         }
 
+        // Update. Only set the models in the payload, not replace the collection
         if (msg.operation === "update") {
 
             dbg("!!!!!!!!!!!!!!!!! Setting collection UPDATE: ", msg.storeId, msg.operation, msg.payload?.length);
@@ -135,20 +124,29 @@ const createSync = (
                 store.baseController.set(model, false);
             }
 
-            // store.baseController.setCollection(msg.payload, "sync");
         }
-
-
     }
 
+    // Event on error
     ws.onerror = (e) => {
         dbg("WebSocket error:", e);
-        connected = false;
+        ws.close();
     };
 
+    // Event when the connection is closed
     ws.onclose = (e) => {
         log("WebSocket connection closed:", e.code, e.reason);
-        connected = false;
+
+        // Stop ping and any pending attach
+        doPing = false;
+        if (pingTimer) {
+            clearTimeout(pingTimer);
+            pingTimer = undefined;
+        }
+        if (attachTimer) {
+            clearTimeout(attachTimer);
+            attachTimer = undefined;
+        }
 
         for (let store of getStores().values()) {
             if (store.sync) {
@@ -156,56 +154,36 @@ const createSync = (
             }
         }
 
-        if (sync__) {
-            sync__ = undefined;
-            if (doReconnect) reconnect();
+        // Call the callback if we got any. This will normally be set up to try to reconnect
+        if (onClose) {
+            onClose();
         }
     }
 
-    function reconnect(cb?: () => void) {
-        if (isReconnecting) return;
-        isReconnecting = true;
-        setTimeout(() => {
-            sync__ = createSync(endpoint, sessionId, getStore, getStores);
-            if (cb) cb();
-        }, 5000);
-    }
-
-    // The objec we send back to the Store
+    // The object we send back to the Store
     let sync: Sync = {
         send: (msg: Message): boolean => {
             log("sync: Sending message: ", msg.operation, msg.storeId, typeof msg.payload);
-            if (!connected) {
-                reconnect(() => {
-                    sync.send(msg);
-                });
-                return true;
-            }
 
             if (!msg.operation) throw new Error("sync: No operation in message");
 
             // Assign the session id to the message
             msg.sessionId = sessionId;
 
-            if (connected) {
-                let data: string;
-                try {
-                    data = JSON.stringify(msg);
-                    ws.send(data);
-                } catch (e) {
-                    err("sync: Error sending message:", e);
-                    return false;
-                }
-                return true;
-            } else {
-                log("sync: WebSocket not connected");
+            let data: string;
+            try {
+                data = JSON.stringify(msg);
+                ws.send(data);
+            } catch (e) {
+                err("sync: Error sending message:", e);
                 return false;
             }
+            return true;
         },
+
         sendChanges: (store: Store<any>, changes: ChangeEntry): boolean => {
 
             const combined = [...changes.inserted, ...changes.updated];
-
 
             // filter out only models with changed_at set
             const models = combined.filter((model) => model.changed_at);
@@ -250,18 +228,21 @@ const createSync = (
             return false;
         },
 
+        // Call this to close the connection. The onClose callback will not be called then.
         close: () => {
-            sync__ = undefined;
+            onClose = undefined;
             ws.close();
         },
 
+        // Attach the sync object to the store and set up sync if needed
+        // The actual attachment will be done after a short delay to allow for multiple stores to be added at once
         attach: (store: Store<any>) => {
             dbg("store.syncMode", store.id, store.syncMode);
 
             if ((store.syncMode)) {
                 store.sync = sync;
 
-                setTimeout(() => {
+                attachTimer = setTimeout(() => {
                     store.resubscribe();
 
                     if (store.syncMode === "auto" || store.syncMode === "get") {
@@ -272,6 +253,7 @@ const createSync = (
             }
         },
 
+        // Subscribe to a topic from the server.
         subscribe: (topic: string, callback: (msg: Message) => void) => {
             const message: Message = {
                 storeId: topic,
@@ -285,6 +267,7 @@ const createSync = (
 
         },
 
+        // Unsubscribe from a topic.
         unsubscribe: (topic: string, callback: (msg: Message) => void) => {
             dbg("sync: Unsubscribing from topic: ", topic);
             const message: Message = {
@@ -302,37 +285,4 @@ const createSync = (
 
 }
 
-/**
- * Gets the Sync instance for the given endpoint and session ID.
- * 
- * @param endpoint - The endpoint to connect to.
- * @param sessionId - The session identifier.
- * @param getStore - Function to retrieve a specific store based on its ID.
- * @param getStores - Function to retrieve an iterable of all stores.
- * @returns The Sync instance.
- */
-function getSync(endpoint: string, sessionId: string, getStore: (id: string) => Store<any> | undefined, getStores: () => Map<string, Store<any>>, notAuthorizedCallback?: () => void): Sync {
-
-    if (sync__) {
-        return sync__;
-    }
-    sync__ = createSync(endpoint, sessionId, getStore, getStores, notAuthorizedCallback);
-    return sync__;
-}
-
-function stopSync() {
-    if (sync__) {
-        sync__.close();
-        sync__ = undefined;
-    }
-}
-
-function attach(store: Store<any>) {
-    if (sync__) {
-        sync__.attach(store);
-    } else {
-        log("No sync instance available to attach store: ", store.id);
-    }
-}
-
-export { getSync, stopSync, attach };
+export default sync;

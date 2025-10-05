@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { getStore } from "./Store";
+import { useContext, useMemo } from "react";
+import MocoviContext from "./MocoviContext";
 import logger from "./logger";
 import { BaseController, Model, Store } from "./types";
 import createUseCom from "./useCom";
@@ -15,8 +15,11 @@ function useController<Data extends Model>(storeId: string): {
     controller: BaseController<Data>;
     useCom: ReturnType<typeof createUseCom<Data>>;
 } {
+
+    const mocovi = useContext(MocoviContext);
+
     // Get the store
-    const store = useMemo(() => getStore(storeId) as Store<Data> | undefined, [storeId]);
+    const store = mocovi.getStore(storeId) as Store<Data> | undefined;
 
     if (!store) {
         err(`Store with ID '${storeId}' not found`);

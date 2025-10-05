@@ -1,10 +1,7 @@
-import "react";
 import createBaseController from "./createBaseController";
 import { createEventHandler } from "./EventHandler";
 import { addEntryToHistory, addStoreToHistory } from "./history";
-import { addStore, getStore, } from "./Store";
-import { BaseController, CreateCollectionOptions, Message, Model, Store, SyncModes } from "./types";
-import createUseCom from "./useCom";
+import { BaseController, StoreOptions, Message, Model, Store, SyncModes } from "./types";
 
 import useLog, { LOG_LEVEL_DEBUG, setLog } from "./logger";
 const { log, err, dbg, level } = useLog("createCollection");
@@ -20,14 +17,9 @@ let collectionCounter = 0;
 function createStore<Data extends Model, ExtraController extends object = {}>(
     id: string,
     initialData: Data[] = [],
-    options?: CreateCollectionOptions<Data, ExtraController>
+    options?: StoreOptions<Data, ExtraController>
 ): Store<Data, ExtraController> {
 
-    const existingStore = getStore(id) as Store<Data, ExtraController>;
-    if (existingStore) {
-        dbg("Collection with id already exists: ", id);
-        return existingStore;
-    }
 
     log("CREATE: ", id);
     ++collectionCounter
@@ -77,10 +69,6 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
     store.baseController = createBaseController<Data>(store);
     const customController = options?.createController?.(store.baseController) || {} as ExtraController;
     store.mergedController = { ...store.baseController, ...customController } as BaseController<Data> & ExtraController;
-
-    // Store it in our global map
-    addStore(store);
-
 
     // If history is enabled, we run this hack to expose it to debugging.
     // We are going to make a dev attacment point to this later, and 

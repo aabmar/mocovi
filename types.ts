@@ -54,7 +54,7 @@ type Model = {
 
 type SyncModes = "auto" | "set" | "get" | "manual" | false;
 
-type CreateCollectionOptions<Data, ExtraController = {}> = {
+type StoreOptions<Data, ExtraController = {}> = {
     createController?: CreateController<Data, ExtraController>
     persist?: Persist,
     sync?: SyncModes,
@@ -117,11 +117,27 @@ type UseStoreReturn<Data extends Model> = {
     model: Data | null
 };
 
+type MocoviContextContentType = {
+    getStore: (id: string) => Store<any> | undefined;
+    getStores: () => Map<string, Store<any>>;
+    addStore: <Data extends Model, ExtraController extends object = {}>(id: string, initialData: Data[], options?: StoreOptions<Data, ExtraController>) => Store<Data, ExtraController>,
+    clearAll: () => void;
+};
+
+type MocoviStoreDescriptor = {
+    id: string;
+    initialData: Model[];
+    options?: StoreOptions<any, any>;
+}
+
 export type {
     Store, Sync, Persist,
-    EventHandler, CreateCollectionOptions, CreateController,
+    EventHandler, StoreOptions, CreateController,
     UseController,
     Message, Model, BaseController,
     UseCom as UseCommand, ChangeEntry, ChangeLog,
-    MessageTypes, SyncModes, UseStoreReturn
+    MessageTypes, SyncModes, UseStoreReturn, MocoviContextContentType, Controller, MocoviStoreDescriptor
 };
+
+
+

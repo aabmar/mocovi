@@ -32,7 +32,7 @@
 				},
 				{
 					"match": "\\.(ts|json|tsx)$",
-					"cmd": "ls ../app/node_modules/mocovi/",
+					"cmd": "ls -l ../app/node_modules/mocovi/",
 				},
 			]
 		},
