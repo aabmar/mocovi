@@ -1,9 +1,9 @@
-import logger, { LOG_LEVEL_INFO, setLog } from "./logger";
+import logger, { LOG_LEVEL_DEBUG, LOG_LEVEL_INFO, setLog } from "./logger";
 import { Model } from './types';
 import { isDifferent } from './util';
 const { err, log, dbg, level } = logger("storage");
 
-// level(LOG_LEVEL_INFO);
+level(LOG_LEVEL_DEBUG);
 
 function createStorage<Data extends Model>(storeId: string) {
 

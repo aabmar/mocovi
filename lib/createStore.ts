@@ -71,7 +71,7 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
     store.mergedController = { ...store.baseController, ...customController } as BaseController<Data> & ExtraController;
 
     // If history is enabled, we run this hack to expose it to debugging.
-    // We are going to make a dev attacment point to this later, and 
+    // We are going to make a dev attacment point to this later, and
     // make dev tools enabling us to go back and forth in history.
     if (store.history) {
         addStoreToHistory(store);

@@ -1,18 +1,18 @@
 
 /**
  * Use this hook to start syncing to a store.
- * 
+ *
  * Because you need to be logged in to the server and have a session id, this hook should be used in your
  * context or layour or any component that is inside the logged in part of your app.
- * 
+ *
  * You need to give the hook the current sessionId and the endpoint to connect to.
 */
 
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { Sync } from "./types";
-import sync from "./sync";
-import MocoviContext from "./MocoviContext";
-import logger from "./logger";
+import { Sync } from "../lib/types";
+import sync from "../lib/sync";
+import MocoviContext from "../ctx/MocoviContext";
+import logger from "../lib/logger";
 
 const { log, err, dbg, level } = logger("useSync");
 

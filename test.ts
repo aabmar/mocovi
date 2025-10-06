@@ -1,3 +1,3 @@
-import createBaseController from "./createBaseController.js";
-import { modelDiff } from "./util.js";
+import createBaseController from "./lib/createBaseController.js";
+import { modelDiff } from "./lib/util.js";
 

@@ -1,12 +1,12 @@
 // Map all exports
 
-import { diff } from "./util";
-import useHistory from "./useHistory";
-import logger, { setLog } from "./logger";
-import useStore from "./useStore";
-import useController from "./useController";
-import MocoviContext, { MocoviProvider, MocoviProviderProps } from "./MocoviContext";
-import useSync from "./useSync";
+import { diff } from "./lib/util";
+import useHistory from "./hooks/useHistory";
+import logger, { setLog, LOG_LEVEL_DEBUG, LOG_LEVEL_ERROR, LOG_LEVEL_INFO, LOG_LEVEL_WARN } from "./lib/logger";
+import useStore from "./hooks/useStore";
+import useController from "./hooks/useController";
+import MocoviContext, { MocoviProvider, MocoviProviderProps } from "./ctx/MocoviContext";
+import useSync from "./hooks/useSync";
 
 import {
     Store, Sync, Persist,
@@ -15,32 +15,7 @@ import {
     Message, Model, BaseController,
     SyncModes, MessageTypes, MocoviContextContentType,
     MocoviStoreDescriptor
-} from "./types";
-
-// function mset(store: string, key: string, field: string, value: any) {
-
-//     if (!store || !key || !field) {
-//         console.log("mset(store, key and field, value) are required");
-//         return;
-//     }
-
-//     const s = getStore(store);
-//     if (!s) return console.log("store not found: ", store);
-
-//     s.baseController.setField(key, field, value);
-// }
-
-// function mget(store: string, key: string) {
-//     if (!store || !key) {
-//         console.log("mget(store, key) are required");
-//         return;
-//     }
-
-//     const s = getStore(store);
-//     if (!s) return console.log("store not found: ", store);
-
-//     return s.baseController.get(key);
-// }
+} from "./lib/types";
 
 export type {
     Store, Sync, Persist,
@@ -48,11 +23,13 @@ export type {
     UseController,
     Message, Model, BaseController,
     SyncModes, MessageTypes,
-    MocoviContextContentType, MocoviStoreDescriptor, MocoviProviderProps
+    MocoviContextContentType, MocoviStoreDescriptor, MocoviProviderProps,
 
 }
 
 export {
-    diff, useHistory, logger, setLog, useStore, useController, MocoviContext, useSync, MocoviProvider
+    diff, useHistory, logger, setLog, useStore, useController, MocoviContext, useSync, MocoviProvider,
+    LOG_LEVEL_DEBUG, LOG_LEVEL_ERROR, LOG_LEVEL_INFO, LOG_LEVEL_WARN
+
 };
 

@@ -1,7 +1,7 @@
 import { useContext, useMemo } from "react";
-import MocoviContext from "./MocoviContext";
-import logger from "./logger";
-import { BaseController, Model, Store } from "./types";
+import MocoviContext from "../ctx/MocoviContext";
+import logger from "../lib/logger";
+import { BaseController, Model, Store } from "../lib/types";
 import createUseCom from "./useCom";
 
 const { err } = logger("useController");

@@ -1,10 +1,10 @@
-import useLog, { LOG_LEVEL_DEBUG, LOG_LEVEL_INFO, setLog } from "./logger";
-const { log, dbg, err, level } = useLog("createBaseController");
+import logger, { LOG_LEVEL_DEBUG, LOG_LEVEL_INFO, setLog } from "./logger";
+const { log, dbg, err, level } = logger("BaseController");
 import { createStorage } from "./storage";
 import { BaseController, Message, Model, Store } from "./types";
 
 
-// level(LOG_LEVEL_DEBUG);
+level(LOG_LEVEL_DEBUG);
 
 
 function createBaseController<Data extends Model>(store: Store<Data>) {

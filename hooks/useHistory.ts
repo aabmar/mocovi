@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { ChangeLog } from "./types";
-import { eventHandler } from "./history";
+import { ChangeLog } from "../lib/types";
+import { eventHandler } from "../lib/history";
 
 
 export default function useHistory() {

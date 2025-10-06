@@ -1,11 +1,11 @@
 import { createContext, ReactNode, useRef } from "react";
-import createStore from "./createStore";
-import { MocoviContextContentType, MocoviStoreDescriptor, Model, Store, StoreOptions } from "./types";
+import createStore from "../lib/createStore";
+import { MocoviContextContentType, MocoviStoreDescriptor, Model, Store, StoreOptions } from "../lib/types";
 
 
 /**
  * The context type for Mocovi, providing methods to manage stores.
- * 
+ *
  * getStore: Retrieve a store by its ID.
  * getStores: Retrieve all stores.
  * addStore: Create a new store and add it to the stores map.

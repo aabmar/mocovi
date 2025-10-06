@@ -2,7 +2,7 @@
 import logger, { LOG_LEVEL_DEBUG, LOG_LEVEL_INFO } from "./logger";
 const { log, err, dbg, level } = logger("util");
 
-level(LOG_LEVEL_INFO);
+level(LOG_LEVEL_DEBUG);
 
 /**
  * Compare two objects and return the differences
@@ -93,7 +93,7 @@ function isDifferent(oldModel: { [key: string]: any } | undefined, newModel: { [
     }
 
     if (Object.keys(oldModel).length !== Object.keys(newModel).length) {
-        console.warn("isDifferent: different number of keys", Object.keys(oldModel).length, Object.keys(newModel).length);
+        dbg("isDifferent: different number of keys", Object.keys(oldModel).length, Object.keys(newModel).length);
         return true
     }
 

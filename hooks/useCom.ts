@@ -1,7 +1,7 @@
 import { useEffect } from "react";
-import { Message, MessageTypes, Store } from "./types";
-import { nanoid } from "./nanoid";
-import logger from "./logger";
+import { Message, MessageTypes, Store } from "../lib/types";
+import { nanoid } from "../lib/nanoid";
+import logger from "../lib/logger";
 
 const { log, err, dbg } = logger("useCom");
 
