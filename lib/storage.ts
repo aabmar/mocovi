@@ -3,7 +3,7 @@ import { Model } from './types';
 import { isDifferent } from './util';
 const { err, log, dbg, level } = logger("storage");
 
-level(LOG_LEVEL_DEBUG);
+// level(LOG_LEVEL_DEBUG);
 
 function createStorage<Data extends Model>(storeId: string) {
 

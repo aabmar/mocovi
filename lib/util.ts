@@ -2,7 +2,7 @@
 import logger, { LOG_LEVEL_DEBUG, LOG_LEVEL_INFO } from "./logger";
 const { log, err, dbg, level } = logger("util");
 
-level(LOG_LEVEL_DEBUG);
+// level(LOG_LEVEL_DEBUG);
 
 /**
  * Compare two objects and return the differences
