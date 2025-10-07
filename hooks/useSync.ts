@@ -22,6 +22,8 @@ export default function useSync(sessionId: string | null, endpoint: string, notA
     const syncRef = useRef<Sync | null>(null);
     const mocovi = useContext(MocoviContext);
 
+    const [connectionInfo, setConnectionInfo] = useState<{ endpoint: string | null, sessionId: string | null }>({ endpoint, sessionId });
+
     // Connect to the server and store the sync object in a ref
     const connect = useCallback(() => {
 
@@ -57,6 +59,20 @@ export default function useSync(sessionId: string | null, endpoint: string, notA
     useEffect(() => {
         log("useEffect() sessionId or endpoint changed. sessionId:", sessionId, "endpoint:", endpoint);
 
+        // Check if we have an existing endpoint
+        if (connectionInfo.endpoint !== endpoint || connectionInfo.sessionId !== sessionId) {
+
+            log("Endpoint changed from ", connectionInfo, " to ", endpoint);
+
+            if (syncRef.current) {
+                log("Closing existing sync connection due to connection info change. Old: ", connectionInfo, " New: ", { endpoint, sessionId });
+                syncRef.current.close();
+                syncRef.current = null;
+            }
+            setConnectionInfo({ endpoint, sessionId });
+        }
+
+
         if (sessionId && endpoint && mocovi) {
             connect();
             return () => {
@@ -69,7 +85,7 @@ export default function useSync(sessionId: string | null, endpoint: string, notA
 
         }
 
-    }, [sessionId, endpoint, syncRef, connect, mocovi]);
+    }, [sessionId, endpoint, syncRef, connect, mocovi, connectionInfo]);
 
 }
 
