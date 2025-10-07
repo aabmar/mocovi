@@ -19,7 +19,7 @@ function useController<Data extends Model>(storeId: string): {
     const mocovi = useContext(MocoviContext);
 
     // Get the store
-    const store = mocovi.getStore(storeId) as Store<Data> | undefined;
+    const store = mocovi?.getStore(storeId) as Store<Data> | undefined;
 
     if (!store) {
         err(`Store with ID '${storeId}' not found`);
