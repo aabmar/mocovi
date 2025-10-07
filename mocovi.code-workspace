@@ -26,14 +26,14 @@
 		"emeraldwalk.runonsave": {
 			// "shell": "cmd.exe",
 			"commands": [
-				{
-					"match": "\\.(ts|json|tsx)$",
-					"cmd": "cp ${fileBasename} ../app/node_modules/mocovi/${fileBasename}",
-				},
-				{
-					"match": "\\.(ts|json|tsx)$",
-					"cmd": "ls -l ../app/node_modules/mocovi/",
-				},
+				// {
+				// 	"match": "\\.(ts|json|tsx)$",
+				// 	"cmd": "cp ${file} ../app/node_modules/mocovi/${file}",
+				// },
+				// 	{
+				// 		"match": "\\.(ts|json|tsx)$",
+				// 		"cmd": "echo \"file ${file} copied to ../app/node_modules/mocovi/${file}\"",
+				// 	},
 			]
 		},
 		"terminal.integrated.fontSize": 12,
