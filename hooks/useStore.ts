@@ -7,51 +7,7 @@ import { isDifferent } from "../lib/util";
 import MocoviContext from "../ctx/MocoviContext";
 const { log, err, dbg, level } = logger("useStore");
 
-// level(LOG_LEVEL_DEBUG);
-
-
-// function useStore<Data extends Model>(storeId: string): UseStoreReturn<Data>;
-
-// /**
-//  * Hook for accessing models filtered by ID or criteria
-//  * Returns an object with the filtered collection, functions to update the collection and models,
-//  * and the controller for advanced operations
-//  * Component will re-render on any change in the matching models
-//  * If filter is a string, it's treated as an ID filter (returns an array of 1 or 0 items)
-//  * If filter is an object, it's used to filter by multiple properties
-//  * If filter is null, it returns an empty array. In React, hooks need to be constant, so if the component doesn't have the ID of the model yet, it will not fail.
-//  */
-// function useStore<Data extends Model>(
-//     storeId: string,
-//     filter: string | Partial<Record<keyof Data, string | RegExp>> | null
-// ): UseStoreReturn<Data>;
-
-// /**
-//  * Hook for accessing models filtered by ID or criteria and sorted by a key
-//  * Returns an object with the filtered and sorted collection, functions to update the collection and models,
-//  * and the controller for advanced operations
-//  * Component will re-render on any change in the matching models.
-//  * filter can be a string (then checking the field named "id"), an object ("key" : "search value" | Regex), or null (empty collection).
-//  */
-// function useStore<Data extends Model>(
-//     storeId: string,
-//     filter: string | Partial<Record<keyof Data, string | RegExp>> | null,
-//     sort: keyof Data | ((a: Data, b: Data) => number) | null
-// ): UseStoreReturn<Data>;
-
-// /**
-//  * Hook for accessing models by ID and with re-render filter.
-//  * It will return the model identified by ID as {model}.
-//  * The eventFilter, if given, will only do a re-render (local state update) when
-//  * the specified fields in Model is/are changed. Has to be an array.
-//  */
-// function useStore<Data extends Model>(
-//     storeId: string,
-//     id: string | null,
-//     sort: keyof Data | ((a: Data, b: Data) => number) | null,
-//     eventFilter: (keyof Data)[]
-// ): UseStoreReturn<Data>;
-
+level(LOG_LEVEL_DEBUG);
 
 
 /**
@@ -79,43 +35,36 @@ function useStore<Data extends Model>(
     // Set the last parameter to the correct variable based on type.
 
     // Get the store
-    const store = mocovi.getStore(storeId);
+    const store = mocovi?.getStore(storeId);
 
     if (!store) {
         err(`Store with ID '${storeId}' not found`);
         throw new Error(`Store with ID '${storeId}' not found`);
     }
 
-    const fs = JSON.stringify(filter || {});
+    // Normalize filter - convert string ID to object filter
+    let parsedFilter: Partial<Record<keyof Data, string | RegExp>> | null = null;
+    if (typeof filter === 'string') {
+        parsedFilter = { id: filter } as Partial<Record<keyof Data, string | RegExp>>;
+    } else if (filter === null) {
+        parsedFilter = null;
+    } else {
+        parsedFilter = filter;
+    }
 
-    const { parsedFilter, filterString } = useMemo(() => {
-        // Normalize filter - convert string ID to object filter
-        let parsedFilter: Partial<Record<keyof Data, string | RegExp>> | null = null;
-        if (typeof filter === 'string') {
-            parsedFilter = { id: filter } as Partial<Record<keyof Data, string | RegExp>>;
-        } else if (filter === null) {
-            parsedFilter = null;
+    // For use by memo / effect, we need a unique string representation of the filter
+    const filterClone: Partial<Record<keyof Data, string | RegExp>> = {};
+    for (const key in parsedFilter) {
+        const value = parsedFilter[key];
+        if (value instanceof RegExp) {
+            filterClone[key] = value.toString(); // Convert RegExp to string representation
         } else {
-            parsedFilter = filter;
+            filterClone[key] = value; // Keep other values as is
         }
+    }
+    const filterString = parsedFilter ? JSON.stringify(filterClone) : "null";
 
-        // For use by memo / effect, we need a unique string representation of the filter
-        const filterClone: Partial<Record<keyof Data, string | RegExp>> = {};
-        for (const key in parsedFilter) {
-            const value = parsedFilter[key];
-            if (value instanceof RegExp) {
-                filterClone[key] = value.toString(); // Convert RegExp to string representation
-            } else {
-                filterClone[key] = value; // Keep other values as is
-            }
-        }
-
-        // Use the clone for JSON.stringify
-        const filterString = (parsedFilter === null ? "null" : JSON.stringify(filterClone));
-        return { parsedFilter, filterString };
-    }, [fs]); // Only re-run if filter changes
-
-    dbg("Using filter: ", filterString, " ( ", fs, " )", " and sortByKey: ", sort, " in store: ", storeId);
+    log("Using filter: ", filterString, " ( ", (filter ? JSON.stringify(filter) : "null"), " )", " and sortByKey: ", sort, " in store: ", storeId);
 
     // Create a function that applies filtering and sorting to data
     const processData = useCallback((data: Data[]): Data[] => {
@@ -138,7 +87,7 @@ function useStore<Data extends Model>(
                         if (value instanceof RegExp) {
                             return value.test(String(model[key as keyof Data]));
                         }
-                        return model[key as keyof Data] === value;
+                        return model[key as keyof Data]?.toString().startsWith(value);
                     });
                 });
 
