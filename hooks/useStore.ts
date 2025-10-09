@@ -7,7 +7,7 @@ import { isDifferent } from "../lib/util";
 import MocoviContext from "../ctx/MocoviContext";
 const { log, err, dbg, level } = logger("useStore");
 
-level(LOG_LEVEL_DEBUG);
+// level(LOG_LEVEL_DEBUG);
 
 
 /**
@@ -90,8 +90,6 @@ function useStore<Data extends Model>(
                         return model[key as keyof Data]?.toString().startsWith(value);
                     });
                 });
-
-                dbg("Search Result on store: ", storeId, ":", result);
 
             }
 
