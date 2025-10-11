@@ -14,7 +14,9 @@ type BaseController<Data> = {
     set: (model: Data, markChanged?: boolean) => void;
     setCollection: (newCollection: Data[], source?: "persist" | "sync" | false) => void;
     setField: (modelId: string, key: keyof Data, value: any, markChanged?: boolean) => void;
-    fetch(id?: string | string[]): void;
+    fetchModel(id: string): void;
+    fetchCollection(): void;
+    fetchSearch(query: { [key: string]: any }): void;
     delete: (modelId: string) => void;
     __getAndResetChanges: () => ChangeEntry;
     size: () => number;
@@ -83,7 +85,7 @@ type Store<Data extends Model, ExtraController = {}> = {
     resubscribe: () => void;
 };
 
-type MessageTypes = "get" | "set" | "cmd" | "response" | "update" | "subscribe" | "unsubscribe" | "direct" | "broadcast" | "list" | "delete" | "subscribed";
+type MessageTypes = "get" | "set" | "cmd" | "response" | "update" | "subscribe" | "unsubscribe" | "direct" | "broadcast" | "list" | "search" | "delete" | "subscribed";
 
 type Message = {
     // Object with storename as key, and one array of models for each store

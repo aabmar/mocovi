@@ -14,26 +14,14 @@
 			"titleBar.activeBackground": "#e68fe3",
 			"activityBar.background": "#bf78bd",
 		},
-		"[Visual Studio Light]": {
-			"titleBar.activeBackground": "#e68fe3",
-			"activityBar.background": "#bf78bd",
-		},
-		"[Monokai Dimmed]": {
-			"titleBar.activeBackground": "#530850",
-			"activityBar.background": "#530850",
-		},
 		"editor.formatOnSave": true,
 		"emeraldwalk.runonsave": {
 			// "shell": "cmd.exe",
 			"commands": [
-				// {
-				// 	"match": "\\.(ts|json|tsx)$",
-				// 	"cmd": "cp ${file} ../app/node_modules/mocovi/${file}",
-				// },
-				// 	{
-				// 		"match": "\\.(ts|json|tsx)$",
-				// 		"cmd": "echo \"file ${file} copied to ../app/node_modules/mocovi/${file}\"",
-				// 	},
+				{
+					"match": "\\.(ts|json|tsx)$",
+					"cmd": "rsync -av . ../agenten/node_modules/mocovi/ --exclude=\"node_modules\" --exclude=\".git\"",
+				},
 			]
 		},
 		"terminal.integrated.fontSize": 12,
@@ -44,6 +32,7 @@
 		"github.copilot.chat.edits.temporalContext.enabled": true,
 		"github.copilot.chat.generateTests.codeLens": true,
 		"github.copilot.chat.languageContext.typescript.enabled": true,
-		"window.autoDetectColorScheme": true,
+		"window.autoDetectColorScheme": false,
+		"workbench.colorTheme": "Visual Studio Light",
 	},
 }

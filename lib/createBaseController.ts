@@ -113,20 +113,20 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
 
         },
 
-
-        fetch(id?: string | string[] | [{ id: string }]) {
-
-            // If not id, let it be an empty array. If its a string, an array with one string. Else, its an array of strings.
-            let models: Model[];
-            if (!id) {
-                models = [];
-            } else if (typeof id === "string") {
-                models = [{ id }];
-            } else if (Array.isArray(id) && id.length > 0 && typeof id[0] === 'object') {
-                models = id as [{ id: string }];
-            } else if (Array.isArray(id)) {
-                models = (id as string[]).map((id: string) => ({ id }));
+        fetchCollection() {
+            if (store.sync) {
+                // Send a get data message
+                const message: Message = {
+                    storeId: store.id,
+                    operation: "list",
+                    payload: []
+                }
+                store.sync.send(message);
             }
+        },
+
+        fetchModel(id: string) {
+            const models = [{ id }];
 
             if (store.sync) {
                 // Send a get data message
@@ -134,6 +134,18 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
                     storeId: store.id,
                     operation: "get",
                     payload: models
+                }
+                store.sync.send(message);
+            }
+        },
+
+        fetchSearch(query: { [key: string]: string }) {
+            if (store.sync) {
+                // Send a search message
+                const message: Message = {
+                    storeId: store.id,
+                    operation: "search",
+                    payload: [query]
                 }
                 store.sync.send(message);
             }
