@@ -28,7 +28,7 @@
 			"commands": [
 				{
 					"match": "\\.(ts|json|tsx)$",
-					"cmd": "rsync -av . ../agenten/node_modules/mocovi/ --exclude=\"node_modules\" --exclude=\".git\"",
+					"cmd": "rsync -av . ../app/node_modules/mocovi/ --exclude=\"node_modules\" --exclude=\".git\"",
 				},
 			]
 		},

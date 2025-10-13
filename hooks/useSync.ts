@@ -20,6 +20,8 @@ const { log, err, dbg, level } = logger("useSync");
 export default function useSync(sessionId: string | null, endpoint: string, notAuthorizedCallback?: () => void) {
 
     const syncRef = useRef<Sync | null>(null);
+    const reconnectRef = useRef<any>(null);
+
     const mocovi = useContext(MocoviContext);
 
     const [connectionInfo, setConnectionInfo] = useState<{ endpoint: string | null, sessionId: string | null }>({ endpoint, sessionId });
@@ -35,12 +37,17 @@ export default function useSync(sessionId: string | null, endpoint: string, notA
         function onClose() {
             log("onClose() called. Reconnecting in 5 seconds...");
             syncRef.current = null;
-            setTimeout(() => {
-                connect();
+
+            // Set up timer for reconnect. If already set, clear it first.
+            if (reconnectRef.current) {
+                clearTimeout(reconnectRef.current);
+            }
+            reconnectRef.current = setTimeout(() => {
+                callSync();
             }, 5000);
         }
 
-        function connect() {
+        function callSync() {
             if (!sessionId || !endpoint || !mocovi) {
                 err("useSync: No sessionId, endpoint or mocovi context");
                 return;
@@ -49,10 +56,24 @@ export default function useSync(sessionId: string | null, endpoint: string, notA
             syncRef.current = sync(endpoint, sessionId, mocovi?.getStore, mocovi?.getStores, notAuthorizedCallback, onClose);
         }
 
-        connect();
+        callSync();
 
-    }, [sessionId, endpoint, mocovi]);
+    }, [sessionId, endpoint, mocovi, notAuthorizedCallback, reconnectRef, syncRef]);
 
+    const disconnect = useCallback(() => {
+
+        // Cancel any pending reconnect attempts
+        if (reconnectRef.current) {
+            clearTimeout(reconnectRef.current);
+            reconnectRef.current = null;
+        }
+
+        // Close the sync connection if it exists
+        if (syncRef.current) {
+            syncRef.current.close();
+            syncRef.current = null;
+        }
+    }, [syncRef, reconnectRef]);
 
     // Connect when the sessionId or endpoint changes.
     // It returns a cleanup function that closes the connection.
@@ -64,12 +85,12 @@ export default function useSync(sessionId: string | null, endpoint: string, notA
 
             log("Endpoint changed from ", connectionInfo, " to ", endpoint);
 
-            if (syncRef.current) {
-                log("Closing existing sync connection due to connection info change. Old: ", connectionInfo, " New: ", { endpoint, sessionId });
-                syncRef.current.close();
-                syncRef.current = null;
-            }
+            disconnect();
+
             setConnectionInfo({ endpoint, sessionId });
+
+            log("Updated connectionInfo to ", { endpoint, sessionId }, ". Reconnect will be attempted on next render.");
+            return;
         }
 
 
@@ -77,10 +98,7 @@ export default function useSync(sessionId: string | null, endpoint: string, notA
             connect();
             return () => {
                 log("useEffect() cleanup. Closing sync connection.");
-                if (syncRef.current) {
-                    syncRef.current.close();
-                    syncRef.current = null;
-                }
+                disconnect();
             }
 
         }
