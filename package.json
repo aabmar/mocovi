@@ -1,6 +1,6 @@
 {
     "name": "mocovi",
-    "version": "0.18.4",
+    "version": "0.18.5",
     "description": "Data Store core, with no boilerplate",
     "main": "index.ts",
     "type": "module",
@@ -9,12 +9,10 @@
     },
     "author": "Marius Aabel",
     "license": "Copyright 2025 Marius Aabel. Can be used as is, at your own responsibility.",
-    "dependencies": {
-        "nanoid": "^5.0.9"
-    },
+    "dependencies": {},
     "devDependencies": {
         "@babel/core": "^7.20.0",
-        "@types/react": "^18",
+        "@types/react": "^19",
         "typescript": "^5.3.3"
     }
 }
