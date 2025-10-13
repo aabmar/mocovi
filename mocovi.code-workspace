@@ -26,14 +26,10 @@
 		"emeraldwalk.runonsave": {
 			// "shell": "cmd.exe",
 			"commands": [
-				// {
-				// 	"match": "\\.(ts|json|tsx)$",
-				// 	"cmd": "cp ${file} ../app/node_modules/mocovi/${file}",
-				// },
-				// 	{
-				// 		"match": "\\.(ts|json|tsx)$",
-				// 		"cmd": "echo \"file ${file} copied to ../app/node_modules/mocovi/${file}\"",
-				// 	},
+				{
+					"match": "\\.(ts|json|tsx)$",
+					"cmd": "rsync -av . ../agenten/node_modules/mocovi/ --exclude=\"node_modules\" --exclude=\".git\"",
+				},
 			]
 		},
 		"terminal.integrated.fontSize": 12,
