@@ -20,7 +20,7 @@ type MocoviProviderProps = {
     storeDescriptors?: MocoviStoreDescriptor[];
 }
 
-function MocoviProvider({ children, storeDescriptors }: MocoviProviderProps): JSX.Element {
+function MocoviProvider({ children, storeDescriptors }: MocoviProviderProps) {
 
     const storesRef = useRef<Map<string, Store<any>>>(new Map());
 
