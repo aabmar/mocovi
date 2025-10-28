@@ -247,7 +247,7 @@ const sync = (
 
                     if (store.syncMode === "auto" || store.syncMode === "get") {
                         dbg("sync ws.onopen: store.fetch()", store.id);
-                        store.mergedController.fetch();
+                        store.mergedController.fetchCollection();
                     }
                 }, 1000);
             }

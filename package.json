@@ -9,9 +9,7 @@
     },
     "author": "Marius Aabel",
     "license": "Copyright 2025 Marius Aabel. Can be used as is, at your own responsibility.",
-    "dependencies": {
-        "nanoid": "^5.0.9"
-    },
+    "dependencies": {},
     "devDependencies": {
         "@babel/core": "^7.20.0",
         "@types/react": "^18",

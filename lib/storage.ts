@@ -1,5 +1,5 @@
 import logger, { LOG_LEVEL_DEBUG, LOG_LEVEL_INFO, setLog } from "./logger";
-import { Model } from './types';
+import { Model, NanoId } from './types';
 import { isDifferent } from './util';
 const { err, log, dbg, level } = logger("storage");
 
@@ -13,7 +13,7 @@ function createStorage<Data extends Model>(storeId: string) {
     const updated = new Map<string, Data>();
     const previous = new Map<string, Data>();
 
-    function get(modelId: string): Data | null {
+    function get(modelId: NanoId): Data | null {
         return internalStorage.get(modelId) || null;
     }
 
@@ -86,7 +86,7 @@ function createStorage<Data extends Model>(storeId: string) {
         return true;
     }
 
-    function delete_(id: string): boolean {
+    function delete_(id: NanoId): boolean {
         const original = internalStorage.get(id);
 
         if (!original) {
@@ -167,7 +167,7 @@ function createStorage<Data extends Model>(storeId: string) {
         return false;
     }
 
-    function has(id: string) {
+    function has(id: NanoId) {
         return internalStorage.has(id);
     }
 

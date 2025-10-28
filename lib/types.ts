@@ -1,3 +1,8 @@
+
+// string of length 21
+type NanoId = string;
+
+
 type EventHandler<Data> = {
     subscribe: (callback: (data: Data) => void) => void,
     notify: (data: Data) => void,
@@ -6,25 +11,25 @@ type EventHandler<Data> = {
 
 type BaseController<Data> = {
     clear: () => void;
-    get: (modelId: string | undefined) => Data | null;
+    get: (modelId: NanoId | undefined) => Data | null;
     getCollection: () => Data[];
     getInternalStorage(): Map<string, Data>;
-    getField: (modelId: string, key: keyof Data) => any;
+    getField: (modelId: NanoId, key: keyof Data) => any;
 
     set: (model: Data, markChanged?: boolean) => void;
     setCollection: (newCollection: Data[], source?: "persist" | "sync" | false) => void;
-    setField: (modelId: string, key: keyof Data, value: any, markChanged?: boolean) => void;
-    fetchModel(id: string): void;
+    setField: (modelId: NanoId, key: keyof Data, value: any, markChanged?: boolean) => void;
+    fetchModel(id: NanoId): void;
     fetchCollection(): void;
     fetchSearch(query: { [key: string]: any }): void;
-    delete: (modelId: string) => void;
+    delete: (modelId: NanoId) => void;
     __getAndResetChanges: () => ChangeEntry;
     size: () => number;
     getFirst: () => Data | null;
     getLast: () => Data | null;
     getNewest: () => Data | null;
     getOldest: () => Data | null;
-    has: (modelId: string) => boolean;
+    has: (modelId: NanoId) => boolean;
     subscribe: (callback: (data: Data[]) => void) => (data: Data[]) => void;
     unsubscribe: (callback: (data: Data[]) => void) => void;
 };
@@ -45,7 +50,7 @@ type Sync = {
 }
 
 type Model = {
-    id: string;
+    id: NanoId; // required
     created_at?: number; //  Set on server
     updated_at?: number; // Set on server
     synced_at?: number; // set on client
@@ -138,7 +143,8 @@ export type {
     UseController,
     Message, Model, BaseController,
     UseCom as UseCommand, ChangeEntry, ChangeLog,
-    MessageTypes, SyncModes, UseStoreReturn, MocoviContextContentType, Controller, MocoviStoreDescriptor
+    MessageTypes, SyncModes, UseStoreReturn, MocoviContextContentType, Controller, MocoviStoreDescriptor,
+    NanoId
 };
 
 

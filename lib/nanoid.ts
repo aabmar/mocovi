@@ -3,6 +3,8 @@
 // Due to not being exported in the original package, and then
 // giving import errors, I just lifted the code from the package
 
+import { NanoId } from "./types"
+
 let urlAlphabet =
     'useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict'
 let customAlphabet = (alphabet: string, defaultSize = 21) => {
@@ -16,7 +18,7 @@ let customAlphabet = (alphabet: string, defaultSize = 21) => {
     }
 }
 
-let nanoid = (size = 21) => {
+let nanoid = (size = 21): NanoId => {
     let id = ''
     let i = size | 0
     while (i--) {
