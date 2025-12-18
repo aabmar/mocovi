@@ -15,14 +15,22 @@ export default function createUseCom<Data extends { id: string }>(store: Store<D
         function send(cmd: string, payload?: any, operation: MessageTypes = "cmd") {
             log("useCommand() send(): ", cmd, payload);
 
-            const message: Message = {
-                storeId: store.id,
-                operation,
-                cmd,
-                payload: payload || []
+            if (store.syncAdapter?.sendCommand) {
+                // Use new adapter's sendCommand if available
+                store.syncAdapter.sendCommand(store.id, cmd, payload);
+            } else if (store.sync) {
+                // Legacy WebSocket sync
+                const message: Message = {
+                    storeId: store.id,
+                    operation,
+                    cmd,
+                    payload: payload || []
+                }
+                dbg("useCommand(): ", message);
+                store.sync?.send(message);
+            } else {
+                err("No sync adapter or sync object available");
             }
-            dbg("useCommand(): ", message);
-            store.sync?.send(message);
         }
 
         useEffect(() => {
@@ -33,8 +41,8 @@ export default function createUseCom<Data extends { id: string }>(store: Store<D
             }
 
             setTimeout(() => {
-                if (!store.sync) {
-                    dbg("useCom() useEffect() no sync");
+                if (!store.syncAdapter && !store.sync) {
+                    dbg("useCom() useEffect() no sync adapter or sync");
                     return
                 }
 

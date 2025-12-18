@@ -27,6 +27,7 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
 
     // Set the sync mode
     const syncMode: SyncModes = options?.sync ? options.sync : false;
+    const syncAdapter = options?.syncAdapter;
 
     const store: Store<Data, ExtraController> = {
         id,
@@ -37,6 +38,7 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
         persist: options?.persist,
         syncMode,
         sync: undefined,
+        syncAdapter,
         initialData: originalInitialData, // should we do this? might be a lot of data
         history: true,
         subscribesTo: new Map<(msg: Message) => void, string>,
@@ -44,13 +46,23 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
         subscribe: (topic: string, callback: (msg: Message) => void) => {
             dbg("store: Subscribing to topic: ", topic);
             store.subscribesTo.set(callback, topic);
-            return store.sync.subscribe(topic, callback);
+
+            if (store.syncAdapter?.subscribe) {
+                store.syncAdapter.subscribe(topic, callback);
+            } else if (store.sync) {
+                return store.sync.subscribe(topic, callback);
+            }
         },
 
         unsubscribe: (topic: string, callback: (msg: Message) => void) => {
             dbg("store: Unsubscribing from topic: ", topic);
             store.subscribesTo.delete(callback);
-            if (store.sync) return store.sync.unsubscribe(topic, callback);
+
+            if (store.syncAdapter?.unsubscribe) {
+                store.syncAdapter.unsubscribe(topic, callback);
+            } else if (store.sync) {
+                return store.sync.unsubscribe(topic, callback);
+            }
             return undefined;
         },
 
@@ -59,7 +71,12 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
             dbg("store: resubscribe: ", store.id);
             for (let [callback, topic] of store.subscribesTo) {
                 dbg("store: resubscribe: ", store.id, topic);
-                store.sync?.subscribe(topic, callback);
+
+                if (store.syncAdapter?.subscribe) {
+                    store.syncAdapter.subscribe(topic, callback);
+                } else if (store.sync) {
+                    store.sync?.subscribe(topic, callback);
+                }
             }
         }
 
@@ -147,18 +164,50 @@ function createStore<Data extends Model, ExtraController extends object = {}>(
                 store.persist.set(id, JSON.stringify(collectionData));
             }
 
-            const sendChanges = store.sync?.sendChanges;
-            if (!sendChanges) {
-                dbg("no sendChanges() function. Probably waiting to be connected...");
-                return;
-            }
-
-            // If we have a sync object and mode is set to one supporting SET,
-            // we send the data to the sync object
+            // Handle sync with new adapter or legacy sync
             const syncMode = store.syncMode;
-            if ((syncMode === "auto" || syncMode === "set")) {
-                log("SYNC: ", store.id, syncMode, changes.inserted.length, changes.updated.length, changes.deleted.length);
-                sendChanges(store, changes);
+            if (syncMode === "auto" || syncMode === "set") {
+                if (store.syncAdapter) {
+                    // New adapter-based sync
+                    log("SYNC ADAPTER: ", store.id, syncMode, changes.inserted.length, changes.updated.length, changes.deleted.length);
+
+                    const combined = [...changes.inserted, ...changes.updated];
+                    const modelsToSync = combined.filter((model) => model.changed_at);
+
+                    // Send creates/updates
+                    if (modelsToSync.length > 0) {
+                        store.syncAdapter.update(store.id, modelsToSync)
+                            .then(() => {
+                                // Clear changed_at after successful sync
+                                for (let model of modelsToSync) {
+                                    model.changed_at = undefined;
+                                    store.baseController.set(model as Data, false);
+                                }
+                            })
+                            .catch((err) => {
+                                log("Error syncing updates:", err);
+                            });
+                    }
+
+                    // Send deletes
+                    if (changes.deleted.length > 0) {
+                        const ids = changes.deleted.map(m => m.id);
+                        store.syncAdapter.delete(store.id, ids)
+                            .catch((err) => {
+                                log("Error syncing deletes:", err);
+                            });
+                    }
+                } else {
+                    // Legacy WebSocket sync
+                    const sendChanges = store.sync?.sendChanges;
+                    if (!sendChanges) {
+                        dbg("no sendChanges() function. Probably waiting to be connected...");
+                        return;
+                    }
+
+                    log("SYNC: ", store.id, syncMode, changes.inserted.length, changes.updated.length, changes.deleted.length);
+                    sendChanges(store, changes);
+                }
             }
         }
 

@@ -153,10 +153,18 @@ function createStorage<Data extends Model>(storeId: string) {
 
                 if (!newModel) continue;
 
-                internalStorage.set(key, newModel);
-                if (markChange) {
-                    previous.set(key, JSON.parse(JSON.stringify(original)));
-                    updated.set(key, newModel);
+                // If we should preserve locally changed models
+                const modelHasChanged = original?.changed_at ? true : false;
+
+                // Only update if deleteChanged is true OR model hasn't changed locally
+                if (deleteChanged || !modelHasChanged) {
+                    internalStorage.set(key, newModel);
+                    if (markChange) {
+                        previous.set(key, JSON.parse(JSON.stringify(original)));
+                        updated.set(key, newModel);
+                    }
+                } else {
+                    dbg("setArray() skipping update for locally changed model: ", key);
                 }
             }
 

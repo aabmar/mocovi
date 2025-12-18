@@ -15,6 +15,7 @@ type BaseController<Data> = {
     setCollection: (newCollection: Data[], source?: "persist" | "sync" | false) => void;
     setField: (modelId: string, key: keyof Data, value: any, markChanged?: boolean) => void;
     fetch(id?: string | string[]): void;
+    fetchById(id: string | string[]): void;
     delete: (modelId: string) => void;
     __getAndResetChanges: () => ChangeEntry;
     size: () => number;
@@ -42,6 +43,22 @@ type Sync = {
     unsubscribe: (topic: string, callback: (msg: Message) => void) => void;
 }
 
+type SyncAdapter = {
+    connect(): Promise<void>;
+    disconnect(): void;
+    fetchCollection(storeId: string): Promise<Model[]>;
+    fetchById(storeId: string, ids: string[]): Promise<Model[]>;
+    create(storeId: string, models: Model[]): Promise<void>;
+    update(storeId: string, models: Model[]): Promise<void>;
+    delete(storeId: string, ids: string[]): Promise<void>;
+    subscribe?(storeId: string, callback: (msg: Message) => void): void;
+    unsubscribe?(storeId: string, callback: (msg: Message) => void): void;
+    // For custom commands (optional, mainly for WebSocket)
+    sendCommand?(storeId: string, cmd: string, payload?: any): void;
+}
+
+type SyncAdapterFactory = (options: any) => SyncAdapter;
+
 type Model = {
     id: string;
     created_at?: number; //  Set on server
@@ -58,6 +75,7 @@ type StoreOptions<Data, ExtraController = {}> = {
     createController?: CreateController<Data, ExtraController>
     persist?: Persist,
     sync?: SyncModes,
+    syncAdapter?: SyncAdapter,
     useHistory?: boolean,
 };
 
@@ -74,6 +92,7 @@ type Store<Data extends Model, ExtraController = {}> = {
     persist?: Persist;
     syncMode: SyncModes;
     sync?: Sync;
+    syncAdapter?: SyncAdapter;
     syncCallback?: (changes: { inserted: Model[]; updated: Model[]; deleted: Model[]; previous: Model[]; }) => void;
     initialData?: Data[];
     history?: boolean;
@@ -92,6 +111,7 @@ type Message = {
     payload: Model[] | {};
     cmd?: string; // Can be freely used on broadcast and direct
     sessionId?: string; // set this to null, and the system will assign it on sync.send()
+    error_code?: number; // Error code for error messages
 }
 
 type UseCom = (callback?: (message: Message) => void) => { send: (cmd: string, payload?: any, operation?: MessageTypes) => void };
@@ -129,15 +149,16 @@ type MocoviStoreDescriptor = {
     initialData: Model[];
     options?: StoreOptions<any, any>;
 }
-
 export type {
     Store, Sync, Persist,
     EventHandler, StoreOptions, CreateController,
     UseController,
     Message, Model, BaseController,
     UseCom as UseCommand, ChangeEntry, ChangeLog,
-    MessageTypes, SyncModes, UseStoreReturn, MocoviContextContentType, Controller, MocoviStoreDescriptor
+    MessageTypes, SyncModes, UseStoreReturn, MocoviContextContentType, Controller, MocoviStoreDescriptor,
+    SyncAdapter, SyncAdapterFactory
 };
+
 
 
 

@@ -128,8 +128,62 @@ function createBaseController<Data extends Model>(store: Store<Data>) {
                 models = (id as string[]).map((id: string) => ({ id }));
             }
 
-            if (store.sync) {
-                // Send a get data message
+            if (store.syncAdapter) {
+                // Use new adapter-based sync
+                if (models.length === 0) {
+                    // Fetch entire collection
+                    store.syncAdapter.fetchCollection(store.id)
+                        .then((data) => {
+                            baseController.setCollection(data as Data[], "sync");
+                        })
+                        .catch((error) => {
+                            err("Error fetching collection:", error);
+                        });
+                } else {
+                    // Fetch specific models by ID
+                    const ids = models.map(m => m.id);
+                    store.syncAdapter.fetchById(store.id, ids)
+                        .then((data) => {
+                            // Update individual models without replacing collection
+                            for (let model of data) {
+                                baseController.set(model as Data, false);
+                            }
+                        })
+                        .catch((error) => {
+                            err("Error fetching models by ID:", error);
+                        });
+                }
+            } else if (store.sync) {
+                // Legacy WebSocket sync
+                const message: Message = {
+                    storeId: store.id,
+                    operation: "get",
+                    payload: models
+                }
+                store.sync.send(message);
+            }
+        },
+
+        fetchById(id: string | string[]) {
+            log("FETCH BY ID: ", store.id, id);
+
+            const ids = Array.isArray(id) ? id : [id];
+
+            if (store.syncAdapter) {
+                // Use new adapter-based sync
+                store.syncAdapter.fetchById(store.id, ids)
+                    .then((data) => {
+                        // Update individual models without replacing collection
+                        for (let model of data) {
+                            baseController.set(model as Data, false);
+                        }
+                    })
+                    .catch((error) => {
+                        err("Error fetching models by ID:", error);
+                    });
+            } else if (store.sync) {
+                // Legacy sync - fetch by ID
+                const models = ids.map(modelId => ({ id: modelId }));
                 const message: Message = {
                     storeId: store.id,
                     operation: "get",

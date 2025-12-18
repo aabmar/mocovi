@@ -5,7 +5,7 @@ Mocovi is a React state management library designed for managing collections of 
 ## Key Features
 
 - **Type-safe collections** of models with required `id` field
-- **Reactive hooks** with optimized change detection and selective re-rendering  
+- **Reactive hooks** with optimized change detection and selective re-rendering
 - **Flexible data access** with filtering, sorting, and regex support
 - **Non-reactive access** for background operations without triggering re-renders
 - **Pluggable persistence** with synchronous storage backends
@@ -33,7 +33,7 @@ createCollection<User>("users", [
 // Use the collection in your components
 function UserList() {
   const { collection, setModel } = useStore<User>("users");
-  
+
   return (
     <div>
       {collection.map(user => (
@@ -53,7 +53,7 @@ All data in Mocovi must implement the `Model` interface with a required `id` fie
 interface Model {
   id: string;
   created_at?: number;
-  updated_at?: number; 
+  updated_at?: number;
   synced_at?: number;
   deleted_at?: number;
   changed_at?: number;
@@ -90,14 +90,14 @@ Returns array with 0-1 models matching the ID. `model` is `collection[0] || null
 ### Filtered Access by Criteria
 ```typescript
 // Filter by multiple fields
-const { collection } = useStore<User>("users", { 
-  role: "admin", 
-  active: true 
+const { collection } = useStore<User>("users", {
+  role: "admin",
+  active: true
 });
 
 // Filter with regex
-const { collection } = useStore<User>("users", { 
-  name: /^John/ 
+const { collection } = useStore<User>("users", {
+  name: /^John/
 });
 ```
 Returns models matching all specified criteria.
@@ -130,21 +130,21 @@ import { useController } from 'mocovi';
 
 function BackgroundSync() {
   const { controller, useCom } = useController<User>("users");
-  
+
   useEffect(() => {
     const handleChange = (data: User[]) => {
       console.log('Data changed but component won\'t re-render');
     };
-    
+
     controller.subscribe(handleChange);
     return () => controller.unsubscribe(handleChange);
   }, []);
-  
+
   const syncData = () => {
     // Direct data manipulation without re-renders
     controller.set({ id: "new", name: "New User", email: "new@example.com", role: "user" });
   };
-  
+
   return <button onClick={syncData}>Sync Data</button>;
 }
 ```
@@ -197,7 +197,7 @@ createCollection<User, UserController>("users", initialData, {
 
 The following hooks are maintained for backward compatibility but should be migrated to `useStore`:
 
-- `useCollection()` → `useStore("storeId")`  
+- `useCollection()` → `useStore("storeId")`
 - `useModel("modelId")` → `useStore("storeId", "modelId")`
 - `useSelected()` → custom filtering with `useStore`
 - Legacy `useController()` → `useStore` for most cases, or new `useController("storeId")` for non-reactive access
@@ -214,10 +214,34 @@ const persist = {
 };
 ```
 
+### Synchronization with Adapters (NEW!)
+Mocovi now supports pluggable sync adapters for flexible backend communication. Choose between REST, WebSocket, or create your own custom adapter.
+
+For detailed documentation on sync adapters, see **[SYNC_ADAPTERS.md](./SYNC_ADAPTERS.md)**.
+
+Quick example with REST adapter:
+```typescript
+import { createRESTSyncAdapter } from 'mocovi';
+
+const restAdapter = createRESTSyncAdapter({
+  baseUrl: 'https://api.example.com/api',
+  sessionId: 'your-token'
+});
+
+await restAdapter.connect();
+
+// Use in store options
+const store = createCollection("users", [], {
+  sync: 'auto',
+  syncAdapter: restAdapter,
+  persist: myPersistAdapter
+});
+```
+
 ### Synchronization Modes
 - `"auto"` - Full bidirectional sync (send and receive changes)
 - `"get"` - Only receive changes from server
-- `"set"` - Only send changes to server  
+- `"set"` - Only send changes to server
 - `"manual"` - Use `controller.fetch()` and manual sync
 - `false` - No synchronization
 
@@ -265,7 +289,7 @@ const [selected, setSelected] = useSelected();
 
 // NEW: Unified useStore
 const { collection, setCollection } = useStore<User>("users");
-const { model, setModel } = useStore<User>("users", "user123"); 
+const { model, setModel } = useStore<User>("users", "user123");
 // For selected, implement custom selection logic with filtering
 ```
 
